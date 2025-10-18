@@ -16,16 +16,16 @@ export class DashboardPage {
 
   constructor(page: Page) {
     this.page = page;
-    this.title = page.locator('h1');
+    this.title = page.getByRole('heading', { name: 'ダッシュボード' });
     this.description = page.locator('text=祝い品の管理状況を確認できます');
     this.pendingReturnsCard = page.locator('text=未対応');
     this.monthlyAmountCard = page.locator('text=今月');
     this.completedReturnsCard = page.locator('text=対応済');
     this.totalAmountCard = page.locator('text=総額');
-    this.quickActionGiftButton = page.locator('text=贈答品を登録');
-    this.quickActionPersonButton = page.locator('text=人物を登録');
+    this.quickActionGiftButton = page.getByRole('button', { name: '🎁 贈答品を登録' });
+    this.quickActionPersonButton = page.getByRole('button', { name: '👤 人物を登録' });
     this.recentGiftsSection = page.locator('text=最近の贈答品');
-    this.viewAllGiftsLink = page.locator('text=すべて見る →');
+    this.viewAllGiftsLink = page.getByRole('link', { name: 'すべて見る →' });
     this.emptyState = page.locator('text=まだ贈答品が登録されていません');
   }
 

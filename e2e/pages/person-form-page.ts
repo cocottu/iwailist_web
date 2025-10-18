@@ -13,13 +13,13 @@ export class PersonFormPage {
 
   constructor(page: Page) {
     this.page = page;
-    this.title = page.locator('h1');
-    this.nameInput = page.locator('input[name="name"]');
-    this.furiganaInput = page.locator('input[name="furigana"]');
-    this.relationshipSelect = page.locator('select[name="relationship"]');
-    this.memoTextarea = page.locator('textarea[name="memo"]');
-    this.submitButton = page.locator('button[type="submit"]');
-    this.cancelButton = page.locator('text=キャンセル');
+    this.title = page.getByRole('heading', { name: '人物を登録' });
+    this.nameInput = page.locator('input[placeholder="例: 田中太郎"]');
+    this.furiganaInput = page.locator('input[placeholder="例: タナカタロウ"]');
+    this.relationshipSelect = page.locator('select');
+    this.memoTextarea = page.locator('textarea[placeholder="特記事項があれば入力してください"]');
+    this.submitButton = page.getByRole('button', { name: '登録する' });
+    this.cancelButton = page.getByRole('button', { name: 'キャンセル' });
     this.validationErrors = page.locator('.error, [role="alert"]');
   }
 
@@ -45,7 +45,7 @@ export class PersonFormPage {
   }
 
   async selectRelationship(relationship: string) {
-    await this.relationshipSelect.selectOption({ label: relationship });
+    await this.relationshipSelect.selectOption({ value: relationship });
   }
 
   async fillMemo(memo: string) {

@@ -4,12 +4,14 @@ import { GiftListPage } from './pages/gift-list-page';
 import { GiftFormPage } from './pages/gift-form-page';
 import { PersonListPage } from './pages/person-list-page';
 import { PersonFormPage } from './pages/person-form-page';
-import { clearDatabase, createTestPerson, createTestGift } from './helpers/test-helpers';
+import { clearDatabase, clearTestData, createTestPerson, createTestGift } from './helpers/test-helpers';
 
 test.describe('統合テスト - 完全なワークフロー', () => {
   test.beforeEach(async ({ page }) => {
     // 各テストの前にデータベースをクリア
     await clearDatabase(page);
+    // 代替手段として個別データもクリア
+    await clearTestData(page);
   });
 
   test('人物登録から贈答品登録までの完全なワークフロー', async ({ page }) => {
@@ -36,10 +38,10 @@ test.describe('統合テスト - 完全なワークフロー', () => {
     await dashboardPage.clickGiftRegistration();
     await giftFormPage.fillForm({
       giftName: 'テスト贈答品',
-      personId: 'テスト太郎',
+      personId: personId,
       receivedDate: '2024-01-01',
-      category: 'お菓子',
-      returnStatus: '未対応',
+      category: 'その他',
+      returnStatus: 'pending',
       amount: 5000,
       memo: 'テスト用の贈答品データ'
     });
@@ -127,10 +129,19 @@ test.describe('統合テスト - 完全なワークフロー', () => {
     const giftListPage = new GiftListPage(page);
 
     // 1. テストデータを作成
+    // 人物を作成してIDを取得
     await createTestPerson(page, { name: '山田太郎', relationship: '友人' });
-    await createTestPerson(page, { name: '山田花子', relationship: '同僚' });
-    await createTestGift(page, { giftName: 'お菓子セット', personId: '山田太郎', receivedDate: '2024-01-01', category: 'お菓子', returnStatus: '未対応' });
-    await createTestGift(page, { giftName: '花束', personId: '山田花子', receivedDate: '2024-01-02', category: '花', returnStatus: '対応済' });
+    await page.waitForTimeout(1000);
+    const person1Url = page.url();
+    const person1Id = person1Url.split('/').pop();
+    
+    await createTestPerson(page, { name: '山田花子', relationship: '会社関係' });
+    await page.waitForTimeout(1000);
+    const person2Url = page.url();
+    const person2Id = person2Url.split('/').pop();
+    
+    await createTestGift(page, { giftName: 'お菓子セット', personId: person1Id, receivedDate: '2024-01-01', category: 'その他', returnStatus: 'pending' });
+    await createTestGift(page, { giftName: '花束', personId: person2Id, receivedDate: '2024-01-02', category: 'その他', returnStatus: 'completed' });
 
     // 2. 人物検索をテスト
     await personListPage.goto();
