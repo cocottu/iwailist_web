@@ -1,12 +1,30 @@
-# To get started with Dependabot version updates, you'll need to specify which
-# package ecosystems to update and where the package manifests are located.
-# Please see the documentation for all configuration options:
-# https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
-
+# Dependabot設定 - 個人開発プロジェクト用
+# このプロジェクトはReact + TypeScript + ViteのWebアプリケーションです
+# 詳細: https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
 
 version: 2
 updates:
-  - package-ecosystem: "" # See documentation for possible values
-    directory: "/" # Location of package manifests
+  # npmパッケージの更新
+  - package-ecosystem: "npm"
+    directory: "/"
     schedule:
       interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Tokyo"
+    # 個人開発なので、すべての依存関係を更新対象に
+    open-pull-requests-limit: 10
+    # セキュリティ更新は即座に
+    ignore:
+      # メジャーバージョンアップは手動で確認
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+    # ラベルを追加して管理しやすく
+    labels:
+      - "dependencies"
+      - "automated"
+    # コミットメッセージの設定
+    commit-message:
+      prefix: "chore"
+      prefix-development: "chore"
+      include: "scope"

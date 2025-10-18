@@ -23,6 +23,8 @@ export const Loading: React.FC<LoadingProps> = ({
         className={`animate-spin ${sizeClasses[size]} text-blue-600`}
         fill="none"
         viewBox="0 0 24 24"
+        role="img"
+        aria-label="読み込み中"
       >
         <circle
           className="opacity-25"
