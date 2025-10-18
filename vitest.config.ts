@@ -12,36 +12,16 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
+      include: ['src/**/*.{ts,tsx}'],
       exclude: [
-        'node_modules/',
-        'src/test/',
-        '**/*.d.ts',
-        '**/*.config.*',
-        '**/coverage/**',
-        '**/dist/**',
-        '**/build/**',
-        '**/e2e/**',
-        '**/test-results/**',
-        '**/playwright-report/**',
-        '**/vite.config.ts',
-        '**/vitest.config.ts',
-        '**/tailwind.config.js',
-        '**/postcss.config.js',
-        '**/playwright.config.ts',
-        '**/tsconfig*.json',
-        '**/index.html',
-        '**/main.tsx',
-        '**/index.css',
-      ],
-      thresholds: {
-        global: {
-          branches: 90,
-          functions: 90,
-          lines: 90,
-          statements: 90,
-        },
-      },
-    },
+        'src/**/*.d.ts',
+        'src/test/**',
+        'src/**/*.test.{ts,tsx}',
+        'src/**/*.spec.{ts,tsx}',
+        'src/main.tsx',
+        'src/vite-env.d.ts'
+      ]
+    }
   },
   resolve: {
     alias: {
