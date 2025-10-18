@@ -55,6 +55,7 @@
 - **ルーティング**: React Router
 - **日付処理**: date-fns
 - **PWA**: Vite PWA Plugin
+- **外部API**: GitHub REST API v3
 
 ## セットアップ
 
@@ -86,12 +87,26 @@ npm run preview
 
 ```bash
 # .env.local ファイルを作成（gitignore済み）
-VITE_API_URL=http://localhost:3000/api
-VITE_API_KEY=your_api_key_here
-VITE_DEBUG=false
+cp .env.example .env.local
+# .env.local を編集して必要な値を設定
 ```
 
+`.env.example` ファイルに設定可能な環境変数のテンプレートがあります。
+
 **重要**: `.env.local` ファイルは絶対にコミットしないでください。
+
+#### GitHub API連携（オプション）
+
+GitHubのissueを取得する機能を使用する場合：
+
+1. GitHub Personal Access Tokenを取得: https://github.com/settings/tokens
+2. `.env.local` に以下を追加：
+```bash
+VITE_GITHUB_TOKEN=ghp_your_token_here
+```
+
+パブリックリポジトリの場合、トークンなしでも使用可能です（レート制限あり）。
+詳細は [GitHub統合ドキュメント](docs/github-integration.md) を参照してください。
 
 ## プロジェクト構造
 

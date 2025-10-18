@@ -6,6 +6,7 @@ interface ImportMetaEnv {
   readonly VITE_APP_ENV: string
   readonly VITE_LOG_LEVEL: string
   readonly VITE_DEBUG_MODE: string
+  readonly VITE_GITHUB_TOKEN?: string
   // 他の環境変数もここに追加
 }
 

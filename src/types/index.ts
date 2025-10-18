@@ -168,3 +168,35 @@ export interface ReturnFormData {
   amount?: number;
   memo?: string;
 }
+
+// GitHub Issue の型定義
+export interface GitHubIssue {
+  id: number;
+  number: number;
+  title: string;
+  state: 'open' | 'closed';
+  body: string | null;
+  user: {
+    login: string;
+    avatar_url: string;
+  };
+  labels: Array<{
+    name: string;
+    color: string;
+  }>;
+  created_at: string;
+  updated_at: string;
+  html_url: string;
+  comments: number;
+}
+
+export interface GitHubIssueListParams {
+  owner: string;
+  repo: string;
+  state?: 'open' | 'closed' | 'all';
+  labels?: string;
+  sort?: 'created' | 'updated' | 'comments';
+  direction?: 'asc' | 'desc';
+  per_page?: number;
+  page?: number;
+}
