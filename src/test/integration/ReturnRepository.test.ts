@@ -114,6 +114,49 @@ describe('ReturnRepository Integration Tests', () => {
     })
   })
 
+  describe('deleteByGiftId', () => {
+    it('贈答品IDに関連するすべてのお返しが削除される', async () => {
+      const giftId = 'gift-1'
+      const giftReturns = [mockReturns[0], { ...mockReturns[0], id: 'return-2' }]
+      
+      // トランザクションのモックを設定
+      const mockStore = {
+        delete: vi.fn().mockResolvedValue(undefined)
+      }
+      const mockTx = {
+        objectStore: vi.fn().mockReturnValue(mockStore),
+        done: Promise.resolve()
+      }
+      
+      mockDB.getAllFromIndex.mockResolvedValue(giftReturns)
+      mockDB.transaction.mockReturnValue(mockTx)
+
+      await returnRepository.deleteByGiftId(giftId)
+
+      expect(mockDB.getAllFromIndex).toHaveBeenCalledWith('returns', 'giftId', giftId)
+      expect(mockDB.transaction).toHaveBeenCalledWith('returns', 'readwrite')
+      expect(mockStore.delete).toHaveBeenCalledTimes(giftReturns.length)
+    })
+
+    it('贈答品IDに関連するお返しがない場合でもエラーにならない', async () => {
+      const giftId = 'nonexistent-gift'
+      
+      const mockStore = {
+        delete: vi.fn()
+      }
+      const mockTx = {
+        objectStore: vi.fn().mockReturnValue(mockStore),
+        done: Promise.resolve()
+      }
+      
+      mockDB.getAllFromIndex.mockResolvedValue([])
+      mockDB.transaction.mockReturnValue(mockTx)
+
+      await expect(returnRepository.deleteByGiftId(giftId)).resolves.not.toThrow()
+      expect(mockStore.delete).not.toHaveBeenCalled()
+    })
+  })
+
   describe('エラーハンドリング', () => {
     it('データベース接続エラーが適切に処理される', async () => {
       const error = new Error('Connection failed')
