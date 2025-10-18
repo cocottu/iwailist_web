@@ -108,7 +108,7 @@ describe('Layout', () => {
     render(
       <TestWrapper>
         <Layout>
-          {}
+          {null}
         </Layout>
       </TestWrapper>
     )

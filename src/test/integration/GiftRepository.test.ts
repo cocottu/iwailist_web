@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { GiftRepository } from '@/database/repositories/giftRepository'
 import { mockGifts } from '@/test/mocks/mockData'
-import { Gift } from '@/types'
 
 // データベースのモック
 const mockDB = {

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor, fireEvent } from '@/test/utils/testUtils'
+import { render, screen, waitFor } from '@/test/utils/testUtils'
 import { Dashboard } from '@/pages/Dashboard'
 import { mockGifts, mockPersons } from '@/test/mocks/mockData'
 import { GiftRepository, PersonRepository } from '@/database'

@@ -75,7 +75,7 @@ describe('Badge', () => {
   })
 
   it('空の子要素でも正しくレンダリングされる', () => {
-    render(<Badge status="pending"></Badge>)
+    render(<Badge status="pending">{null}</Badge>)
     const badges = screen.getAllByRole('generic')
     const badge = badges.find(el => el.classList.contains('bg-yellow-100'))
     expect(badge).toBeInTheDocument()
