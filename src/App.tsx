@@ -31,6 +31,7 @@ function App() {
           <Route path="/persons/:id" element={<PersonDetail />} />
           <Route path="/persons/:id/edit" element={<PersonForm />} />
           <Route path="/statistics" element={<Statistics />} />
+          <Route path="*" element={<Dashboard />} />
         </Routes>
       </Layout>
     </Router>

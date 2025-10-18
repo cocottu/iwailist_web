@@ -7,6 +7,7 @@ import { Person } from '@/types'
 const mockDB = {
   add: vi.fn(),
   get: vi.fn(),
+  getAll: vi.fn(),
   getAllFromIndex: vi.fn(),
   put: vi.fn(),
   delete: vi.fn(),
@@ -15,6 +16,9 @@ const mockDB = {
 vi.mock('@/database/schema', () => ({
   getDB: vi.fn(() => Promise.resolve(mockDB))
 }))
+
+// リポジトリのモックを無効化して実際の実装を使用
+vi.unmock('@/database/repositories/personRepository')
 
 describe('PersonRepository Integration Tests', () => {
   let personRepository: PersonRepository
@@ -156,6 +160,9 @@ describe('PersonRepository Integration Tests', () => {
     it('大文字小文字を区別しない検索', async () => {
       const userId = 'demo-user'
       const searchText = 'TANAKA'
+      
+      // モックデータを設定
+      mockDB.getAllFromIndex.mockResolvedValue(mockPersons)
       
       const result = await personRepository.search(userId, searchText)
 

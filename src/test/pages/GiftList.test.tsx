@@ -215,8 +215,10 @@ describe('GiftList', () => {
     // 人物名の表示確認
     expect(screen.getByText('田中太郎')).toBeInTheDocument()
     
-    // カテゴリの表示確認
-    expect(screen.getByText('誕生日')).toBeInTheDocument()
+    // カテゴリの表示確認（最初の贈答品の詳細情報のみ）
+    const categoryLabels = screen.getAllByText('カテゴリ:')
+    const firstCategoryValue = categoryLabels[0].parentElement?.querySelector('.text-gray-900')
+    expect(firstCategoryValue).toHaveTextContent('お祝い')
     
     // 金額の表示確認（金額がある場合）
     expect(screen.getByText('5,000円')).toBeInTheDocument()
