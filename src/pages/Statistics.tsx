@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Card, Loading, EmptyState } from '@/components/ui';
 import { GiftRepository, PersonRepository } from '@/database';
 import { Gift, Person, GiftCategory } from '@/types';
@@ -37,17 +37,16 @@ export const Statistics: React.FC = () => {
     }
   };
 
-  const getYearlyData = () => {
+  const yearGifts = useMemo(() => {
     const yearStart = startOfYear(new Date(selectedYear, 0, 1));
     const yearEnd = endOfYear(new Date(selectedYear, 11, 31));
     
     return gifts.filter(gift => 
       gift.receivedDate >= yearStart && gift.receivedDate <= yearEnd
     );
-  };
+  }, [gifts, selectedYear]);
 
-  const getMonthlyData = () => {
-    const yearGifts = getYearlyData();
+  const getMonthlyData = (yearGifts: Gift[]) => {
     const months = eachMonthOfInterval({
       start: startOfYear(new Date(selectedYear, 0, 1)),
       end: endOfYear(new Date(selectedYear, 11, 31))
@@ -71,8 +70,7 @@ export const Statistics: React.FC = () => {
     });
   };
 
-  const getCategoryData = () => {
-    const yearGifts = getYearlyData();
+  const getCategoryData = (yearGifts: Gift[]) => {
     const categoryMap = new Map<GiftCategory, number>();
     
     yearGifts.forEach(gift => {
@@ -89,8 +87,7 @@ export const Statistics: React.FC = () => {
       .sort((a, b) => b.count - a.count);
   };
 
-  const getPersonData = () => {
-    const yearGifts = getYearlyData();
+  const getPersonData = (yearGifts: Gift[]) => {
     const personMap = new Map<string, { person: Person; count: number; amount: number }>();
     
     yearGifts.forEach(gift => {
@@ -105,11 +102,10 @@ export const Statistics: React.FC = () => {
     
     return Array.from(personMap.values())
       .sort((a, b) => b.count - a.count)
-      .slice(0, 10); // 上位10人
+      .slice(0, 10);
   };
 
-  const getReturnStatusData = () => {
-    const yearGifts = getYearlyData();
+  const getReturnStatusData = (yearGifts: Gift[]) => {
     const statusMap = {
       pending: 0,
       completed: 0,
@@ -128,8 +124,7 @@ export const Statistics: React.FC = () => {
     };
   };
 
-  const getTotalStats = () => {
-    const yearGifts = getYearlyData();
+  const getTotalStats = (yearGifts: Gift[]) => {
     const totalAmount = yearGifts.reduce((sum, gift) => sum + (gift.amount || 0), 0);
     const avgAmount = yearGifts.length > 0 ? totalAmount / yearGifts.length : 0;
     
@@ -140,6 +135,12 @@ export const Statistics: React.FC = () => {
     };
   };
 
+  const monthlyData = useMemo(() => getMonthlyData(yearGifts), [yearGifts, selectedYear]);
+  const categoryData = useMemo(() => getCategoryData(yearGifts), [yearGifts]);
+  const personData = useMemo(() => getPersonData(yearGifts), [yearGifts, persons]);
+  const returnStatusData = useMemo(() => getReturnStatusData(yearGifts), [yearGifts]);
+  const totalStats = useMemo(() => getTotalStats(yearGifts), [yearGifts]);
+
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -147,13 +148,6 @@ export const Statistics: React.FC = () => {
       </div>
     );
   }
-
-  const yearGifts = getYearlyData();
-  const monthlyData = getMonthlyData();
-  const categoryData = getCategoryData();
-  const personData = getPersonData();
-  const returnStatusData = getReturnStatusData();
-  const totalStats = getTotalStats();
 
   const availableYears = Array.from(
     new Set(gifts.map(g => g.receivedDate.getFullYear()))
@@ -221,24 +215,27 @@ export const Statistics: React.FC = () => {
           <Card className="p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">月別受取金額</h2>
             <div className="space-y-3">
-              {monthlyData.map((data, index) => (
-                <div key={index} className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600 w-12">{data.month}</span>
-                  <div className="flex-1 mx-4">
-                    <div className="bg-gray-200 rounded-full h-2">
-                      <div
-                        className="bg-blue-600 h-2 rounded-full"
-                        style={{
-                          width: `${monthlyData.length > 0 ? (data.amount / Math.max(...monthlyData.map(d => d.amount))) * 100 : 0}%`
-                        }}
-                      ></div>
+              {(() => {
+                const maxAmount = monthlyData.length > 0 ? Math.max(...monthlyData.map(d => d.amount)) : 0;
+                return monthlyData.map((data, index) => (
+                  <div key={index} className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600 w-12">{data.month}</span>
+                    <div className="flex-1 mx-4">
+                      <div className="bg-gray-200 rounded-full h-2">
+                        <div
+                          className="bg-blue-600 h-2 rounded-full"
+                          style={{
+                            width: `${maxAmount > 0 ? (data.amount / maxAmount) * 100 : 0}%`
+                          }}
+                        ></div>
+                      </div>
                     </div>
+                    <span className="text-sm font-medium text-gray-900 w-20 text-right">
+                      {data.amount.toLocaleString()}円
+                    </span>
                   </div>
-                  <span className="text-sm font-medium text-gray-900 w-20 text-right">
-                    {data.amount.toLocaleString()}円
-                  </span>
-                </div>
-              ))}
+                ));
+              })()}
             </div>
           </Card>
 
