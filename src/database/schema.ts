@@ -100,7 +100,10 @@ export async function getDB(): Promise<IDBPDatabase<IwailistDB>> {
 export async function initializeDB(): Promise<void> {
   try {
     await getDB();
-    console.log('IndexedDB initialized successfully');
+    // 本番環境ではログを出力しない
+    if (import.meta.env.DEV) {
+      console.log('IndexedDB initialized successfully');
+    }
   } catch (error) {
     console.error('Failed to initialize IndexedDB:', error);
     throw error;

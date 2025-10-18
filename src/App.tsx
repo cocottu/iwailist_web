@@ -14,7 +14,9 @@ import { Statistics } from '@/pages/Statistics';
 function App() {
   useEffect(() => {
     // データベース初期化
-    initializeDB().catch(console.error);
+    initializeDB().catch((error) => {
+      console.error('Failed to initialize database:', error);
+    });
   }, []);
 
   return (
