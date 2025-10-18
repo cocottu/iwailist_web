@@ -67,7 +67,7 @@ describe('Dashboard', () => {
     })
 
     // 統計カードの確認 - テキストが分割されている可能性を考慮
-    expect(screen.getByText('未対応')).toBeInTheDocument()
+    expect(screen.getAllByText('未対応')).toHaveLength(2) // 統計カードと贈答品リストの両方に存在
     expect(screen.getByText('3')).toBeInTheDocument()
     expect(screen.getByText('件')).toBeInTheDocument()
     expect(screen.getByText('今月')).toBeInTheDocument()
@@ -120,7 +120,7 @@ describe('Dashboard', () => {
     // 贈答品の表示確認
     expect(screen.getByText('テストギフト')).toBeInTheDocument()
     expect(screen.getByText(/田中太郎/)).toBeInTheDocument()
-    expect(screen.getByText('誕生日')).toBeInTheDocument()
+    expect(screen.getByText('お祝い')).toBeInTheDocument()
   })
 
   it('贈答品がない場合のEmptyStateが表示される', async () => {
@@ -187,7 +187,7 @@ describe('Dashboard', () => {
 
     // 正常な状態に戻ることを確認（タイムアウトを長めに設定）
     await waitFor(() => {
-      expect(screen.getByText(/ダッシュボード/)).toBeInTheDocument()
+      expect(screen.getByText('最近の贈答品')).toBeInTheDocument()
     }, { timeout: 5000 })
   })
 

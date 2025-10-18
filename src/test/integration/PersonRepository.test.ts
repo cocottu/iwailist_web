@@ -7,6 +7,7 @@ import { Person } from '@/types'
 const mockDB = {
   add: vi.fn(),
   get: vi.fn(),
+  getAll: vi.fn(),
   getAllFromIndex: vi.fn(),
   put: vi.fn(),
   delete: vi.fn(),

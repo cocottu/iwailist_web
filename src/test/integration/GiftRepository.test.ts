@@ -7,6 +7,7 @@ import { Gift } from '@/types'
 const mockDB = {
   add: vi.fn(),
   get: vi.fn(),
+  getAll: vi.fn(),
   getAllFromIndex: vi.fn(),
   put: vi.fn(),
   delete: vi.fn(),
@@ -229,7 +230,7 @@ describe('GiftRepository Integration Tests', () => {
         { ...mockGifts[1], returnStatus: 'completed' as any, amount: 3000 },
         { ...mockGifts[2], returnStatus: 'pending' as any, amount: 8000 },
       ]
-      mockDB.getAllFromIndex.mockResolvedValue(gifts)
+      mockDB.getAll.mockResolvedValue(gifts)
 
       const result = await giftRepository.getStatistics(userId)
 
@@ -242,7 +243,7 @@ describe('GiftRepository Integration Tests', () => {
 
     it('贈答品がない場合の統計データ', async () => {
       const userId = 'demo-user'
-      mockDB.getAllFromIndex.mockResolvedValue([])
+      mockDB.getAll.mockResolvedValue([])
 
       const result = await giftRepository.getStatistics(userId)
 
@@ -261,7 +262,7 @@ describe('GiftRepository Integration Tests', () => {
         { ...mockGifts[0], amount: undefined },
         { ...mockGifts[1], amount: 3000 },
       ]
-      mockDB.getAllFromIndex.mockResolvedValue(gifts)
+      mockDB.getAll.mockResolvedValue(gifts)
 
       const result = await giftRepository.getStatistics(userId)
 
