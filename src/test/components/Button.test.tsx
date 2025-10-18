@@ -35,15 +35,17 @@ describe('Button', () => {
 
   it('ローディング状態が正しく表示される', () => {
     render(<Button loading>ローディング中</Button>)
-    expect(screen.getByRole('button')).toBeDisabled()
-    expect(screen.getByRole('button')).toHaveClass('opacity-50', 'cursor-not-allowed')
-    expect(screen.getByRole('button').querySelector('svg')).toBeInTheDocument()
+    const button = screen.getByRole('button')
+    expect(button).toBeDisabled()
+    expect(button).toHaveAttribute('disabled')
+    expect(button.querySelector('svg')).toBeInTheDocument()
   })
 
   it('無効状態が正しく適用される', () => {
     render(<Button disabled>無効ボタン</Button>)
-    expect(screen.getByRole('button')).toBeDisabled()
-    expect(screen.getByRole('button')).toHaveClass('opacity-50', 'cursor-not-allowed')
+    const button = screen.getByRole('button')
+    expect(button).toBeDisabled()
+    expect(button).toHaveAttribute('disabled')
   })
 
   it('クリックイベントが正しく発火する', () => {

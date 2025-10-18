@@ -10,14 +10,14 @@ describe('Card', () => {
 
   it('基本のスタイルが適用される', () => {
     render(<Card>テストカード</Card>)
-    const card = screen.getByText('テストカード').parentElement
+    const card = screen.getByText('テストカード')
     expect(card).toHaveClass('bg-white')
     expect(card).toHaveClass('rounded-lg')
   })
 
   it('ホバー効果が正しく適用される', () => {
     render(<Card hover>ホバーカード</Card>)
-    const card = screen.getByText('ホバーカード').parentElement
+    const card = screen.getByText('ホバーカード')
     expect(card).toHaveClass('hover:shadow-md')
     expect(card).toHaveClass('transition-shadow')
   })
@@ -26,16 +26,16 @@ describe('Card', () => {
     const handleClick = vi.fn()
     render(<Card onClick={handleClick}>クリックカード</Card>)
     
-    const card = screen.getByText('クリックカード').parentElement
+    const card = screen.getByText('クリックカード')
     expect(card).toHaveClass('cursor-pointer')
     
-    fireEvent.click(card!)
+    fireEvent.click(card)
     expect(handleClick).toHaveBeenCalledTimes(1)
   })
 
   it('カスタムクラスが正しく適用される', () => {
     render(<Card className="custom-card">カスタムカード</Card>)
-    const card = screen.getByText('カスタムカード').parentElement
+    const card = screen.getByText('カスタムカード')
     expect(card).toHaveClass('custom-card')
   })
 
@@ -57,11 +57,13 @@ describe('Card', () => {
     const handleClick = vi.fn()
     render(<Card onClick={handleClick} hover={false}>クリックカード</Card>)
     
-    const card = screen.getByText('クリックカード').parentElement
+    const card = screen.getByText('クリックカード')
     expect(card).toHaveClass('cursor-pointer')
-    expect(card).not.toHaveClass('hover:shadow-md', 'hover:border-gray-300', 'transition-shadow')
+    expect(card).not.toHaveClass('hover:shadow-md')
+    expect(card).not.toHaveClass('hover:border-gray-300')
+    expect(card).not.toHaveClass('transition-shadow')
     
-    fireEvent.click(card!)
+    fireEvent.click(card)
     expect(handleClick).toHaveBeenCalledTimes(1)
   })
 })

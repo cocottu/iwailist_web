@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor } from '@/test/utils/testUtils'
+import { render, screen, waitFor } from '@testing-library/react'
 import App from '@/App'
 import { MemoryRouter } from 'react-router-dom'
 
@@ -75,6 +75,8 @@ describe('App Integration Tests', () => {
   })
 
   it('ギフト一覧ページが表示される', async () => {
+    // ブラウザの履歴を変更してページを移動
+    window.history.pushState({}, '', '/gifts')
     render(<App />)
 
     await waitFor(() => {
@@ -83,6 +85,7 @@ describe('App Integration Tests', () => {
   })
 
   it('ギフト新規作成ページが表示される', async () => {
+    window.history.pushState({}, '', '/gifts/new')
     render(<App />)
 
     await waitFor(() => {
@@ -91,6 +94,7 @@ describe('App Integration Tests', () => {
   })
 
   it('ギフト詳細ページが表示される', async () => {
+    window.history.pushState({}, '', '/gifts/1')
     render(<App />)
 
     await waitFor(() => {
@@ -99,6 +103,7 @@ describe('App Integration Tests', () => {
   })
 
   it('ギフト編集ページが表示される', async () => {
+    window.history.pushState({}, '', '/gifts/1/edit')
     render(<App />)
 
     await waitFor(() => {
@@ -107,6 +112,7 @@ describe('App Integration Tests', () => {
   })
 
   it('人物一覧ページが表示される', async () => {
+    window.history.pushState({}, '', '/persons')
     render(<App />)
 
     await waitFor(() => {
@@ -115,6 +121,7 @@ describe('App Integration Tests', () => {
   })
 
   it('人物新規作成ページが表示される', async () => {
+    window.history.pushState({}, '', '/persons/new')
     render(<App />)
 
     await waitFor(() => {
@@ -123,6 +130,7 @@ describe('App Integration Tests', () => {
   })
 
   it('人物詳細ページが表示される', async () => {
+    window.history.pushState({}, '', '/persons/1')
     render(<App />)
 
     await waitFor(() => {
@@ -131,6 +139,7 @@ describe('App Integration Tests', () => {
   })
 
   it('人物編集ページが表示される', async () => {
+    window.history.pushState({}, '', '/persons/1/edit')
     render(<App />)
 
     await waitFor(() => {
@@ -139,6 +148,7 @@ describe('App Integration Tests', () => {
   })
 
   it('統計ページが表示される', async () => {
+    window.history.pushState({}, '', '/statistics')
     render(<App />)
 
     await waitFor(() => {
@@ -157,6 +167,7 @@ describe('App Integration Tests', () => {
   })
 
   it('存在しないルートの場合、ダッシュボードが表示される', async () => {
+    window.history.pushState({}, '', '/nonexistent')
     render(<App />)
 
     await waitFor(() => {

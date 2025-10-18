@@ -52,13 +52,12 @@ vi.mock('@/database', () => ({
 vi.mock('@/database/repositories/giftRepository', () => ({
   GiftRepository: vi.fn().mockImplementation(() => ({
     getAll: vi.fn(() => Promise.resolve([])),
-    getById: vi.fn(() => Promise.resolve(null)),
-    create: vi.fn(() => Promise.resolve({ id: '1' })),
+    get: vi.fn(() => Promise.resolve(undefined)),
+    create: vi.fn(() => Promise.resolve()),
     update: vi.fn(() => Promise.resolve()),
     delete: vi.fn(() => Promise.resolve()),
     getByPersonId: vi.fn(() => Promise.resolve([])),
-    getByCategory: vi.fn(() => Promise.resolve([])),
-    getByReturnStatus: vi.fn(() => Promise.resolve([])),
+    getPendingReturns: vi.fn(() => Promise.resolve([])),
     query: vi.fn(() => Promise.resolve([])),
     getStatistics: vi.fn(() => Promise.resolve({
       total: 0,
@@ -73,12 +72,12 @@ vi.mock('@/database/repositories/giftRepository', () => ({
 vi.mock('@/database/repositories/personRepository', () => ({
   PersonRepository: vi.fn().mockImplementation(() => ({
     getAll: vi.fn(() => Promise.resolve([])),
-    getById: vi.fn(() => Promise.resolve(null)),
-    create: vi.fn(() => Promise.resolve({ id: '1' })),
+    get: vi.fn(() => Promise.resolve(undefined)),
+    create: vi.fn(() => Promise.resolve()),
     update: vi.fn(() => Promise.resolve()),
     delete: vi.fn(() => Promise.resolve()),
     search: vi.fn(() => Promise.resolve([])),
-    getByName: vi.fn(() => Promise.resolve(null)),
+    getByName: vi.fn(() => Promise.resolve(undefined)),
   })),
 }))
 

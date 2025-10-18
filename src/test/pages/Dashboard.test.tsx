@@ -67,11 +67,11 @@ describe('Dashboard', () => {
     })
 
     // 統計カードの確認
-    expect(screen.getByText('未対応')).toBeInTheDocument()
+    expect(screen.getAllByText('未対応')).toHaveLength(2) // ラベルとバッジ
     expect(screen.getByText('3件')).toBeInTheDocument()
     expect(screen.getByText('今月')).toBeInTheDocument()
     expect(screen.getByText('15,000円')).toBeInTheDocument()
-    expect(screen.getByText('対応済')).toBeInTheDocument()
+    expect(screen.getAllByText('対応済')).toHaveLength(2) // ラベルとバッジ
     expect(screen.getByText('7件')).toBeInTheDocument()
     expect(screen.getByText('総額')).toBeInTheDocument()
     expect(screen.getByText('50,000円')).toBeInTheDocument()
@@ -118,7 +118,7 @@ describe('Dashboard', () => {
     // 贈答品の表示確認
     expect(screen.getByText('テストギフト')).toBeInTheDocument()
     expect(screen.getByText('田中太郎')).toBeInTheDocument()
-    expect(screen.getByText('誕生日')).toBeInTheDocument()
+    expect(screen.getByText('お祝い')).toBeInTheDocument()
   })
 
   it('贈答品がない場合のEmptyStateが表示される', async () => {
@@ -212,9 +212,9 @@ describe('Dashboard', () => {
 
   it('贈答品のステータスバッジが正しく表示される', async () => {
     const giftsWithDifferentStatus = [
-      { ...mockGifts[0], returnStatus: 'pending' as const },
-      { ...mockGifts[1], returnStatus: 'completed' as const },
-      { ...mockGifts[2], returnStatus: 'not_required' as const },
+      { ...mockGifts[0], returnStatus: 'pending' as any },
+      { ...mockGifts[1], returnStatus: 'completed' as any },
+      { ...mockGifts[2], returnStatus: 'not_required' as any },
     ]
 
     mockGiftRepo.getStatistics.mockResolvedValue({
@@ -230,9 +230,9 @@ describe('Dashboard', () => {
     render(<Dashboard />)
 
     await waitFor(() => {
-      expect(screen.getAllByText('未対応')).toHaveLength(2) // セレクトオプションとバッジ
-      expect(screen.getAllByText('対応済')).toHaveLength(2) // セレクトオプションとバッジ
-      expect(screen.getAllByText('不要')).toHaveLength(2) // セレクトオプションとバッジ
+      expect(screen.getAllByText('未対応')).toHaveLength(2) // ラベルとバッジ
+      expect(screen.getAllByText('対応済')).toHaveLength(2) // ラベルとバッジ
+      expect(screen.getAllByText('不要')).toHaveLength(2) // ラベルとバッジ
     })
   })
 })
