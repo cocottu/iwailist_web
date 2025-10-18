@@ -84,21 +84,13 @@ test.describe('贈答品登録フォームのテスト', () => {
     // フォームの送信イベントを待機
     await page.waitForLoadState('networkidle');
     
-    // フォームの送信イベントを監視
-    const formSubmitPromise = page.waitForEvent('submit');
-    
     // 空のフォームで送信を試行
     await page.getByRole('button', { name: '登録する' }).click();
     
-    // フォームの送信イベントが発生するまで待機
-    await formSubmitPromise;
-    
-    // バリデーションエラーが表示されることを確認（待機時間を増加）
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(100);
     
     // エラーメッセージの存在を確認
-    const errorElement = page.locator('.text-red-600:has-text("贈答品名は必須です")');
-    await expect(errorElement).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('贈答品名は必須です')).toBeVisible({ timeout: 10000 });
   });
 
   test('フォームの入力と送信が正常に動作する', async ({ page }) => {
