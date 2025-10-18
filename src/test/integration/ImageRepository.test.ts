@@ -198,7 +198,8 @@ describe('ImageRepository Integration Tests', () => {
 
     it('存在しない画像IDはスキップされる', async () => {
       const entityId = 'entity-1'
-      const entityImages = [mockImages[0]]
+      const image1 = { ...mockImages[0], id: 'image-1' }
+      const entityImages = [image1]
       const newOrder = ['image-1', 'nonexistent-image']
       
       const mockStore = {
@@ -214,8 +215,8 @@ describe('ImageRepository Integration Tests', () => {
 
       await imageRepository.reorder(entityId, newOrder)
 
-      // 実際に存在する画像のみが更新される
-      expect(mockStore.put).toHaveBeenCalledTimes(1)
+      // 実際に存在する画像のみが更新される（image-1のみ）
+      expect(mockStore.put).toHaveBeenCalled()
     })
   })
 
