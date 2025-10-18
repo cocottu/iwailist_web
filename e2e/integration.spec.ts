@@ -30,6 +30,23 @@ test.describe('統合テスト - 完全なワークフロー', () => {
     });
     await personFormPage.submit();
 
+    // 登録された人物のIDを取得
+    const personId = await page.evaluate(() => {
+      return new Promise((resolve) => {
+        const request = indexedDB.open('IwailistDB', 1);
+        request.onsuccess = () => {
+          const db = request.result;
+          const tx = db.transaction('persons', 'readonly');
+          const store = tx.objectStore('persons');
+          const getAllRequest = store.getAll();
+          getAllRequest.onsuccess = () => {
+            const persons = getAllRequest.result;
+            resolve(persons[0]?.id || '');
+          };
+        };
+      });
+    });
+
     // 2. ダッシュボードに戻る
     await dashboardPage.goto();
     await dashboardPage.waitForLoad();
@@ -38,7 +55,7 @@ test.describe('統合テスト - 完全なワークフロー', () => {
     await dashboardPage.clickGiftRegistration();
     await giftFormPage.fillForm({
       giftName: 'テスト贈答品',
-      personId: personId,
+      personId: personId as string,
       receivedDate: '2024-01-01',
       category: 'その他',
       returnStatus: 'pending',
@@ -123,8 +140,6 @@ test.describe('統合テスト - 完全なワークフロー', () => {
   });
 
   test('検索機能のテスト', async ({ page }) => {
-    const personFormPage = new PersonFormPage(page);
-    const giftFormPage = new GiftFormPage(page);
     const personListPage = new PersonListPage(page);
     const giftListPage = new GiftListPage(page);
 
