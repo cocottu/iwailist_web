@@ -196,7 +196,7 @@ export const GiftForm: React.FC = () => {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} noValidate className="space-y-6">
           <Card className="p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">基本情報</h2>
             
