@@ -124,3 +124,4 @@ describe('Header', () => {
     expect(nav).toHaveClass('hidden', 'md:flex')
   })
 })
+
