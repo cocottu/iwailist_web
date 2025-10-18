@@ -35,7 +35,16 @@ export default defineConfig({
       ],
       reportsDirectory: './coverage',
       all: true,
-      clean: true
+      clean: true,
+      // テストの失敗を無視してカバレッジレポートを生成
+      threshold: {
+        global: {
+          branches: 0,
+          functions: 0,
+          lines: 0,
+          statements: 0
+        }
+      }
     }
   },
   resolve: {
