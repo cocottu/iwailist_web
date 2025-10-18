@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import App from '@/App'
-import { MemoryRouter } from 'react-router-dom'
 
 // データベース初期化のモック
 vi.mock('@/database', () => ({

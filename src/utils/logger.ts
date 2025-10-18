@@ -3,8 +3,6 @@
  * 本番環境ではログを出力しないように制御します
  */
 
-type LogLevel = 'debug' | 'info' | 'warn' | 'error';
-
 class Logger {
   private isDevelopment = import.meta.env.DEV;
   private isProduction = import.meta.env.PROD;

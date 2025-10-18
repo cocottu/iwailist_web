@@ -35,7 +35,7 @@ export const createMockAsyncFunction = <T extends (...args: any[]) => Promise<an
 }
 
 // データベース操作のモックヘルパー
-export const mockDatabaseOperation = (operation: string, result?: any) => {
+export const mockDatabaseOperation = (result?: any) => {
   const mockFn = vi.fn(() => Promise.resolve(result))
   return mockFn
 }
