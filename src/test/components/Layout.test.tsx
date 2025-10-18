@@ -44,10 +44,10 @@ describe('Layout', () => {
       </TestWrapper>
     )
     
-    expect(screen.getByText('ホーム')).toBeInTheDocument()
-    expect(screen.getByText('贈答品')).toBeInTheDocument()
-    expect(screen.getByText('人物')).toBeInTheDocument()
-    expect(screen.getByText('統計')).toBeInTheDocument()
+    expect(screen.getAllByText('ホーム')).toHaveLength(2) // HeaderとBottomNavigationの両方に存在
+    expect(screen.getAllByText('贈答品')).toHaveLength(2) // HeaderとBottomNavigationの両方に存在
+    expect(screen.getAllByText('人物')).toHaveLength(2) // HeaderとBottomNavigationの両方に存在
+    expect(screen.getAllByText('統計')).toHaveLength(2) // HeaderとBottomNavigationの両方に存在
   })
 
   it('子要素が正しくレンダリングされる', () => {
@@ -87,7 +87,7 @@ describe('Layout', () => {
       </TestWrapper>
     )
     
-    const container = screen.getByText('テストコンテンツ').closest('div')?.parentElement
+    const container = screen.getByText('テストコンテンツ').closest('div')?.parentElement?.parentElement
     expect(container).toHaveClass('min-h-screen', 'bg-gray-50')
   })
 
@@ -114,7 +114,7 @@ describe('Layout', () => {
     )
     
     expect(screen.getByText('祝い品管理')).toBeInTheDocument()
-    expect(screen.getByText('ホーム')).toBeInTheDocument()
+    expect(screen.getAllByText('ホーム')).toHaveLength(2) // HeaderとBottomNavigationの両方に存在
   })
 
   it('nullの子要素でも正しく動作する', () => {

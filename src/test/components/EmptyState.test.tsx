@@ -174,7 +174,13 @@ describe('EmptyState', () => {
 
   it('空のメッセージでも正しく動作する', () => {
     render(<EmptyState message="" />)
-    const message = screen.getByText('')
-    expect(message).toBeInTheDocument()
+    const containers = screen.getAllByRole('generic')
+    const mainContainer = containers.find(el => 
+      el.classList.contains('flex') && 
+      el.classList.contains('flex-col') && 
+      el.classList.contains('items-center')
+    )
+    expect(mainContainer).toBeInTheDocument()
+    expect(mainContainer).toHaveClass('py-12', 'px-4')
   })
 })
