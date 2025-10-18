@@ -7,7 +7,7 @@ test.describe('ダッシュボードページのテスト', () => {
 
   test('ダッシュボードの基本要素が表示される', async ({ page }) => {
     // ページタイトルと説明
-    await expect(page.locator('h1')).toContainText('ダッシュボード');
+    await expect(page.getByRole('heading', { name: 'ダッシュボード' })).toBeVisible();
     await expect(page.locator('text=祝い品の管理状況を確認できます')).toBeVisible();
 
     // サマリーカードが表示される
@@ -18,8 +18,8 @@ test.describe('ダッシュボードページのテスト', () => {
 
     // クイックアクションセクション
     await expect(page.locator('text=クイックアクション')).toBeVisible();
-    await expect(page.locator('text=贈答品を登録')).toBeVisible();
-    await expect(page.locator('text=人物を登録')).toBeVisible();
+    await expect(page.getByRole('button', { name: '🎁 贈答品を登録' })).toBeVisible();
+    await expect(page.getByRole('button', { name: '👤 人物を登録' })).toBeVisible();
 
     // 最近の贈答品セクション
     await expect(page.locator('text=最近の贈答品')).toBeVisible();
@@ -27,14 +27,14 @@ test.describe('ダッシュボードページのテスト', () => {
 
   test('クイックアクションボタンが正常に動作する', async ({ page }) => {
     // 贈答品登録ボタンをクリック
-    await page.click('text=贈答品を登録');
+    await page.getByRole('button', { name: '🎁 贈答品を登録' }).click();
     await expect(page).toHaveURL('/gifts/new');
     
     // 戻る
     await page.goBack();
     
     // 人物登録ボタンをクリック
-    await page.click('text=人物を登録');
+    await page.getByRole('button', { name: '👤 人物を登録' }).click();
     await expect(page).toHaveURL('/persons/new');
   });
 

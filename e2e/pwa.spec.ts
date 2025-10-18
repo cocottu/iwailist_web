@@ -29,7 +29,7 @@ test.describe('PWA機能のテスト', () => {
     await page.context().setOffline(true);
     
     // ページがオフライン状態でも表示されることを確認
-    await expect(page.locator('h1')).toContainText('ダッシュボード');
+    await expect(page.getByRole('heading', { name: 'ダッシュボード' })).toBeVisible();
     
     // オンライン状態に戻す
     await page.context().setOffline(false);

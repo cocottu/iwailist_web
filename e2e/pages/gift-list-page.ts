@@ -43,11 +43,11 @@ export class GiftListPage {
   }
 
   async filterByCategory(category: string) {
-    await this.categorySelect.selectOption({ label: category });
+    await this.categorySelect.selectOption({ value: category });
   }
 
   async filterByStatus(status: string) {
-    await this.statusSelect.selectOption({ label: status });
+    await this.statusSelect.selectOption({ value: status });
   }
 
   async resetFilters() {

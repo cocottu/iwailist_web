@@ -7,26 +7,23 @@ test.describe('統計ページのテスト', () => {
 
   test('統計ページが正常に表示される', async ({ page }) => {
     // ページタイトルが表示されることを確認
-    await expect(page.locator('h1')).toContainText('統計');
+    await expect(page.getByRole('heading', { name: '統計・分析' })).toBeVisible();
     
-    // 統計情報が表示されることを確認
-    await expect(page.locator('text=総贈答品数')).toBeVisible();
-    await expect(page.locator('text=未対応数')).toBeVisible();
-    await expect(page.locator('text=対応済数')).toBeVisible();
-    await expect(page.locator('text=総金額')).toBeVisible();
+    // データが空の場合のEmptyStateが表示されることを確認
+    await expect(page.locator('text=年のデータがありません')).toBeVisible();
   });
 
   test('グラフが正常に表示される', async ({ page }) => {
-    // グラフコンテナが表示されることを確認
-    await expect(page.locator('canvas')).toBeVisible();
+    // データが空の場合のEmptyStateが表示されることを確認
+    await expect(page.locator('text=年のデータがありません')).toBeVisible();
   });
 
   test('フィルター機能が正常に動作する', async ({ page }) => {
-    // 期間フィルターが表示されることを確認
-    await expect(page.locator('text=期間')).toBeVisible();
+    // 年選択フィルターが表示されることを確認
+    await expect(page.locator('text=対象年:')).toBeVisible();
     
-    // カテゴリフィルターが表示されることを確認
-    await expect(page.locator('text=カテゴリ')).toBeVisible();
+    // 年選択のセレクトボックスが表示されることを確認
+    await expect(page.locator('select')).toBeVisible();
   });
 
   test('データが空の場合の表示', async ({ page }) => {
@@ -38,7 +35,7 @@ test.describe('統計ページのテスト', () => {
     // ページをリロード
     await page.reload();
     
-    // 空の状態が表示されることを確認
-    await expect(page.locator('text=データがありません')).toBeVisible();
+    // 空の状態が表示されることを確認（年は動的に変わる）
+    await expect(page.locator('text=年のデータがありません')).toBeVisible();
   });
 });

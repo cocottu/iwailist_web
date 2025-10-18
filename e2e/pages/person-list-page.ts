@@ -39,7 +39,7 @@ export class PersonListPage {
   }
 
   async filterByRelationship(relationship: string) {
-    await this.relationshipSelect.selectOption({ label: relationship });
+    await this.relationshipSelect.selectOption({ value: relationship });
   }
 
   async getPersonCount(): Promise<number> {

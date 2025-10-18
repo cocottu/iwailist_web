@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor, fireEvent } from '@/test/utils/testUtils'
 import { PersonList } from '@/pages/PersonList'
 import { mockPersons } from '@/test/mocks/mockData'
-import { PersonRepository } from '@/database'
+import { PersonRepository, GiftRepository } from '@/database'
 
 // リポジトリのモック
 vi.mock('@/database', () => ({
@@ -10,10 +10,14 @@ vi.mock('@/database', () => ({
     getAll: vi.fn(),
     search: vi.fn(),
   })),
+  GiftRepository: vi.fn().mockImplementation(() => ({
+    getAll: vi.fn(),
+  })),
 }))
 
 describe('PersonList', () => {
   let mockPersonRepo: any
+  let mockGiftRepo: any
 
   beforeEach(() => {
     vi.clearAllMocks()
@@ -23,19 +27,26 @@ describe('PersonList', () => {
       search: vi.fn(),
     }
     
+    mockGiftRepo = {
+      getAll: vi.fn(),
+    }
+    
     ;(PersonRepository as any).mockImplementation(() => mockPersonRepo)
+    ;(GiftRepository as any).mockImplementation(() => mockGiftRepo)
   })
 
   it('ローディング状態が正しく表示される', () => {
     mockPersonRepo.getAll.mockImplementation(() => new Promise(() => {}))
+    mockGiftRepo.getAll.mockImplementation(() => new Promise(() => {}))
 
     render(<PersonList />)
 
-    expect(screen.getByText('人物が見つかりません')).toBeInTheDocument()
+    expect(screen.getByText('データを読み込み中...')).toBeInTheDocument()
   })
 
   it('人物一覧が正しく表示される', async () => {
     mockPersonRepo.getAll.mockResolvedValue(mockPersons)
+    mockGiftRepo.getAll.mockResolvedValue([])
 
     render(<PersonList />)
 
@@ -51,6 +62,7 @@ describe('PersonList', () => {
 
   it('新規登録ボタンが正しく表示される', async () => {
     mockPersonRepo.getAll.mockResolvedValue([])
+    mockGiftRepo.getAll.mockResolvedValue([])
 
     render(<PersonList />)
 
@@ -65,6 +77,7 @@ describe('PersonList', () => {
   it('検索機能が正しく動作する', async () => {
     mockPersonRepo.getAll.mockResolvedValue(mockPersons)
     mockPersonRepo.search.mockResolvedValue([mockPersons[0]])
+    mockGiftRepo.getAll.mockResolvedValue([])
 
     render(<PersonList />)
 
@@ -85,6 +98,7 @@ describe('PersonList', () => {
 
   it('人物がない場合のEmptyStateが表示される', async () => {
     mockPersonRepo.getAll.mockResolvedValue([])
+    mockGiftRepo.getAll.mockResolvedValue([])
 
     render(<PersonList />)
 
@@ -97,6 +111,7 @@ describe('PersonList', () => {
 
   it('人物の詳細情報が正しく表示される', async () => {
     mockPersonRepo.getAll.mockResolvedValue(mockPersons)
+    mockGiftRepo.getAll.mockResolvedValue([])
 
     render(<PersonList />)
 
@@ -116,6 +131,7 @@ describe('PersonList', () => {
 
   it('詳細ボタンが正しく動作する', async () => {
     mockPersonRepo.getAll.mockResolvedValue(mockPersons)
+    mockGiftRepo.getAll.mockResolvedValue([])
 
     render(<PersonList />)
 
@@ -131,6 +147,7 @@ describe('PersonList', () => {
     const searchResults = [mockPersons[0]]
     mockPersonRepo.getAll.mockResolvedValue(mockPersons)
     mockPersonRepo.search.mockResolvedValue(searchResults)
+    mockGiftRepo.getAll.mockResolvedValue([])
 
     render(<PersonList />)
 
@@ -149,6 +166,7 @@ describe('PersonList', () => {
   it('検索結果がない場合のメッセージが表示される', async () => {
     mockPersonRepo.getAll.mockResolvedValue(mockPersons)
     mockPersonRepo.search.mockResolvedValue([])
+    mockGiftRepo.getAll.mockResolvedValue([])
 
     render(<PersonList />)
 
@@ -166,6 +184,7 @@ describe('PersonList', () => {
 
   it('エラー時のEmptyStateが表示される', async () => {
     mockPersonRepo.getAll.mockRejectedValue(new Error('Database error'))
+    mockGiftRepo.getAll.mockResolvedValue([])
 
     render(<PersonList />)
 
@@ -180,6 +199,7 @@ describe('PersonList', () => {
     mockPersonRepo.getAll
       .mockRejectedValueOnce(new Error('Database error'))
       .mockResolvedValueOnce(mockPersons)
+    mockGiftRepo.getAll.mockResolvedValue([])
 
     render(<PersonList />)
 
@@ -200,6 +220,7 @@ describe('PersonList', () => {
 
   it('人物の関係性が正しく表示される', async () => {
     mockPersonRepo.getAll.mockResolvedValue(mockPersons)
+    mockGiftRepo.getAll.mockResolvedValue([])
 
     render(<PersonList />)
 
@@ -215,6 +236,7 @@ describe('PersonList', () => {
 
   it('メモが正しく表示される', async () => {
     mockPersonRepo.getAll.mockResolvedValue(mockPersons)
+    mockGiftRepo.getAll.mockResolvedValue([])
 
     render(<PersonList />)
 
@@ -228,6 +250,7 @@ describe('PersonList', () => {
   it('検索フィールドがクリアできる', async () => {
     mockPersonRepo.getAll.mockResolvedValue(mockPersons)
     mockPersonRepo.search.mockResolvedValue([mockPersons[0]])
+    mockGiftRepo.getAll.mockResolvedValue([])
 
     render(<PersonList />)
 
