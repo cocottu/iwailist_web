@@ -119,6 +119,28 @@ vi.mock('date-fns', () => ({
   isAfter: vi.fn((date1, date2) => date1 > date2),
   isBefore: vi.fn((date1, date2) => date1 < date2),
   differenceInDays: vi.fn((date1, date2) => Math.floor((date1 - date2) / (1000 * 60 * 60 * 24))),
+  startOfYear: vi.fn((date) => new Date(date.getFullYear(), 0, 1)),
+  endOfYear: vi.fn((date) => new Date(date.getFullYear(), 11, 31)),
+  startOfMonth: vi.fn((date) => new Date(date.getFullYear(), date.getMonth(), 1)),
+  endOfMonth: vi.fn((date) => new Date(date.getFullYear(), date.getMonth() + 1, 0)),
+  getYear: vi.fn((date) => date.getFullYear()),
+  getMonth: vi.fn((date) => date.getMonth()),
+  subMonths: vi.fn((date, months) => new Date(date.getFullYear(), date.getMonth() - months, date.getDate())),
+  addMonths: vi.fn((date, months) => new Date(date.getFullYear(), date.getMonth() + months, date.getDate())),
+  eachMonthOfInterval: vi.fn(({ start, end }) => {
+    const months = []
+    const current = new Date(start)
+    while (current <= end) {
+      months.push(new Date(current))
+      current.setMonth(current.getMonth() + 1)
+    }
+    return months
+  }),
+  isWithinInterval: vi.fn((date, { start, end }) => date >= start && date <= end),
+  isSameMonth: vi.fn((date1, date2) => 
+    date1.getFullYear() === date2.getFullYear() && date1.getMonth() === date2.getMonth()
+  ),
+  isSameYear: vi.fn((date1, date2) => date1.getFullYear() === date2.getFullYear()),
 }))
 
 // コンソールエラーの抑制（テスト中の警告を減らすため）

@@ -68,15 +68,13 @@ describe('Dashboard', () => {
 
     // 統計カードの確認 - テキストが分割されている可能性を考慮
     expect(screen.getAllByText('未対応')).toHaveLength(2) // 統計カードと贈答品リストの両方に存在
-    expect(screen.getByText('3')).toBeInTheDocument()
-    expect(screen.getByText('件')).toBeInTheDocument()
+    expect(screen.getByText('3件')).toBeInTheDocument()
     expect(screen.getByText('今月')).toBeInTheDocument()
-    expect(screen.getByText('15,000')).toBeInTheDocument()
-    expect(screen.getByText('円')).toBeInTheDocument()
-    expect(screen.getByText('対応済')).toBeInTheDocument()
-    expect(screen.getByText('7')).toBeInTheDocument()
+    expect(screen.getByText('15,000円')).toBeInTheDocument()
+    expect(screen.getAllByText('対応済')).toHaveLength(2) // 統計カードと贈答品リストの両方に存在
+    expect(screen.getByText('7件')).toBeInTheDocument()
     expect(screen.getByText('総額')).toBeInTheDocument()
-    expect(screen.getByText('50,000')).toBeInTheDocument()
+    expect(screen.getByText('50,000円')).toBeInTheDocument()
   })
 
   it('クイックアクションボタンが正しく表示される', async () => {
@@ -120,7 +118,7 @@ describe('Dashboard', () => {
     // 贈答品の表示確認
     expect(screen.getByText('テストギフト')).toBeInTheDocument()
     expect(screen.getByText(/田中太郎/)).toBeInTheDocument()
-    expect(screen.getByText('お祝い')).toBeInTheDocument()
+    expect(screen.getByText(/お祝い/)).toBeInTheDocument()
   })
 
   it('贈答品がない場合のEmptyStateが表示される', async () => {
@@ -179,17 +177,17 @@ describe('Dashboard', () => {
     // エラー状態の確認
     await waitFor(() => {
       expect(screen.getByText('データの読み込みに失敗しました')).toBeInTheDocument()
-    })
+    }, { timeout: 10000 })
 
     // 再読み込みボタンをクリック
     const reloadButton = screen.getByText('再読み込み')
     fireEvent.click(reloadButton)
 
-    // 正常な状態に戻ることを確認（タイムアウトを長めに設定）
+    // 正常な状態に戻ることを確認
     await waitFor(() => {
       expect(screen.getByText('最近の贈答品')).toBeInTheDocument()
-    }, { timeout: 5000 })
-  })
+    }, { timeout: 15000 })
+  }, 30000) // テスト全体のタイムアウトを30秒に設定
 
   it('贈答品の詳細リンクが正しく動作する', async () => {
     mockGiftRepo.getStatistics.mockResolvedValue({

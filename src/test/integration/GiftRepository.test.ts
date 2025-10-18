@@ -225,12 +225,15 @@ describe('GiftRepository Integration Tests', () => {
   describe('getStatistics', () => {
     it('統計データが正しく計算される', async () => {
       const userId = 'demo-user'
+      const now = new Date()
+      const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+      
       const gifts = [
-        { ...mockGifts[0], returnStatus: 'pending' as any, amount: 5000 },
-        { ...mockGifts[1], returnStatus: 'completed' as any, amount: 3000 },
-        { ...mockGifts[2], returnStatus: 'pending' as any, amount: 8000 },
+        { ...mockGifts[0], returnStatus: 'pending' as any, amount: 5000, receivedDate: thisMonth },
+        { ...mockGifts[1], returnStatus: 'completed' as any, amount: 3000, receivedDate: thisMonth },
+        { ...mockGifts[2], returnStatus: 'pending' as any, amount: 8000, receivedDate: thisMonth },
       ]
-      mockDB.getAll.mockResolvedValue(gifts)
+      mockDB.getAllFromIndex.mockResolvedValue(gifts)
 
       const result = await giftRepository.getStatistics(userId)
 
@@ -243,7 +246,7 @@ describe('GiftRepository Integration Tests', () => {
 
     it('贈答品がない場合の統計データ', async () => {
       const userId = 'demo-user'
-      mockDB.getAll.mockResolvedValue([])
+      mockDB.getAllFromIndex.mockResolvedValue([])
 
       const result = await giftRepository.getStatistics(userId)
 
@@ -258,11 +261,14 @@ describe('GiftRepository Integration Tests', () => {
 
     it('金額が設定されていない贈答品も正しく処理される', async () => {
       const userId = 'demo-user'
+      const now = new Date()
+      const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+      
       const gifts = [
-        { ...mockGifts[0], amount: undefined },
-        { ...mockGifts[1], amount: 3000 },
+        { ...mockGifts[0], amount: undefined, receivedDate: thisMonth },
+        { ...mockGifts[1], amount: 3000, receivedDate: thisMonth },
       ]
-      mockDB.getAll.mockResolvedValue(gifts)
+      mockDB.getAllFromIndex.mockResolvedValue(gifts)
 
       const result = await giftRepository.getStatistics(userId)
 
