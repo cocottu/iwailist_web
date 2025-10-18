@@ -19,9 +19,6 @@ updates:
       # メジャーバージョンアップは手動で確認
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
-    # レビュー不要（個人開発）
-    reviewers: []
-    assignees: []
     # ラベルを追加して管理しやすく
     labels:
       - "dependencies"
@@ -31,10 +28,3 @@ updates:
       prefix: "chore"
       prefix-development: "chore"
       include: "scope"
-    # プルリクエストのタイトル設定
-    pull-requests:
-      add-labels:
-        - "dependencies"
-        - "automated"
-      reviewers: []
-      assignees: []
