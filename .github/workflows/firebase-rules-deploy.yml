@@ -29,12 +29,12 @@ jobs:
       
       - name: Deploy Firestore Rules
         run: |
-          firebase deploy --only firestore:rules --token ${{ secrets.FIREBASE_TOKEN }} --project ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+          firebase deploy --only firestore:rules --token ${{ secrets.FIREBASE_TOKEN }} --project ${{ secrets.FIREBASE_PROJECT_ID }}
       
       - name: Deploy Firestore Indexes
         run: |
-          firebase deploy --only firestore:indexes --token ${{ secrets.FIREBASE_TOKEN }} --project ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+          firebase deploy --only firestore:indexes --token ${{ secrets.FIREBASE_TOKEN }} --project ${{ secrets.FIREBASE_PROJECT_ID }}
       
       - name: Deploy Storage Rules
         run: |
-          firebase deploy --only storage --token ${{ secrets.FIREBASE_TOKEN }} --project ${{ secrets.VITE_FIREBASE_PROJECT_ID }}
+          firebase deploy --only storage --token ${{ secrets.FIREBASE_TOKEN }} --project ${{ secrets.FIREBASE_PROJECT_ID }}

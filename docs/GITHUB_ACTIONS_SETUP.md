@@ -12,12 +12,12 @@ GitHubリポジトリの **Settings → Secrets and variables → Actions** で�
 
 | シークレット名 | 説明 | 取得方法 |
 |---------------|------|----------|
-| `VITE_FIREBASE_API_KEY` | Firebase API キー | Firebase Console → プロジェクト設定 |
-| `VITE_FIREBASE_AUTH_DOMAIN` | 認証ドメイン | Firebase Console → プロジェクト設定 |
-| `VITE_FIREBASE_PROJECT_ID` | プロジェクトID | Firebase Console → プロジェクト設定 |
-| `VITE_FIREBASE_STORAGE_BUCKET` | Storageバケット | Firebase Console → プロジェクト設定 |
-| `VITE_FIREBASE_MESSAGING_SENDER_ID` | Messaging Sender ID | Firebase Console → プロジェクト設定 |
-| `VITE_FIREBASE_APP_ID` | App ID | Firebase Console → プロジェクト設定 |
+| `FIREBASE_API_KEY` | Firebase API キー | Firebase Console → プロジェクト設定 |
+| `FIREBASE_AUTH_DOMAIN` | 認証ドメイン | Firebase Console → プロジェクト設定 |
+| `FIREBASE_PROJECT_ID` | プロジェクトID | Firebase Console → プロジェクト設定 |
+| `FIREBASE_STORAGE_BUCKET` | Storageバケット | Firebase Console → プロジェクト設定 |
+| `FIREBASE_MESSAGING_SENDER_ID` | Messaging Sender ID | Firebase Console → プロジェクト設定 |
+| `FIREBASE_APP_ID` | App ID | Firebase Console → プロジェクト設定 |
 
 ### 2. Firebase デプロイ用トークン
 
@@ -107,12 +107,12 @@ graph LR
 2. **Settings** → **Secrets and variables** → **Actions**
 3. **New repository secret** をクリック
 4. 以下のシークレットを1つずつ追加:
-   - `VITE_FIREBASE_API_KEY`
-   - `VITE_FIREBASE_AUTH_DOMAIN`
-   - `VITE_FIREBASE_PROJECT_ID`
-   - `VITE_FIREBASE_STORAGE_BUCKET`
-   - `VITE_FIREBASE_MESSAGING_SENDER_ID`
-   - `VITE_FIREBASE_APP_ID`
+   - `FIREBASE_API_KEY`
+   - `FIREBASE_AUTH_DOMAIN`
+   - `FIREBASE_PROJECT_ID`
+   - `FIREBASE_STORAGE_BUCKET`
+   - `FIREBASE_MESSAGING_SENDER_ID`
+   - `FIREBASE_APP_ID`
    - `FIREBASE_TOKEN`
    - `FIREBASE_SERVICE_ACCOUNT`
 
