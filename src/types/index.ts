@@ -105,7 +105,7 @@ export interface SyncQueueItem {
   operation: 'create' | 'update' | 'delete';
   collection: string;
   documentId: string;
-  data: any;
+  data: unknown;
   status: 'pending' | 'processing' | 'completed' | 'failed';
   retryCount: number;
   lastError?: string;

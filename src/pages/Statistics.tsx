@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Card, Loading, EmptyState } from '@/components/ui';
 import { GiftRepository, PersonRepository } from '@/database';
 import { Gift, Person, GiftCategory } from '@/types';
@@ -12,30 +12,29 @@ export const Statistics: React.FC = () => {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
   useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        const userId = 'demo-user';
+        
+        const giftRepo = new GiftRepository();
+        const personRepo = new PersonRepository();
+        
+        const [giftsData, personsData] = await Promise.all([
+          giftRepo.getAll(userId),
+          personRepo.getAll(userId)
+        ]);
+        
+        setGifts(giftsData);
+        setPersons(personsData);
+      } catch (error) {
+        console.error('Failed to load data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
     loadData();
   }, []);
-
-  const loadData = async () => {
-    try {
-      setLoading(true);
-      const userId = 'demo-user';
-      
-      const giftRepo = new GiftRepository();
-      const personRepo = new PersonRepository();
-      
-      const [giftsData, personsData] = await Promise.all([
-        giftRepo.getAll(userId),
-        personRepo.getAll(userId)
-      ]);
-      
-      setGifts(giftsData);
-      setPersons(personsData);
-    } catch (error) {
-      console.error('Failed to load data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const yearGifts = useMemo(() => {
     const yearStart = startOfYear(new Date(selectedYear, 0, 1));
@@ -46,7 +45,7 @@ export const Statistics: React.FC = () => {
     );
   }, [gifts, selectedYear]);
 
-  const getMonthlyData = (yearGifts: Gift[]) => {
+  const getMonthlyData = useCallback((yearGifts: Gift[]) => {
     const months = eachMonthOfInterval({
       start: startOfYear(new Date(selectedYear, 0, 1)),
       end: endOfYear(new Date(selectedYear, 11, 31))
@@ -68,9 +67,9 @@ export const Statistics: React.FC = () => {
         amount: totalAmount
       };
     });
-  };
+  }, [selectedYear]);
 
-  const getCategoryData = (yearGifts: Gift[]) => {
+  const getCategoryData = useCallback((yearGifts: Gift[]) => {
     const categoryMap = new Map<GiftCategory, number>();
     
     yearGifts.forEach(gift => {
@@ -85,9 +84,9 @@ export const Statistics: React.FC = () => {
         percentage: yearGifts.length > 0 ? (count / yearGifts.length) * 100 : 0
       }))
       .sort((a, b) => b.count - a.count);
-  };
+  }, []);
 
-  const getPersonData = (yearGifts: Gift[]) => {
+  const getPersonData = useCallback((yearGifts: Gift[]) => {
     const personMap = new Map<string, { person: Person; count: number; amount: number }>();
     
     yearGifts.forEach(gift => {
@@ -103,9 +102,9 @@ export const Statistics: React.FC = () => {
     return Array.from(personMap.values())
       .sort((a, b) => b.count - a.count)
       .slice(0, 10);
-  };
+  }, [persons]);
 
-  const getReturnStatusData = (yearGifts: Gift[]) => {
+  const getReturnStatusData = useCallback((yearGifts: Gift[]) => {
     const statusMap = {
       pending: 0,
       completed: 0,
@@ -122,9 +121,9 @@ export const Statistics: React.FC = () => {
       completed: { count: statusMap.completed, percentage: total > 0 ? (statusMap.completed / total) * 100 : 0 },
       not_required: { count: statusMap.not_required, percentage: total > 0 ? (statusMap.not_required / total) * 100 : 0 }
     };
-  };
+  }, []);
 
-  const getTotalStats = (yearGifts: Gift[]) => {
+  const getTotalStats = useCallback((yearGifts: Gift[]) => {
     const totalAmount = yearGifts.reduce((sum, gift) => sum + (gift.amount || 0), 0);
     const avgAmount = yearGifts.length > 0 ? totalAmount / yearGifts.length : 0;
     
@@ -133,13 +132,13 @@ export const Statistics: React.FC = () => {
       totalAmount,
       avgAmount
     };
-  };
+  }, []);
 
-  const monthlyData = useMemo(() => getMonthlyData(yearGifts), [yearGifts, selectedYear]);
-  const categoryData = useMemo(() => getCategoryData(yearGifts), [yearGifts]);
-  const personData = useMemo(() => getPersonData(yearGifts), [yearGifts, persons]);
-  const returnStatusData = useMemo(() => getReturnStatusData(yearGifts), [yearGifts]);
-  const totalStats = useMemo(() => getTotalStats(yearGifts), [yearGifts]);
+  const monthlyData = useMemo(() => getMonthlyData(yearGifts), [yearGifts, getMonthlyData]);
+  const categoryData = useMemo(() => getCategoryData(yearGifts), [yearGifts, getCategoryData]);
+  const personData = useMemo(() => getPersonData(yearGifts), [yearGifts, getPersonData]);
+  const returnStatusData = useMemo(() => getReturnStatusData(yearGifts), [yearGifts, getReturnStatusData]);
+  const totalStats = useMemo(() => getTotalStats(yearGifts), [yearGifts, getTotalStats]);
 
   if (loading) {
     return (

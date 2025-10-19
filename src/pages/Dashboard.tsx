@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, Button, Loading, EmptyState } from '@/components/ui';
 import { GiftRepository, PersonRepository } from '@/database';
-import { Gift, Statistics } from '@/types';
+import { Gift, Statistics, GiftCategory, Person } from '@/types';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale/ja';
 
 export const Dashboard: React.FC = () => {
   const [statistics, setStatistics] = useState<Statistics | null>(null);
   const [recentGifts, setRecentGifts] = useState<Gift[]>([]);
+  const [persons, setPersons] = useState<Person[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -33,14 +34,8 @@ export const Dashboard: React.FC = () => {
       const recent = allGifts.slice(0, 5);
       
       // 人物情報も取得
-      const persons = await personRepo.getAll(userId);
-      const personMap = new Map(persons.map(p => [p.id, p]));
-      
-      // 贈答品に人物情報を追加
-      const giftsWithPersons = recent.map(gift => ({
-        ...gift,
-        person: personMap.get(gift.personId)
-      }));
+      const personsData = await personRepo.getAll(userId);
+      setPersons(personsData);
       
       setStatistics({
         totalGifts: stats.total,
@@ -48,16 +43,21 @@ export const Dashboard: React.FC = () => {
         completedReturns: stats.completed,
         totalAmount: stats.totalAmount,
         monthlyAmount: stats.monthlyAmount,
-        categoryBreakdown: {} as Record<string, number>, // Phase 1では未実装
-        recentGifts: giftsWithPersons as any
+        categoryBreakdown: {} as Record<GiftCategory, number>, // Phase 1では未実装
+        recentGifts: recent
       });
       
-      setRecentGifts(giftsWithPersons as any);
+      setRecentGifts(recent);
     } catch (error) {
       console.error('Failed to load dashboard data:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const getPersonName = (personId: string) => {
+    const person = persons.find(p => p.id === personId);
+    return person?.name || '不明な人物';
   };
 
   if (loading) {
@@ -215,7 +215,7 @@ export const Dashboard: React.FC = () => {
                       </span>
                     </div>
                     <p className="text-sm text-gray-600">
-                      {(gift as any).person?.name || '不明な人物'} • {gift.category}
+                      {getPersonName(gift.personId)} • {gift.category}
                     </p>
                     <p className="text-sm text-gray-500">
                       {format(gift.receivedDate, 'yyyy年M月d日', { locale: ja })}

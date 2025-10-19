@@ -51,7 +51,7 @@ export const PersonForm: React.FC = () => {
     }
   };
 
-  const handleInputChange = (field: keyof PersonFormData, value: any) => {
+  const handleInputChange = (field: keyof PersonFormData, value: string | Relationship | undefined) => {
     setFormData(prev => ({
       ...prev,
       [field]: value

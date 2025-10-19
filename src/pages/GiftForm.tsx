@@ -70,7 +70,7 @@ export const GiftForm: React.FC = () => {
     }
   };
 
-  const handleInputChange = (field: keyof GiftFormData, value: any) => {
+  const handleInputChange = (field: keyof GiftFormData, value: string | number | Date | GiftCategory | ReturnStatus | undefined) => {
     setFormData(prev => ({
       ...prev,
       [field]: value

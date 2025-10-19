@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, Button, Input, Select, Badge, Loading, EmptyState } from '@/components/ui';
 import { GiftRepository, PersonRepository } from '@/database';
@@ -13,30 +13,7 @@ export const GiftList: React.FC = () => {
   const [filters, setFilters] = useState<GiftFilters>({});
   const [searchText, setSearchText] = useState('');
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  useEffect(() => {
-    loadGifts();
-  }, [filters, searchText]);
-
-  const loadData = async () => {
-    try {
-      setLoading(true);
-      const userId = 'demo-user';
-      
-      const personRepo = new PersonRepository();
-      const personsData = await personRepo.getAll(userId);
-      setPersons(personsData);
-    } catch (error) {
-      console.error('Failed to load data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadGifts = async () => {
+  const loadGifts = useCallback(async () => {
     try {
       const userId = 'demo-user';
       const giftRepo = new GiftRepository();
@@ -51,9 +28,31 @@ export const GiftList: React.FC = () => {
     } catch (error) {
       console.error('Failed to load gifts:', error);
     }
-  };
+  }, [filters, searchText]);
 
-  const handleFilterChange = (key: keyof GiftFilters, value: any) => {
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        const userId = 'demo-user';
+        
+        const personRepo = new PersonRepository();
+        const personsData = await personRepo.getAll(userId);
+        setPersons(personsData);
+      } catch (error) {
+        console.error('Failed to load data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, []);
+
+  useEffect(() => {
+    loadGifts();
+  }, [loadGifts]);
+
+  const handleFilterChange = (key: keyof GiftFilters, value: string | ReturnStatus | GiftCategory | undefined) => {
     setFilters(prev => ({
       ...prev,
       [key]: value || undefined
