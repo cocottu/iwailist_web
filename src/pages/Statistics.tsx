@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Card, Loading, EmptyState } from '@/components/ui';
-import { GiftRepository, PersonRepository } from '@/database';
-import { Gift, Person, GiftCategory } from '@/types';
-import { format, startOfMonth, endOfMonth, eachMonthOfInterval, startOfYear, endOfYear } from 'date-fns';
+import { GiftRepository, PersonRepository, ReturnRepository } from '@/database';
+import { Gift, Person, GiftCategory, Return } from '@/types';
+import { format, startOfMonth, endOfMonth, eachMonthOfInterval, startOfYear, endOfYear, differenceInDays } from 'date-fns';
 import { ja } from 'date-fns/locale/ja';
 
 export const Statistics: React.FC = () => {
   const [gifts, setGifts] = useState<Gift[]>([]);
   const [persons, setPersons] = useState<Person[]>([]);
+  const [returns, setReturns] = useState<Return[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
@@ -19,14 +20,21 @@ export const Statistics: React.FC = () => {
         
         const giftRepo = new GiftRepository();
         const personRepo = new PersonRepository();
+        const returnRepo = new ReturnRepository();
         
-        const [giftsData, personsData] = await Promise.all([
-          giftRepo.getAll(userId),
-          personRepo.getAll(userId)
-        ]);
+        const giftsData = await giftRepo.getAll(userId);
+        const personsData = await personRepo.getAll(userId);
+        
+        // 各贈答品のお返しを取得
+        const allReturns: Return[] = [];
+        for (const gift of giftsData) {
+          const giftReturns = await returnRepo.getByGiftId(gift.id);
+          allReturns.push(...giftReturns);
+        }
         
         setGifts(giftsData);
         setPersons(personsData);
+        setReturns(allReturns);
       } catch (error) {
         console.error('Failed to load data:', error);
       } finally {
@@ -134,11 +142,61 @@ export const Statistics: React.FC = () => {
     };
   }, []);
 
+  const getReturnStats = useCallback((yearGifts: Gift[], allReturns: Return[]) => {
+    // 年のお返しをフィルター
+    const yearStart = startOfYear(new Date(selectedYear, 0, 1));
+    const yearEnd = endOfYear(new Date(selectedYear, 11, 31));
+    
+    const yearReturns = allReturns.filter(returnData => 
+      returnData.returnDate >= yearStart && returnData.returnDate <= yearEnd
+    );
+    
+    // お返しの総額
+    const totalReturnAmount = yearReturns.reduce((sum, returnData) => sum + (returnData.amount || 0), 0);
+    
+    // 平均お返し金額
+    const avgReturnAmount = yearReturns.length > 0 ? totalReturnAmount / yearReturns.length : 0;
+    
+    // お返し済みの贈答品を特定
+    const returnedGiftIds = new Set(yearReturns.map(r => r.giftId));
+    const giftsWithReturns = yearGifts.filter(g => returnedGiftIds.has(g.id));
+    
+    // 平均お返し期間（日数）
+    let totalDays = 0;
+    let countWithDays = 0;
+    
+    for (const returnData of yearReturns) {
+      const gift = yearGifts.find(g => g.id === returnData.giftId);
+      if (gift) {
+        const days = differenceInDays(returnData.returnDate, gift.receivedDate);
+        if (days >= 0) {
+          totalDays += days;
+          countWithDays++;
+        }
+      }
+    }
+    
+    const avgReturnDays = countWithDays > 0 ? Math.round(totalDays / countWithDays) : 0;
+    
+    // お返し率（お返ししたギフトの割合）
+    const returnRate = yearGifts.length > 0 ? (giftsWithReturns.length / yearGifts.length) * 100 : 0;
+    
+    return {
+      totalReturns: yearReturns.length,
+      totalReturnAmount,
+      avgReturnAmount,
+      avgReturnDays,
+      returnRate,
+      giftsWithReturns: giftsWithReturns.length
+    };
+  }, [selectedYear]);
+
   const monthlyData = useMemo(() => getMonthlyData(yearGifts), [yearGifts, getMonthlyData]);
   const categoryData = useMemo(() => getCategoryData(yearGifts), [yearGifts, getCategoryData]);
   const personData = useMemo(() => getPersonData(yearGifts), [yearGifts, getPersonData]);
   const returnStatusData = useMemo(() => getReturnStatusData(yearGifts), [yearGifts, getReturnStatusData]);
   const totalStats = useMemo(() => getTotalStats(yearGifts), [yearGifts, getTotalStats]);
+  const returnStats = useMemo(() => getReturnStats(yearGifts, returns), [yearGifts, returns, getReturnStats]);
 
   if (loading) {
     return (
@@ -209,6 +267,55 @@ export const Statistics: React.FC = () => {
               </div>
             </Card>
           </div>
+
+          {/* お返し統計 */}
+          {returnStats.totalReturns > 0 && (
+            <Card className="p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">お返し統計</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <p className="text-sm text-gray-600 mb-1">お返し総数</p>
+                  <p className="text-2xl font-bold text-blue-600">{returnStats.totalReturns}件</p>
+                </div>
+                <div className="bg-green-50 p-4 rounded-lg">
+                  <p className="text-sm text-gray-600 mb-1">お返し総額</p>
+                  <p className="text-2xl font-bold text-green-600">
+                    ¥{returnStats.totalReturnAmount.toLocaleString()}
+                  </p>
+                </div>
+                <div className="bg-purple-50 p-4 rounded-lg">
+                  <p className="text-sm text-gray-600 mb-1">平均お返し金額</p>
+                  <p className="text-2xl font-bold text-purple-600">
+                    ¥{Math.round(returnStats.avgReturnAmount).toLocaleString()}
+                  </p>
+                </div>
+                <div className="bg-orange-50 p-4 rounded-lg">
+                  <p className="text-sm text-gray-600 mb-1">平均お返し期間</p>
+                  <p className="text-2xl font-bold text-orange-600">
+                    {returnStats.avgReturnDays}日
+                  </p>
+                </div>
+              </div>
+              
+              <div className="border-t border-gray-200 pt-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm text-gray-600">お返し実施率</span>
+                  <span className="text-lg font-semibold text-gray-900">
+                    {returnStats.returnRate.toFixed(1)}%
+                  </span>
+                </div>
+                <div className="bg-gray-200 rounded-full h-3">
+                  <div
+                    className="bg-green-600 h-3 rounded-full transition-all duration-500"
+                    style={{ width: `${returnStats.returnRate}%` }}
+                  ></div>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  {returnStats.giftsWithReturns}件 / {totalStats.totalGifts}件の贈答品にお返しを実施
+                </p>
+              </div>
+            </Card>
+          )}
 
           {/* 月別受取金額 */}
           <Card className="p-6">

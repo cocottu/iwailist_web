@@ -5,6 +5,8 @@ import { GiftRepository, PersonRepository, ImageRepository } from '@/database';
 import { Gift, Person, Image } from '@/types';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale/ja';
+import { ReturnHistory } from '@/components/returns/ReturnHistory';
+import { ReminderForm } from '@/components/reminders/ReminderForm';
 
 export const GiftDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -14,6 +16,7 @@ export const GiftDetail: React.FC = () => {
   const [images, setImages] = useState<Image[]>([]);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showReminderForm, setShowReminderForm] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -200,11 +203,19 @@ export const GiftDetail: React.FC = () => {
           </Card>
 
           {gift.memo && (
-            <Card className="p-6">
+            <Card className="p-6 mb-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">メモ</h2>
               <p className="text-gray-700 whitespace-pre-wrap">{gift.memo}</p>
             </Card>
           )}
+
+          {/* お返し履歴 */}
+          <Card className="p-6">
+            <ReturnHistory 
+              giftId={gift.id} 
+              onReturnAdded={() => loadGiftDetail(gift.id)}
+            />
+          </Card>
         </div>
 
         {/* サイドバー */}
@@ -258,11 +269,13 @@ export const GiftDetail: React.FC = () => {
               <Link to={`/gifts/${gift.id}/edit`} className="block">
                 <Button className="w-full">編集する</Button>
               </Link>
-              {gift.returnStatus === 'pending' && (
-                <Button variant="outline" className="w-full">
-                  お返しを記録
-                </Button>
-              )}
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => setShowReminderForm(true)}
+              >
+                ⏰ リマインダー設定
+              </Button>
             </div>
           </Card>
 
@@ -362,6 +375,19 @@ export const GiftDetail: React.FC = () => {
             {selectedImageIndex + 1} / {images.length}
           </div>
         </div>
+      )}
+
+      {/* リマインダーフォーム */}
+      {showReminderForm && gift && (
+        <ReminderForm
+          giftId={gift.id}
+          giftName={gift.giftName}
+          onSuccess={() => {
+            setShowReminderForm(false);
+            alert('リマインダーを設定しました');
+          }}
+          onCancel={() => setShowReminderForm(false)}
+        />
       )}
     </div>
   );

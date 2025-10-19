@@ -1,15 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, Button, Loading, EmptyState } from '@/components/ui';
-import { GiftRepository, PersonRepository } from '@/database';
-import { Gift, Statistics, GiftCategory, Person } from '@/types';
+import { GiftRepository, PersonRepository, ReminderRepository } from '@/database';
+import { Gift, Statistics, GiftCategory, Person, Reminder } from '@/types';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale/ja';
+import { ReminderCard } from '@/components/reminders/ReminderCard';
 
 export const Dashboard: React.FC = () => {
   const [statistics, setStatistics] = useState<Statistics | null>(null);
   const [recentGifts, setRecentGifts] = useState<Gift[]>([]);
   const [persons, setPersons] = useState<Person[]>([]);
+  const [upcomingReminders, setUpcomingReminders] = useState<Reminder[]>([]);
+  const [overdueReminders, setOverdueReminders] = useState<Reminder[]>([]);
+  const [reminderGifts, setReminderGifts] = useState<Record<string, Gift>>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -25,6 +29,7 @@ export const Dashboard: React.FC = () => {
       
       const giftRepo = new GiftRepository();
       const personRepo = new PersonRepository();
+      const reminderRepo = new ReminderRepository();
       
       // 統計データ取得
       const stats = await giftRepo.getStatistics(userId);
@@ -36,6 +41,22 @@ export const Dashboard: React.FC = () => {
       // 人物情報も取得
       const personsData = await personRepo.getAll(userId);
       setPersons(personsData);
+      
+      // リマインダー取得
+      const upcoming = await reminderRepo.getUpcoming(userId, 7);
+      const overdue = await reminderRepo.getOverdue(userId);
+      setUpcomingReminders(upcoming);
+      setOverdueReminders(overdue);
+      
+      // リマインダーの贈答品情報を取得
+      const reminderGiftMap: Record<string, Gift> = {};
+      for (const reminder of [...upcoming, ...overdue]) {
+        const gift = await giftRepo.get(reminder.giftId);
+        if (gift) {
+          reminderGiftMap[reminder.giftId] = gift;
+        }
+      }
+      setReminderGifts(reminderGiftMap);
       
       setStatistics({
         totalGifts: stats.total,
@@ -58,6 +79,32 @@ export const Dashboard: React.FC = () => {
   const getPersonName = (personId: string) => {
     const person = persons.find(p => p.id === personId);
     return person?.name || '不明な人物';
+  };
+
+  const handleCompleteReminder = async (reminderId: string) => {
+    try {
+      const reminderRepo = new ReminderRepository();
+      await reminderRepo.markComplete(reminderId);
+      await loadDashboardData();
+    } catch (error) {
+      console.error('Failed to complete reminder:', error);
+      alert('完了処理に失敗しました');
+    }
+  };
+
+  const handleDeleteReminder = async (reminderId: string) => {
+    if (!window.confirm('このリマインダーを削除しますか？')) {
+      return;
+    }
+    
+    try {
+      const reminderRepo = new ReminderRepository();
+      await reminderRepo.delete(reminderId);
+      await loadDashboardData();
+    } catch (error) {
+      console.error('Failed to delete reminder:', error);
+      alert('削除に失敗しました');
+    }
   };
 
   if (loading) {
@@ -174,6 +221,54 @@ export const Dashboard: React.FC = () => {
           </Link>
         </div>
       </div>
+
+      {/* リマインダーアラート */}
+      {(overdueReminders.length > 0 || upcomingReminders.length > 0) && (
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-gray-900">リマインダー</h2>
+            <Link to="/reminders" className="text-blue-600 hover:text-blue-700 text-sm font-medium">
+              すべて見る →
+            </Link>
+          </div>
+          
+          {/* 期限切れリマインダー */}
+          {overdueReminders.length > 0 && (
+            <div className="mb-4">
+              <h3 className="text-sm font-medium text-red-600 mb-2">⚠️ 期限切れ</h3>
+              <div className="space-y-2">
+                {overdueReminders.slice(0, 3).map((reminder) => (
+                  <ReminderCard
+                    key={reminder.id}
+                    reminder={reminder}
+                    gift={reminderGifts[reminder.giftId]}
+                    onComplete={handleCompleteReminder}
+                    onDelete={handleDeleteReminder}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {/* 予定リマインダー */}
+          {upcomingReminders.length > 0 && (
+            <div>
+              <h3 className="text-sm font-medium text-blue-600 mb-2">📅 今後の予定</h3>
+              <div className="space-y-2">
+                {upcomingReminders.slice(0, 3).map((reminder) => (
+                  <ReminderCard
+                    key={reminder.id}
+                    reminder={reminder}
+                    gift={reminderGifts[reminder.giftId]}
+                    onComplete={handleCompleteReminder}
+                    onDelete={handleDeleteReminder}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* 最近の贈答品 */}
       <div>

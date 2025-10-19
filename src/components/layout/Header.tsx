@@ -19,7 +19,7 @@ export const Header: React.FC = () => {
             </Link>
           </div>
           
-          <nav className="hidden md:flex space-x-8">
+          <nav className="hidden md:flex space-x-6">
             <Link
               to="/"
               className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
@@ -39,6 +39,26 @@ export const Header: React.FC = () => {
               }`}
             >
               贈答品
+            </Link>
+            <Link
+              to="/returns"
+              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                location.pathname.startsWith('/returns')
+                  ? 'bg-blue-100 text-blue-700'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              お返し
+            </Link>
+            <Link
+              to="/reminders"
+              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                location.pathname.startsWith('/reminders')
+                  ? 'bg-blue-100 text-blue-700'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              リマインダー
             </Link>
             <Link
               to="/persons"

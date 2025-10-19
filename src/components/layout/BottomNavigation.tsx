@@ -4,8 +4,8 @@ import { Link, useLocation } from 'react-router-dom';
 const navigationItems = [
   { path: '/', label: 'ホーム', icon: '🏠' },
   { path: '/gifts', label: '贈答品', icon: '🎁' },
-  { path: '/persons', label: '人物', icon: '👥' },
-  { path: '/statistics', label: '統計', icon: '📊' }
+  { path: '/returns', label: 'お返し', icon: '↩️' },
+  { path: '/reminders', label: 'リマインダー', icon: '⏰' }
 ];
 
 export const BottomNavigation: React.FC = () => {
