@@ -1,0 +1,18 @@
+# コードオーナー設定
+# 詳細: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# デフォルトオーナー
+* @your-github-username
+
+# Firebase設定
+firebase.json @your-github-username
+firestore.rules @your-github-username
+storage.rules @your-github-username
+.firebaserc @your-github-username
+
+# GitHub Actions
+.github/ @your-github-username
+
+# セキュリティ関連
+*.rules @your-github-username
+.env.example @your-github-username

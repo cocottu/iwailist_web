@@ -1,8 +1,10 @@
 import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Layout } from '@/components/layout/Layout';
-import { OfflineIndicator, PWAInstallPrompt, UpdatePrompt } from '@/components/ui';
+import { OfflineIndicator, PWAInstallPrompt, UpdatePrompt, SyncIndicator } from '@/components/ui';
 import { initializeDB } from '@/database';
+import { AuthProvider } from '@/contexts/AuthContext';
+import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { Dashboard } from '@/pages/Dashboard';
 import { GiftList } from '@/pages/GiftList';
 import { GiftDetail } from '@/pages/GiftDetail';
@@ -11,6 +13,9 @@ import { PersonList } from '@/pages/PersonList';
 import { PersonDetail } from '@/pages/PersonDetail';
 import { PersonForm } from '@/pages/PersonForm';
 import { Statistics } from '@/pages/Statistics';
+import Login from '@/pages/Login';
+import SignUp from '@/pages/SignUp';
+import ForgotPassword from '@/pages/ForgotPassword';
 
 function App() {
   useEffect(() => {
@@ -22,26 +27,99 @@ function App() {
 
   return (
     <Router>
-      {/* PWA関連のUI */}
-      <OfflineIndicator />
-      <PWAInstallPrompt />
-      <UpdatePrompt />
-      
-      <Layout>
+      <AuthProvider>
+        {/* PWA関連のUI */}
+        <OfflineIndicator />
+        <PWAInstallPrompt />
+        <UpdatePrompt />
+        <SyncIndicator />
+        
         <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/gifts" element={<GiftList />} />
-          <Route path="/gifts/new" element={<GiftForm />} />
-          <Route path="/gifts/:id" element={<GiftDetail />} />
-          <Route path="/gifts/:id/edit" element={<GiftForm />} />
-          <Route path="/persons" element={<PersonList />} />
-          <Route path="/persons/new" element={<PersonForm />} />
-          <Route path="/persons/:id" element={<PersonDetail />} />
-          <Route path="/persons/:id/edit" element={<PersonForm />} />
-          <Route path="/statistics" element={<Statistics />} />
-          <Route path="*" element={<Dashboard />} />
+          {/* 認証不要のルート */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<SignUp />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          
+          {/* 認証保護されたルート */}
+          <Route path="/" element={
+            <ProtectedRoute>
+              <Layout>
+                <Dashboard />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          <Route path="/gifts" element={
+            <ProtectedRoute>
+              <Layout>
+                <GiftList />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          <Route path="/gifts/new" element={
+            <ProtectedRoute>
+              <Layout>
+                <GiftForm />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          <Route path="/gifts/:id" element={
+            <ProtectedRoute>
+              <Layout>
+                <GiftDetail />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          <Route path="/gifts/:id/edit" element={
+            <ProtectedRoute>
+              <Layout>
+                <GiftForm />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          <Route path="/persons" element={
+            <ProtectedRoute>
+              <Layout>
+                <PersonList />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          <Route path="/persons/new" element={
+            <ProtectedRoute>
+              <Layout>
+                <PersonForm />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          <Route path="/persons/:id" element={
+            <ProtectedRoute>
+              <Layout>
+                <PersonDetail />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          <Route path="/persons/:id/edit" element={
+            <ProtectedRoute>
+              <Layout>
+                <PersonForm />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          <Route path="/statistics" element={
+            <ProtectedRoute>
+              <Layout>
+                <Statistics />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          <Route path="*" element={
+            <ProtectedRoute>
+              <Layout>
+                <Dashboard />
+              </Layout>
+            </ProtectedRoute>
+          } />
         </Routes>
-      </Layout>
+      </AuthProvider>
     </Router>
   );
 }

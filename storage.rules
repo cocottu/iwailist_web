@@ -1,0 +1,36 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // ヘルパー関数
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+    
+    function isImage() {
+      return request.resource.contentType.matches('image/.*');
+    }
+    
+    function isUnder10MB() {
+      return request.resource.size < 10 * 1024 * 1024;
+    }
+    
+    // ユーザーごとの画像保存
+    match /users/{userId}/{allPaths=**} {
+      // 読み取り: 自分のファイルのみ
+      allow read: if isOwner(userId);
+      
+      // 書き込み: 自分のファイル、画像形式、10MB以下
+      allow write: if isOwner(userId) 
+                   && isImage() 
+                   && isUnder10MB();
+      
+      // 削除: 自分のファイルのみ
+      allow delete: if isOwner(userId);
+    }
+  }
+}

@@ -9,3 +9,4 @@ export { OfflineIndicator } from './OfflineIndicator';
 export { PWAInstallPrompt } from './PWAInstallPrompt';
 export { UpdatePrompt } from './UpdatePrompt';
 export { CameraCapture } from './CameraCapture';
+export { default as SyncIndicator } from './SyncIndicator';

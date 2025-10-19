@@ -1,0 +1,92 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ヘルパー関数
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function hasValidTimestamp() {
+      return request.resource.data.updatedAt == request.time;
+    }
+    
+    function validateGift(gift) {
+      return gift.giftName is string
+          && gift.giftName.size() >= 1
+          && gift.giftName.size() <= 200
+          && gift.receivedDate is timestamp
+          && gift.category in ['結婚祝い', '出産祝い', 'お見舞い', 'お祝い', '香典・お悔やみ', '季節の贈り物', 'その他']
+          && gift.returnStatus in ['pending', 'completed', 'not_required']
+          && (gift.amount is number ? gift.amount >= 0 : true);
+    }
+    
+    function validatePerson(person) {
+      return person.name is string
+          && person.name.size() >= 1
+          && person.name.size() <= 100
+          && person.relationship in ['家族', '親戚', '友人', '会社関係', '知人', 'その他'];
+    }
+    
+    // ユーザードキュメント
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && hasValidTimestamp();
+      allow update: if isOwner(userId) && hasValidTimestamp();
+      allow delete: if false; // ユーザー削除は管理画面から
+      
+      // 人物サブコレクション
+      match /persons/{personId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) 
+                      && hasValidTimestamp()
+                      && validatePerson(request.resource.data);
+        allow update: if isOwner(userId) 
+                      && hasValidTimestamp()
+                      && validatePerson(request.resource.data);
+        allow delete: if isOwner(userId);
+      }
+      
+      // 贈答品サブコレクション
+      match /gifts/{giftId} {
+        allow read: if isOwner(userId);
+        allow list: if isOwner(userId) && request.query.limit <= 100;
+        allow create: if isOwner(userId) 
+                      && hasValidTimestamp()
+                      && validateGift(request.resource.data);
+        allow update: if isOwner(userId) 
+                      && hasValidTimestamp()
+                      && validateGift(request.resource.data);
+        allow delete: if isOwner(userId);
+        
+        // お返しサブコレクション
+        match /returns/{returnId} {
+          allow read: if isOwner(userId);
+          allow create: if isOwner(userId) && hasValidTimestamp();
+          allow update: if isOwner(userId) && hasValidTimestamp();
+          allow delete: if isOwner(userId);
+        }
+      }
+      
+      // 画像サブコレクション
+      match /images/{imageId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && hasValidTimestamp();
+        allow update: if isOwner(userId) && hasValidTimestamp();
+        allow delete: if isOwner(userId);
+      }
+      
+      // リマインダーサブコレクション
+      match /reminders/{reminderId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && hasValidTimestamp();
+        allow update: if isOwner(userId) && hasValidTimestamp();
+        allow delete: if isOwner(userId);
+      }
+    }
+  }
+}
