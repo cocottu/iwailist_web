@@ -40,9 +40,12 @@
 - ✅ 統計・分析機能
 - ✅ レスポンシブデザイン
 
-### Phase 2 (予定)
-- 🔄 PWA対応（Service Worker、オフライン動作）
-- 🔄 カメラ撮影機能
+### Phase 2 (✅ 実装完了)
+- ✅ PWA対応（Service Worker、オフライン動作）
+- ✅ オフラインインジケーター
+- ✅ PWAインストールプロンプト
+- ✅ 自動更新通知
+- 🔄 カメラ撮影機能（次回実装予定）
 
 ### Phase 3以降の機能
 - 🔄 Firebase統合（クラウド同期、認証）
@@ -95,18 +98,65 @@ VITE_DEBUG=false
 
 **重要**: `.env.local` ファイルは絶対にコミットしないでください。
 
+## PWA機能
+
+このアプリは**Progressive Web App (PWA)**として動作します：
+
+### 📱 主な機能
+- **オフライン動作**: インターネット接続なしでも利用可能
+- **インストール可能**: ホーム画面に追加してネイティブアプリのように使用
+- **自動更新**: 新しいバージョンが利用可能になると通知
+- **高速読み込み**: Service Workerによるキャッシュで高速表示
+- **オフライン検知**: ネットワーク状態を自動検知して通知
+
+### 🔧 PWAアイコンの生成
+
+アプリをデプロイする前に、PWAアイコンを生成してください：
+
+```bash
+# オンラインツールを使用（推奨）
+# 1. https://www.pwabuilder.com/imageGenerator にアクセス
+# 2. public/pwa-icon-template.svg をアップロード
+# 3. 生成されたアイコンを public/ に配置
+```
+
+必要なアイコン：
+- `pwa-192x192.png` (192x192px)
+- `pwa-512x512.png` (512x512px)
+- `pwa-maskable-192x192.png` (192x192px、マスカブル)
+- `pwa-maskable-512x512.png` (512x512px、マスカブル)
+
+### 📲 インストール方法
+
+**モバイルデバイス:**
+1. ブラウザでアプリにアクセス
+2. 画面下部に表示される「インストール」プロンプトをタップ
+3. ホーム画面に追加
+
+**デスクトップ:**
+1. アドレスバーの右側にある「インストール」アイコンをクリック
+2. 確認ダイアログで「インストール」をクリック
+
 ## プロジェクト構造
 
 ```
 src/
 ├── components/          # 共通コンポーネント
 │   ├── ui/             # UIコンポーネント
+│   │   ├── OfflineIndicator.tsx      # オフライン表示
+│   │   ├── PWAInstallPrompt.tsx      # インストールプロンプト
+│   │   └── UpdatePrompt.tsx          # 更新通知
 │   └── layout/         # レイアウトコンポーネント
+├── hooks/              # カスタムフック
+│   ├── useOnlineStatus.ts   # オンライン状態検知
+│   ├── usePWAInstall.ts     # PWAインストール
+│   └── useSWUpdate.ts       # Service Worker更新
 ├── database/           # データベース関連
 │   ├── repositories/   # リポジトリパターン
 │   └── schema.ts       # IndexedDBスキーマ
 ├── pages/              # ページコンポーネント
 ├── types/              # 型定義
+├── utils/              # ユーティリティ
 ├── App.tsx             # メインアプリケーション
 └── main.tsx            # エントリーポイント
 ```
@@ -136,6 +186,22 @@ src/
 3. **統計を確認**: ダッシュボードで受取状況を確認できます
 4. **分析**: 統計ページで詳細な分析が可能です
 
+## テスト
+
+```bash
+# 単体テスト
+npm run test
+
+# カバレッジ付き
+npm run test:coverage
+
+# E2Eテスト
+npm run test:e2e
+
+# E2Eテスト（UIモード）
+npm run test:e2e:ui
+```
+
 ## セキュリティチェック
 
 コミット前にセキュリティチェックを実行：
@@ -150,6 +216,24 @@ npm run pre-commit
 # 本番ビルド（全チェック + ビルド）
 npm run build:production
 ```
+
+## トラブルシューティング
+
+### Service Workerが更新されない
+
+```bash
+# ブラウザのキャッシュをクリア
+# Chrome: DevTools > Application > Clear storage > Clear site data
+
+# または開発モードで起動
+npm run dev
+```
+
+### オフラインで動作しない
+
+1. HTTPSまたはlocalhostでアクセスしていることを確認
+2. Service Workerが登録されているか確認（DevTools > Application > Service Workers）
+3. 一度オンラインでページを読み込んでキャッシュさせる
 
 ## ライセンス
 

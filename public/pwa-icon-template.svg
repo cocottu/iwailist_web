@@ -1,0 +1,27 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景 -->
+  <rect width="512" height="512" rx="115" fill="#3B82F6"/>
+  
+  <!-- ギフトボックスのデザイン -->
+  <!-- リボン（横） -->
+  <rect x="156" y="200" width="200" height="40" fill="#FFFFFF" opacity="0.9"/>
+  
+  <!-- リボン（縦） -->
+  <rect x="236" y="140" width="40" height="232" fill="#FFFFFF" opacity="0.9"/>
+  
+  <!-- ギフトボックス本体 -->
+  <rect x="136" y="240" width="240" height="152" rx="8" fill="#FBBF24"/>
+  
+  <!-- ボックスの影 -->
+  <rect x="136" y="380" width="240" height="12" rx="6" fill="#000000" opacity="0.15"/>
+  
+  <!-- リボンの結び目 -->
+  <circle cx="256" cy="220" r="28" fill="#FBBF24"/>
+  <circle cx="256" cy="220" r="20" fill="#3B82F6"/>
+  
+  <!-- 装飾的なドット -->
+  <circle cx="196" cy="300" r="8" fill="#FFFFFF" opacity="0.4"/>
+  <circle cx="316" cy="300" r="8" fill="#FFFFFF" opacity="0.4"/>
+  <circle cx="196" cy="340" r="8" fill="#FFFFFF" opacity="0.4"/>
+  <circle cx="316" cy="340" r="8" fill="#FFFFFF" opacity="0.4"/>
+</svg>

@@ -17,6 +17,7 @@
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:debug": "playwright test --debug",
     "test:e2e:report": "playwright show-report",
+    "pwa:icons": "node scripts/generate-pwa-icons.js",
     "security:check": "node scripts/security-check.js",
     "pre-commit": "node scripts/pre-commit.js",
     "build:production": "npm run security:check && npm run lint && npm run test:run && npm run build"

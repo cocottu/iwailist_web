@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Layout } from '@/components/layout/Layout';
+import { OfflineIndicator, PWAInstallPrompt, UpdatePrompt } from '@/components/ui';
 import { initializeDB } from '@/database';
 import { Dashboard } from '@/pages/Dashboard';
 import { GiftList } from '@/pages/GiftList';
@@ -21,6 +22,11 @@ function App() {
 
   return (
     <Router>
+      {/* PWA関連のUI */}
+      <OfflineIndicator />
+      <PWAInstallPrompt />
+      <UpdatePrompt />
+      
       <Layout>
         <Routes>
           <Route path="/" element={<Dashboard />} />

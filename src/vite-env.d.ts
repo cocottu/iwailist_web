@@ -1,12 +1,11 @@
 /// <reference types="vite/client" />
+/// <reference types="vite-plugin-pwa/client" />
 
 interface ImportMetaEnv {
-  readonly VITE_APP_TITLE: string
-  readonly VITE_APP_VERSION: string
-  readonly VITE_APP_ENV: string
-  readonly VITE_LOG_LEVEL: string
-  readonly VITE_DEBUG_MODE: string
-  // 他の環境変数もここに追加
+  readonly VITE_API_URL?: string
+  readonly VITE_API_KEY?: string
+  readonly VITE_DEBUG?: string
+  // 必要に応じて他の環境変数を追加
 }
 
 interface ImportMeta {
