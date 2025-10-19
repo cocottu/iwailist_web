@@ -30,8 +30,8 @@ describe('BottomNavigation', () => {
     
     expect(screen.getByText('ホーム')).toBeInTheDocument()
     expect(screen.getByText('贈答品')).toBeInTheDocument()
-    expect(screen.getByText('人物')).toBeInTheDocument()
-    expect(screen.getByText('統計')).toBeInTheDocument()
+    expect(screen.getByText('お返し')).toBeInTheDocument()
+    expect(screen.getByText('リマインダー')).toBeInTheDocument()
   })
 
   it('アイコンが正しく表示される', () => {
@@ -43,8 +43,8 @@ describe('BottomNavigation', () => {
     
     expect(screen.getByText('🏠')).toBeInTheDocument()
     expect(screen.getByText('🎁')).toBeInTheDocument()
-    expect(screen.getByText('👥')).toBeInTheDocument()
-    expect(screen.getByText('📊')).toBeInTheDocument()
+    expect(screen.getByText('↩️')).toBeInTheDocument()
+    expect(screen.getByText('⏰')).toBeInTheDocument()
   })
 
   it('ホームページでアクティブ状態が正しく表示される', () => {
@@ -80,26 +80,26 @@ describe('BottomNavigation', () => {
     expect(giftsLink).toHaveClass('text-blue-600')
   })
 
-  it('人物ページでアクティブ状態が正しく表示される', () => {
+  it('お返しページでアクティブ状態が正しく表示される', () => {
     render(
-      <TestWrapper initialEntries={['/persons']}>
+      <TestWrapper initialEntries={['/returns']}>
         <BottomNavigation />
       </TestWrapper>
     )
     
-    const personsLink = screen.getByText('人物').closest('a')
-    expect(personsLink).toHaveClass('text-blue-600')
+    const returnsLink = screen.getByText('お返し').closest('a')
+    expect(returnsLink).toHaveClass('text-blue-600')
   })
 
-  it('統計ページでアクティブ状態が正しく表示される', () => {
+  it('リマインダーページでアクティブ状態が正しく表示される', () => {
     render(
-      <TestWrapper initialEntries={['/statistics']}>
+      <TestWrapper initialEntries={['/reminders']}>
         <BottomNavigation />
       </TestWrapper>
     )
     
-    const statisticsLink = screen.getByText('統計').closest('a')
-    expect(statisticsLink).toHaveClass('text-blue-600')
+    const remindersLink = screen.getByText('リマインダー').closest('a')
+    expect(remindersLink).toHaveClass('text-blue-600')
   })
 
   it('非アクティブなリンクが正しいスタイルを持つ', () => {
@@ -123,8 +123,8 @@ describe('BottomNavigation', () => {
     
     expect(screen.getByText('ホーム').closest('a')).toHaveAttribute('href', '/')
     expect(screen.getByText('贈答品').closest('a')).toHaveAttribute('href', '/gifts')
-    expect(screen.getByText('人物').closest('a')).toHaveAttribute('href', '/persons')
-    expect(screen.getByText('統計').closest('a')).toHaveAttribute('href', '/statistics')
+    expect(screen.getByText('お返し').closest('a')).toHaveAttribute('href', '/returns')
+    expect(screen.getByText('リマインダー').closest('a')).toHaveAttribute('href', '/reminders')
   })
 
   it('基本のスタイルが適用される', () => {
@@ -190,7 +190,7 @@ describe('BottomNavigation', () => {
       </TestWrapper>
     )
     
-    const activeLinks = screen.getAllByText(/ホーム|贈答品|人物|統計/).filter(link => 
+    const activeLinks = screen.getAllByText(/ホーム|贈答品|お返し|リマインダー/).filter(link => 
       link.closest('a')?.classList.contains('text-blue-600')
     )
     expect(activeLinks).toHaveLength(1)

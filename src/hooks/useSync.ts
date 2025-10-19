@@ -29,13 +29,6 @@ export const useSync = (): UseSyncReturn => {
     return () => clearInterval(interval);
   }, []);
 
-  // オンライン復帰時に自動同期
-  useEffect(() => {
-    if (isOnline && user) {
-      sync().catch(console.error);
-    }
-  }, [isOnline, user]);
-
   // 手動同期
   const sync = useCallback(async () => {
     if (!user) {
@@ -55,6 +48,15 @@ export const useSync = (): UseSyncReturn => {
       setError(error);
     }
   }, [user]);
+
+  // オンライン復帰時に自動同期
+  useEffect(() => {
+    if (isOnline && user) {
+      // 自動同期は意図的な動作なので、setState warningを無視
+      void sync().catch(console.error);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOnline, user]);
 
   // リトライ
   const retrySync = useCallback(async () => {

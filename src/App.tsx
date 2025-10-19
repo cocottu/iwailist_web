@@ -12,6 +12,8 @@ import { GiftForm } from '@/pages/GiftForm';
 import { PersonList } from '@/pages/PersonList';
 import { PersonDetail } from '@/pages/PersonDetail';
 import { PersonForm } from '@/pages/PersonForm';
+import { ReturnList } from '@/pages/ReturnList';
+import { ReminderList } from '@/pages/ReminderList';
 import { Statistics } from '@/pages/Statistics';
 import Login from '@/pages/Login';
 import SignUp from '@/pages/SignUp';
@@ -101,6 +103,20 @@ function App() {
             <ProtectedRoute>
               <Layout>
                 <PersonForm />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          <Route path="/returns" element={
+            <ProtectedRoute>
+              <Layout>
+                <ReturnList />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          <Route path="/reminders" element={
+            <ProtectedRoute>
+              <Layout>
+                <ReminderList />
               </Layout>
             </ProtectedRoute>
           } />

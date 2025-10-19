@@ -55,6 +55,14 @@ export interface FirestoreImage {
   createdAt: Timestamp;
 }
 
+export interface FirestoreReminder {
+  giftId: string;
+  reminderDate: Timestamp;
+  message: string;
+  completed: boolean;
+  createdAt: Timestamp;
+}
+
 // 同期関連の型
 export interface SyncOperation {
   id: string;
