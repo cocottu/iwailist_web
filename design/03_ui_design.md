@@ -46,8 +46,8 @@ stateDiagram-v2
 | PERS-01 | 人物一覧 | Phase 1 | 人物リスト |
 | PERS-02 | 人物詳細 | Phase 1 | 人物情報・贈答品履歴 |
 | PERS-03 | 人物登録/編集 | Phase 1 | 入力フォーム |
-| CAME-01 | カメラ撮影 | Phase 1 | 写真撮影画面 |
 | STAT-01 | 基本統計 | Phase 1 | ダッシュボード用統計 |
+| CAME-01 | カメラ撮影 | Phase 2 | 写真撮影画面 |
 | RETU-01 | お返し一覧 | Phase 4 | お返し必要リスト |
 | RETU-02 | お返し登録 | Phase 4 | お返し記録フォーム |
 | STAT-02 | 詳細分析 | Phase 4 | グラフ・集計表示 |

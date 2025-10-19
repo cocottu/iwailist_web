@@ -197,7 +197,7 @@ interface UseImageUploadReturn {
 function useImageUpload(): UseImageUploadReturn;
 ```
 
-### 2.4 カメラフック
+### 2.4 カメラフック (Phase 2実装予定)
 
 ```typescript
 interface UseCameraReturn {
@@ -215,7 +215,7 @@ interface UseCameraReturn {
 function useCamera(): UseCameraReturn;
 ```
 
-### 2.5 同期管理フック
+### 2.5 同期管理フック (Phase 2-3実装予定)
 
 ```typescript
 interface UseSyncReturn {
@@ -273,7 +273,7 @@ interface ConflictResolution {
 }
 ```
 
-## 3. Service Worker API
+## 3. Service Worker API (Phase 2実装予定)
 
 ### 3.1 Service Workerライフサイクル
 
@@ -379,7 +379,7 @@ self.addEventListener('notificationclick', (event: NotificationEvent) => {
 });
 ```
 
-## 4. Camera API仕様
+## 4. Camera API仕様 (Phase 2実装予定)
 
 ### 4.1 カメラアクセス
 

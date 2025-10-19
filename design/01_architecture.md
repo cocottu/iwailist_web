@@ -8,12 +8,12 @@
 graph TB
     subgraph Browser["ブラウザ環境"]
         UI[React UI<br/>TypeScript + Vite]
-        SW[Service Worker<br/>キャッシュ・同期管理]
+        SW[Service Worker<br/>キャッシュ・同期管理<br/>Phase 2]
         IDB[(IndexedDB<br/>ローカルストレージ)]
-        Camera[Camera API<br/>写真撮影]
+        Camera[Camera API<br/>写真撮影<br/>Phase 2]
     end
     
-    subgraph Firebase["Firebase (Spark Plan)"]
+    subgraph Firebase["Firebase (Spark Plan) - Phase 3"]
         Auth[Authentication<br/>認証管理]
         FS[(Firestore<br/>クラウドDB)]
         Storage[(Storage<br/>画像保管)]
@@ -21,12 +21,12 @@ graph TB
     end
     
     UI -->|データ操作| IDB
-    UI -->|カメラ制御| Camera
+    UI -->|カメラ制御<br/>Phase 2| Camera
     SW -->|キャッシュ| UI
     SW -->|Background Sync| IDB
-    IDB <-->|双方向同期| FS
-    UI -->|認証| Auth
-    UI -->|画像アップロード| Storage
+    IDB <-->|双方向同期<br/>Phase 3| FS
+    UI -->|認証<br/>Phase 3| Auth
+    UI -->|画像アップロード<br/>Phase 3| Storage
     Hosting -->|配信| Browser
     Auth -->|認可| FS
     Auth -->|認可| Storage
@@ -113,7 +113,7 @@ graph TD
 - バックアップ
 - NoSQLドキュメント指向DB
 
-### 3.3 PWA対応
+### 3.3 PWA対応 (Phase 2実装予定)
 
 **Service Worker**:
 - アプリケーションシェルのキャッシュ
