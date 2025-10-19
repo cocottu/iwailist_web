@@ -196,12 +196,11 @@ describe('GiftRepository Integration Tests', () => {
 
   describe('getByPersonId', () => {
     it('人物IDで贈答品が取得される', async () => {
-      const userId = 'demo-user'
       const personId = '1'
       const personGifts = [mockGifts[0]]
       mockDB.getAllFromIndex.mockResolvedValue(personGifts)
 
-      const result = await giftRepository.getByPersonId(userId, personId)
+      const result = await giftRepository.getByPersonId(personId)
 
       expect(mockDB.getAllFromIndex).toHaveBeenCalledWith('gifts', 'personId', personId)
       expect(result).toEqual(personGifts)
@@ -210,11 +209,10 @@ describe('GiftRepository Integration Tests', () => {
 
   describe('getPendingReturns', () => {
     it('未対応のお返しが取得される', async () => {
-      const userId = 'demo-user'
       const pendingGifts = [mockGifts[0]]
       mockDB.getAllFromIndex.mockResolvedValue(pendingGifts)
 
-      const result = await giftRepository.getPendingReturns(userId)
+      const result = await giftRepository.getPendingReturns()
 
       expect(mockDB.getAllFromIndex).toHaveBeenCalledWith('gifts', 'returnStatus', 'pending')
       expect(result).toEqual(pendingGifts)

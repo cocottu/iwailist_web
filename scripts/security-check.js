@@ -7,7 +7,6 @@
 
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
 
 // チェック対象のパターン
 const SENSITIVE_PATTERNS = [
@@ -23,9 +22,9 @@ const SENSITIVE_PATTERNS = [
   /key\s*[:=]\s*["'][^"']+["']/gi,
   
   // データベース接続文字列
-  /mongodb:\/\/[^\/]+\/[^\/]+/g,
-  /postgres:\/\/[^\/]+\/[^\/]+/g,
-  /mysql:\/\/[^\/]+\/[^\/]+/g,
+  /mongodb:\/\/[^/]+\/[^/]+/g,
+  /postgres:\/\/[^/]+\/[^/]+/g,
+  /mysql:\/\/[^/]+\/[^/]+/g,
   
   // 個人情報
   /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, // メールアドレス
@@ -101,7 +100,7 @@ class SecurityChecker {
       this.checkedFiles++;
       
       // 各パターンでチェック
-      SENSITIVE_PATTERNS.forEach((pattern, index) => {
+      SENSITIVE_PATTERNS.forEach((pattern) => {
         const matches = content.match(pattern);
         if (matches) {
           matches.forEach(match => {

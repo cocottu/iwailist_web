@@ -59,12 +59,12 @@ export class GiftRepository {
     return gifts.sort((a, b) => b.receivedDate.getTime() - a.receivedDate.getTime());
   }
   
-  async getByPersonId(_userId: string, personId: string): Promise<Gift[]> {
+  async getByPersonId(personId: string): Promise<Gift[]> {
     const db = await getDB();
     return await db.getAllFromIndex('gifts', 'personId', personId);
   }
   
-  async getPendingReturns(_userId: string): Promise<Gift[]> {
+  async getPendingReturns(): Promise<Gift[]> {
     const db = await getDB();
     return await db.getAllFromIndex('gifts', 'returnStatus', 'pending');
   }

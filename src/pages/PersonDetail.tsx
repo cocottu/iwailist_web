@@ -22,7 +22,6 @@ export const PersonDetail: React.FC = () => {
   const loadPersonDetail = async (personId: string) => {
     try {
       setLoading(true);
-      const userId = 'demo-user';
       
       const personRepo = new PersonRepository();
       const giftRepo = new GiftRepository();
@@ -34,7 +33,7 @@ export const PersonDetail: React.FC = () => {
       
       setPerson(personData);
       
-      const giftsData = await giftRepo.getByPersonId(userId, personId);
+      const giftsData = await giftRepo.getByPersonId(personId);
       setGifts(giftsData);
     } catch (error) {
       console.error('Failed to load person detail:', error);

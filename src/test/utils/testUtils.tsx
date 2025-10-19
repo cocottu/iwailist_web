@@ -21,21 +21,21 @@ const customRender = (
 ) => render(ui, { wrapper: AllTheProviders, ...options })
 
 // モック関数のヘルパー
-export const createMockFunction = <T extends (...args: any[]) => any>(
+export const createMockFunction = <T extends (...args: unknown[]) => unknown>(
   implementation?: T
 ) => {
   return vi.fn(implementation)
 }
 
 // 非同期関数のモックヘルパー
-export const createMockAsyncFunction = <T extends (...args: any[]) => Promise<any>>(
+export const createMockAsyncFunction = <T extends (...args: unknown[]) => Promise<unknown>>(
   implementation?: T
 ) => {
   return vi.fn(implementation)
 }
 
 // データベース操作のモックヘルパー
-export const mockDatabaseOperation = (result?: any) => {
+export const mockDatabaseOperation = (result?: unknown) => {
   const mockFn = vi.fn(() => Promise.resolve(result))
   return mockFn
 }
