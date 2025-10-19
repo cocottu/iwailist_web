@@ -5,3 +5,6 @@ export { Select } from './Select';
 export { Badge } from './Badge';
 export { Loading } from './Loading';
 export { EmptyState } from './EmptyState';
+export { OfflineIndicator } from './OfflineIndicator';
+export { PWAInstallPrompt } from './PWAInstallPrompt';
+export { UpdatePrompt } from './UpdatePrompt';
