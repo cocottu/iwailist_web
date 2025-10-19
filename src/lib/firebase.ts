@@ -6,6 +6,23 @@ import { getAuth, Auth } from 'firebase/auth';
 import { getFirestore, Firestore } from 'firebase/firestore';
 import { getStorage, FirebaseStorage } from 'firebase/storage';
 
+// 環境変数から現在の環境を取得
+export const APP_ENV = import.meta.env.VITE_APP_ENV || 'development';
+
+// 環境判定ヘルパー
+export const isDevelopment = (): boolean => APP_ENV === 'development';
+export const isStaging = (): boolean => APP_ENV === 'staging';
+export const isProduction = (): boolean => APP_ENV === 'production';
+
+// 環境に応じた機能フラグ
+export const FEATURE_FLAGS = {
+  enableDebugMode: isDevelopment(),
+  enablePerformanceMonitoring: isProduction() || isStaging(),
+  enableAnalytics: isProduction(),
+  enableErrorReporting: isProduction() || isStaging(),
+  showDevTools: isDevelopment(),
+};
+
 // Firebase設定
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -50,7 +67,19 @@ try {
     db = getFirestore(app);
     storage = getStorage(app);
     
-    console.log('Firebase initialized successfully');
+    // 環境に応じたログ出力
+    if (isDevelopment()) {
+      console.log('🔧 Running in DEVELOPMENT mode');
+      console.log('Firebase Project:', firebaseConfig.projectId);
+      console.log('Firebase initialized successfully');
+    } else if (isStaging()) {
+      console.log('🧪 Running in STAGING mode');
+      console.log('Firebase Project:', firebaseConfig.projectId);
+      console.log('Firebase initialized successfully');
+    } else if (isProduction()) {
+      console.log('🚀 Running in PRODUCTION mode');
+      // 本番環境では詳細なログを抑制
+    }
   }
 } catch (error) {
   console.error('Firebase initialization error:', error);
