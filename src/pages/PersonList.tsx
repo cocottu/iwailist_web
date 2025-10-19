@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, Button, Input, Select, Loading, EmptyState } from '@/components/ui';
 import { PersonRepository, GiftRepository } from '@/database';
 import { Person, Gift, Relationship } from '@/types';
+import { logger } from '@/utils/logger';
 // import { format } from 'date-fns';
 // import { ja } from 'date-fns/locale';
 
@@ -13,30 +14,7 @@ export const PersonList: React.FC = () => {
   const [searchText, setSearchText] = useState('');
   const [relationshipFilter, setRelationshipFilter] = useState('');
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  useEffect(() => {
-    loadPersons();
-  }, [searchText, relationshipFilter]);
-
-  const loadData = async () => {
-    try {
-      setLoading(true);
-      const userId = 'demo-user';
-      
-      const giftRepo = new GiftRepository();
-      const giftsData = await giftRepo.getAll(userId);
-      setGifts(giftsData);
-    } catch (error) {
-      console.error('Failed to load data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadPersons = async () => {
+  const loadPersons = useCallback(async () => {
     try {
       const userId = 'demo-user';
       const personRepo = new PersonRepository();
@@ -55,9 +33,31 @@ export const PersonList: React.FC = () => {
       
       setPersons(personsData);
     } catch (error) {
-      console.error('Failed to load persons:', error);
+      logger.error('Failed to load persons:', error);
     }
-  };
+  }, [searchText, relationshipFilter]);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        const userId = 'demo-user';
+        
+        const giftRepo = new GiftRepository();
+        const giftsData = await giftRepo.getAll(userId);
+        setGifts(giftsData);
+      } catch (error) {
+        logger.error('Failed to load data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, []);
+
+  useEffect(() => {
+    loadPersons();
+  }, [loadPersons]);
 
   const getPersonGifts = (personId: string) => {
     return gifts.filter(g => g.personId === personId);

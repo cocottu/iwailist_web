@@ -1,5 +1,6 @@
 import { openDB, DBSchema, IDBPDatabase } from 'idb';
 import { Gift, Person, Return, Image, Reminder, SyncQueueItem } from '@/types';
+import { logger } from '@/utils/logger';
 
 // IndexedDBスキーマ定義
 export interface IwailistDB extends DBSchema {
@@ -101,11 +102,9 @@ export async function initializeDB(): Promise<void> {
   try {
     await getDB();
     // 本番環境ではログを出力しない
-    if (import.meta.env.DEV) {
-      console.log('IndexedDB initialized successfully');
-    }
+    logger.info('IndexedDB initialized successfully');
   } catch (error) {
-    console.error('Failed to initialize IndexedDB:', error);
+    logger.error('Failed to initialize IndexedDB:', error);
     throw error;
   }
 }

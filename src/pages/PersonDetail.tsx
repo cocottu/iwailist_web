@@ -5,6 +5,7 @@ import { PersonRepository, GiftRepository } from '@/database';
 import { Person, Gift } from '@/types';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale';
+import { logger } from '@/utils/logger';
 
 export const PersonDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -37,7 +38,7 @@ export const PersonDetail: React.FC = () => {
       const giftsData = await giftRepo.getByPersonId(userId, personId);
       setGifts(giftsData);
     } catch (error) {
-      console.error('Failed to load person detail:', error);
+      logger.error('Failed to load person detail:', error);
     } finally {
       setLoading(false);
     }
@@ -62,7 +63,7 @@ export const PersonDetail: React.FC = () => {
       
       navigate('/persons');
     } catch (error) {
-      console.error('Failed to delete person:', error);
+      logger.error('Failed to delete person:', error);
       alert('削除に失敗しました');
     }
   };

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Card, Button, Input, Select } from '@/components/ui';
 import { GiftRepository, PersonRepository } from '@/database';
 import { Gift, Person, GiftFormData, GiftCategory, ReturnStatus } from '@/types';
+import { logger } from '@/utils/logger';
 
 export const GiftForm: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -43,7 +44,7 @@ export const GiftForm: React.FC = () => {
       const personsData = await personRepo.getAll(userId);
       setPersons(personsData);
     } catch (error) {
-      console.error('Failed to load data:', error);
+      logger.error('Failed to load data:', error);
     } finally {
       setLoading(false);
     }
@@ -66,11 +67,11 @@ export const GiftForm: React.FC = () => {
         });
       }
     } catch (error) {
-      console.error('Failed to load gift:', error);
+      logger.error('Failed to load gift:', error);
     }
   };
 
-  const handleInputChange = (field: keyof GiftFormData, value: any) => {
+  const handleInputChange = (field: keyof GiftFormData, value: string | number | Date | undefined) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -144,7 +145,7 @@ export const GiftForm: React.FC = () => {
       
       navigate(`/gifts/${giftData.id}`);
     } catch (error) {
-      console.error('Failed to save gift:', error);
+      logger.error('Failed to save gift:', error);
       alert('保存に失敗しました');
     } finally {
       setSaving(false);

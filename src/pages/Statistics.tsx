@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Card, Loading, EmptyState } from '@/components/ui';
 import { GiftRepository, PersonRepository } from '@/database';
 import { Gift, Person, GiftCategory } from '@/types';
 import { format, startOfMonth, endOfMonth, eachMonthOfInterval, startOfYear, endOfYear } from 'date-fns';
 import { ja } from 'date-fns/locale/ja';
+import { logger } from '@/utils/logger';
 
 export const Statistics: React.FC = () => {
   const [gifts, setGifts] = useState<Gift[]>([]);
@@ -31,7 +32,7 @@ export const Statistics: React.FC = () => {
       setGifts(giftsData);
       setPersons(personsData);
     } catch (error) {
-      console.error('Failed to load data:', error);
+      logger.error('Failed to load data:', error);
     } finally {
       setLoading(false);
     }
@@ -46,7 +47,7 @@ export const Statistics: React.FC = () => {
     );
   }, [gifts, selectedYear]);
 
-  const getMonthlyData = (yearGifts: Gift[]) => {
+  const getMonthlyData = useCallback((yearGifts: Gift[]) => {
     const months = eachMonthOfInterval({
       start: startOfYear(new Date(selectedYear, 0, 1)),
       end: endOfYear(new Date(selectedYear, 11, 31))
@@ -68,7 +69,7 @@ export const Statistics: React.FC = () => {
         amount: totalAmount
       };
     });
-  };
+  }, [selectedYear]);
 
   const getCategoryData = (yearGifts: Gift[]) => {
     const categoryMap = new Map<GiftCategory, number>();
@@ -87,7 +88,7 @@ export const Statistics: React.FC = () => {
       .sort((a, b) => b.count - a.count);
   };
 
-  const getPersonData = (yearGifts: Gift[]) => {
+  const getPersonData = useCallback((yearGifts: Gift[]) => {
     const personMap = new Map<string, { person: Person; count: number; amount: number }>();
     
     yearGifts.forEach(gift => {
@@ -103,7 +104,7 @@ export const Statistics: React.FC = () => {
     return Array.from(personMap.values())
       .sort((a, b) => b.count - a.count)
       .slice(0, 10);
-  };
+  }, [persons]);
 
   const getReturnStatusData = (yearGifts: Gift[]) => {
     const statusMap = {
@@ -135,9 +136,9 @@ export const Statistics: React.FC = () => {
     };
   };
 
-  const monthlyData = useMemo(() => getMonthlyData(yearGifts), [yearGifts, selectedYear]);
+  const monthlyData = useMemo(() => getMonthlyData(yearGifts), [yearGifts, getMonthlyData]);
   const categoryData = useMemo(() => getCategoryData(yearGifts), [yearGifts]);
-  const personData = useMemo(() => getPersonData(yearGifts), [yearGifts, persons]);
+  const personData = useMemo(() => getPersonData(yearGifts), [yearGifts, getPersonData]);
   const returnStatusData = useMemo(() => getReturnStatusData(yearGifts), [yearGifts]);
   const totalStats = useMemo(() => getTotalStats(yearGifts), [yearGifts]);
 

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Card, Button, Input, Select } from '@/components/ui';
 import { PersonRepository } from '@/database';
 import { Person, PersonFormData, Relationship } from '@/types';
+import { logger } from '@/utils/logger';
 
 export const PersonForm: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -45,13 +46,13 @@ export const PersonForm: React.FC = () => {
         });
       }
     } catch (error) {
-      console.error('Failed to load person:', error);
+      logger.error('Failed to load person:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleInputChange = (field: keyof PersonFormData, value: any) => {
+  const handleInputChange = (field: keyof PersonFormData, value: string) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -125,7 +126,7 @@ export const PersonForm: React.FC = () => {
       
       navigate(`/persons/${personData.id}`);
     } catch (error) {
-      console.error('Failed to save person:', error);
+      logger.error('Failed to save person:', error);
       alert('保存に失敗しました');
     } finally {
       setSaving(false);

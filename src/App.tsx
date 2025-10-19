@@ -10,12 +10,13 @@ import { PersonList } from '@/pages/PersonList';
 import { PersonDetail } from '@/pages/PersonDetail';
 import { PersonForm } from '@/pages/PersonForm';
 import { Statistics } from '@/pages/Statistics';
+import { logger } from '@/utils/logger';
 
 function App() {
   useEffect(() => {
     // データベース初期化
     initializeDB().catch((error) => {
-      console.error('Failed to initialize database:', error);
+      logger.error('Failed to initialize database:', error);
     });
   }, []);
 

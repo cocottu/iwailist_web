@@ -5,6 +5,7 @@ import { GiftRepository, PersonRepository } from '@/database';
 import { Gift, Person } from '@/types';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale/ja';
+import { logger } from '@/utils/logger';
 
 export const GiftDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -39,7 +40,7 @@ export const GiftDetail: React.FC = () => {
         setPerson(personData || null);
       }
     } catch (error) {
-      console.error('Failed to load gift detail:', error);
+      logger.error('Failed to load gift detail:', error);
     } finally {
       setLoading(false);
     }
@@ -55,7 +56,7 @@ export const GiftDetail: React.FC = () => {
       await giftRepo.delete(gift.id);
       navigate('/gifts');
     } catch (error) {
-      console.error('Failed to delete gift:', error);
+      logger.error('Failed to delete gift:', error);
       alert('削除に失敗しました');
     }
   };

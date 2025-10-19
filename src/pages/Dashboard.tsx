@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, Button, Loading, EmptyState } from '@/components/ui';
 import { GiftRepository, PersonRepository } from '@/database';
-import { Gift, Statistics } from '@/types';
+import { Gift, Statistics, Person } from '@/types';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale/ja';
+import { logger } from '@/utils/logger';
 
 export const Dashboard: React.FC = () => {
   const [statistics, setStatistics] = useState<Statistics | null>(null);
@@ -49,12 +50,12 @@ export const Dashboard: React.FC = () => {
         totalAmount: stats.totalAmount,
         monthlyAmount: stats.monthlyAmount,
         categoryBreakdown: {} as Record<string, number>, // Phase 1では未実装
-        recentGifts: giftsWithPersons as any
+        recentGifts: giftsWithPersons as (Gift & { person?: Person })[]
       });
       
-      setRecentGifts(giftsWithPersons as any);
+      setRecentGifts(giftsWithPersons as (Gift & { person?: Person })[]);
     } catch (error) {
-      console.error('Failed to load dashboard data:', error);
+      logger.error('Failed to load dashboard data:', error);
     } finally {
       setLoading(false);
     }
@@ -215,7 +216,7 @@ export const Dashboard: React.FC = () => {
                       </span>
                     </div>
                     <p className="text-sm text-gray-600">
-                      {(gift as any).person?.name || '不明な人物'} • {gift.category}
+                      {(gift as Gift & { person?: Person }).person?.name || '不明な人物'} • {gift.category}
                     </p>
                     <p className="text-sm text-gray-500">
                       {format(gift.receivedDate, 'yyyy年M月d日', { locale: ja })}
