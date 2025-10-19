@@ -2,7 +2,7 @@
  * Firestore Return Repository
  */
 import { Timestamp } from 'firebase/firestore';
-import { firestoreService, where, orderBy } from '../../services/firestoreService';
+import { firestoreService, orderBy } from '../../services/firestoreService';
 import { Return } from '../../types';
 import { FirestoreReturn } from '../../types/firebase';
 

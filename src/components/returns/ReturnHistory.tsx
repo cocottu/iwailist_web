@@ -24,6 +24,7 @@ export const ReturnHistory: React.FC<ReturnHistoryProps> = ({ giftId, onReturnAd
 
   useEffect(() => {
     loadReturns();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [giftId]);
 
   const loadReturns = async () => {

@@ -23,6 +23,7 @@ export const ReturnList: React.FC = () => {
 
   useEffect(() => {
     filterReturns();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchText, returns]);
 
   const loadReturns = async () => {

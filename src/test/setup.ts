@@ -11,6 +11,21 @@ Object.defineProperty(window, 'indexedDB', {
   },
 })
 
+// window.matchMedia のモック
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: vi.fn().mockImplementation((query) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  })),
+})
+
 // IDBのモック
 vi.mock('idb', () => ({
   openDB: vi.fn(() => Promise.resolve({
@@ -84,22 +99,39 @@ vi.mock('@/database/repositories/personRepository', () => ({
 vi.mock('@/database/repositories/returnRepository', () => ({
   ReturnRepository: vi.fn().mockImplementation(() => ({
     getAll: vi.fn(() => Promise.resolve([])),
-    getById: vi.fn(() => Promise.resolve(null)),
-    create: vi.fn(() => Promise.resolve({ id: '1' })),
+    get: vi.fn(() => Promise.resolve(null)),
+    create: vi.fn(() => Promise.resolve()),
     update: vi.fn(() => Promise.resolve()),
     delete: vi.fn(() => Promise.resolve()),
-    getByGiftId: vi.fn(() => Promise.resolve(null)),
+    getByGiftId: vi.fn(() => Promise.resolve([])),
+    deleteByGiftId: vi.fn(() => Promise.resolve()),
+  })),
+}))
+
+vi.mock('@/database/repositories/reminderRepository', () => ({
+  ReminderRepository: vi.fn().mockImplementation(() => ({
+    getAll: vi.fn(() => Promise.resolve([])),
+    get: vi.fn(() => Promise.resolve(null)),
+    create: vi.fn(() => Promise.resolve()),
+    update: vi.fn(() => Promise.resolve()),
+    delete: vi.fn(() => Promise.resolve()),
+    getByGiftId: vi.fn(() => Promise.resolve([])),
+    getUpcoming: vi.fn(() => Promise.resolve([])),
+    getOverdue: vi.fn(() => Promise.resolve([])),
+    markComplete: vi.fn(() => Promise.resolve()),
+    deleteByGiftId: vi.fn(() => Promise.resolve()),
   })),
 }))
 
 vi.mock('@/database/repositories/imageRepository', () => ({
   ImageRepository: vi.fn().mockImplementation(() => ({
     getAll: vi.fn(() => Promise.resolve([])),
-    getById: vi.fn(() => Promise.resolve(null)),
-    create: vi.fn(() => Promise.resolve({ id: '1' })),
+    get: vi.fn(() => Promise.resolve(null)),
+    create: vi.fn(() => Promise.resolve()),
     update: vi.fn(() => Promise.resolve()),
     delete: vi.fn(() => Promise.resolve()),
     getByEntityId: vi.fn(() => Promise.resolve([])),
+    deleteByEntityId: vi.fn(() => Promise.resolve()),
   })),
 }))
 

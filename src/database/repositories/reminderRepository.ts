@@ -25,7 +25,6 @@ export class ReminderRepository {
   }
   
   async getUpcoming(userId: string, days: number = 7): Promise<Reminder[]> {
-    const db = await getDB();
     const allReminders = await this.getAll(userId);
     
     const now = new Date();
@@ -40,7 +39,6 @@ export class ReminderRepository {
   }
   
   async getOverdue(userId: string): Promise<Reminder[]> {
-    const db = await getDB();
     const allReminders = await this.getAll(userId);
     
     const now = new Date();

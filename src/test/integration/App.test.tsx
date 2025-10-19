@@ -50,6 +50,24 @@ vi.mock('@/components/layout/Layout', () => ({
   )
 }))
 
+// AuthContextのモック
+vi.mock('@/contexts/AuthContext', () => ({
+  AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  useAuth: () => ({
+    user: null,
+    loading: false,
+    signIn: vi.fn(),
+    signUp: vi.fn(),
+    signOut: vi.fn(),
+    resetPassword: vi.fn(),
+  }),
+}))
+
+// ProtectedRouteのモック（認証なしでアクセス可能に）
+vi.mock('@/components/auth/ProtectedRoute', () => ({
+  default: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}))
+
 describe('App Integration Tests', () => {
   beforeEach(() => {
     vi.clearAllMocks()

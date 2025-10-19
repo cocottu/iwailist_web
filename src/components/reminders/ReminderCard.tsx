@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Badge, Button } from '@/components/ui';
+import { Badge } from '@/components/ui';
 import { Reminder, Gift } from '@/types';
 import { format, differenceInDays } from 'date-fns';
 import { ja } from 'date-fns/locale/ja';

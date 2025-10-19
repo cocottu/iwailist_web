@@ -262,12 +262,10 @@ export const ReturnForm: React.FC<ReturnFormProps> = ({
 
       {/* カメラモーダル */}
       {showCamera && (
-        <div className="fixed inset-0 bg-black z-50">
-          <CameraCapture
-            onCapture={handleCameraCapture}
-            onClose={() => setShowCamera(false)}
-          />
-        </div>
+        <CameraCapture
+          onCapture={handleCameraCapture}
+          onCancel={() => setShowCamera(false)}
+        />
       )}
     </div>
   );
