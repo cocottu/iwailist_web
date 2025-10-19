@@ -45,7 +45,7 @@
 - ✅ オフラインインジケーター
 - ✅ PWAインストールプロンプト
 - ✅ 自動更新通知
-- 🔄 カメラ撮影機能（次回実装予定）
+- ✅ カメラ撮影機能（写真撮影、画像圧縮、IndexedDB保存）
 
 ### Phase 3以降の機能
 - 🔄 Firebase統合（クラウド同期、認証）
@@ -145,18 +145,24 @@ src/
 │   ├── ui/             # UIコンポーネント
 │   │   ├── OfflineIndicator.tsx      # オフライン表示
 │   │   ├── PWAInstallPrompt.tsx      # インストールプロンプト
-│   │   └── UpdatePrompt.tsx          # 更新通知
+│   │   ├── UpdatePrompt.tsx          # 更新通知
+│   │   └── CameraCapture.tsx         # カメラ撮影UI
 │   └── layout/         # レイアウトコンポーネント
 ├── hooks/              # カスタムフック
 │   ├── useOnlineStatus.ts   # オンライン状態検知
 │   ├── usePWAInstall.ts     # PWAインストール
-│   └── useSWUpdate.ts       # Service Worker更新
+│   ├── useSWUpdate.ts       # Service Worker更新
+│   └── useCamera.ts         # カメラ操作
 ├── database/           # データベース関連
 │   ├── repositories/   # リポジトリパターン
 │   └── schema.ts       # IndexedDBスキーマ
 ├── pages/              # ページコンポーネント
 ├── types/              # 型定義
 ├── utils/              # ユーティリティ
+│   ├── camera.ts            # カメラ機能
+│   ├── imageProcessing.ts   # 画像処理
+│   ├── logger.ts
+│   └── notifications.ts
 ├── App.tsx             # メインアプリケーション
 └── main.tsx            # エントリーポイント
 ```

@@ -113,7 +113,7 @@ graph TD
 - バックアップ
 - NoSQLドキュメント指向DB
 
-### 3.3 PWA対応 (Phase 2実装予定)
+### 3.3 PWA対応 (Phase 2実装完了)
 
 **Service Worker**:
 - アプリケーションシェルのキャッシュ

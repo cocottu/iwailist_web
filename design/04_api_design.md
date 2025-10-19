@@ -197,7 +197,7 @@ interface UseImageUploadReturn {
 function useImageUpload(): UseImageUploadReturn;
 ```
 
-### 2.4 カメラフック (Phase 2実装予定)
+### 2.4 カメラフック (Phase 2実装完了)
 
 ```typescript
 interface UseCameraReturn {
@@ -379,7 +379,7 @@ self.addEventListener('notificationclick', (event: NotificationEvent) => {
 });
 ```
 
-## 4. Camera API仕様 (Phase 2実装予定)
+## 4. Camera API仕様 (Phase 2実装完了)
 
 ### 4.1 カメラアクセス
 

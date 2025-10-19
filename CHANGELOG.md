@@ -5,6 +5,64 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added - カメラ撮影機能 (Phase 2)
+
+#### カメラ機能
+- `src/utils/camera.ts`: カメラアクセスと写真撮影のユーティリティ
+  - `getCameraStream()`: カメラストリームの取得
+  - `getCameraDevices()`: デバイス一覧の取得
+  - `capturePhoto()`: 写真撮影
+  - `stopCameraStream()`: ストリームの停止
+  - Blob/Data URL変換機能
+- `src/utils/imageProcessing.ts`: 画像処理ユーティリティ
+  - `compressImage()`: 画像圧縮（最大1920x1080、品質85%）
+  - `getImageDimensions()`: 画像サイズの取得
+  - `generateThumbnail()`: サムネイル生成
+  - `formatFileSize()`: ファイルサイズのフォーマット
+
+#### カスタムフック
+- `useCamera()`: カメラ操作を管理するカスタムフック
+  - カメラの起動/停止
+  - デバイスの切り替え
+  - 写真撮影（Data URL/Blob）
+  - エラーハンドリング
+  - 自動画像圧縮
+
+#### UIコンポーネント
+- `CameraCapture`: カメラ撮影UIコンポーネント
+  - フルスクリーンカメラプレビュー
+  - リアルタイムビデオ表示
+  - フロント/リアカメラ切り替え
+  - 撮影後のプレビューと確認
+  - エラー表示と再試行機能
+
+#### ページ統合
+- `GiftForm`: 写真撮影機能を統合
+  - カメラ起動ボタン
+  - 撮影した写真のプレビュー
+  - 写真の削除機能
+  - IndexedDBへの保存
+- `GiftDetail`: 画像表示機能を追加
+  - 写真ギャラリー表示（グリッドレイアウト）
+  - 画像モーダルビュー（拡大表示）
+  - 前/次の画像への移動
+  - 画像カウンター表示
+
+#### ドキュメント
+- `docs/CAMERA_IMPLEMENTATION.md`: カメラ機能実装ガイドを追加
+  - 実装詳細の説明
+  - 使用方法とサンプルコード
+  - セキュリティとプライバシー
+  - ブラウザ対応情報
+  - トラブルシューティング
+
+### Changed
+- `ImageRepository`: 画像の順序管理とエンティティ削除時の関連画像削除を改善
+- README.md: Phase 2カメラ機能の完了を反映
+- 設計ドキュメント: カメラ機能の実装完了を記録
+
 ## [0.2.0] - 2025-10-19
 
 ### Added - PWA対応 (Phase 2)

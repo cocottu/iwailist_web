@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Card, Button, Input, Select } from '@/components/ui';
-import { GiftRepository, PersonRepository } from '@/database';
-import { Gift, Person, GiftFormData, GiftCategory, ReturnStatus } from '@/types';
+import { Card, Button, Input, Select, CameraCapture } from '@/components/ui';
+import { GiftRepository, PersonRepository, ImageRepository } from '@/database';
+import { Gift, Person, GiftFormData, GiftCategory, ReturnStatus, Image } from '@/types';
 
 export const GiftForm: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -23,6 +23,8 @@ export const GiftForm: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [images, setImages] = useState<string[]>([]); // Data URL形式で保存
+  const [showCamera, setShowCamera] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -64,6 +66,11 @@ export const GiftForm: React.FC = () => {
           returnStatus: gift.returnStatus,
           memo: gift.memo || ''
         });
+
+        // 画像を読み込む
+        const imageRepo = new ImageRepository();
+        const giftImages = await imageRepo.getByEntityId(giftId);
+        setImages(giftImages.map(img => img.imageUrl));
       }
     } catch (error) {
       console.error('Failed to load gift:', error);
@@ -121,6 +128,7 @@ export const GiftForm: React.FC = () => {
       setSaving(true);
       const userId = 'demo-user';
       const giftRepo = new GiftRepository();
+      const imageRepo = new ImageRepository();
       
       const giftData: Gift = {
         id: id || crypto.randomUUID(),
@@ -138,8 +146,23 @@ export const GiftForm: React.FC = () => {
       
       if (isEdit) {
         await giftRepo.update(giftData);
+        // 既存の画像を削除
+        await imageRepo.deleteByEntityId(giftData.id);
       } else {
         await giftRepo.create(giftData);
+      }
+      
+      // 画像を保存
+      for (let i = 0; i < images.length; i++) {
+        const imageData: Image = {
+          id: crypto.randomUUID(),
+          entityId: giftData.id,
+          entityType: 'gift',
+          imageUrl: images[i],
+          order: i,
+          createdAt: new Date()
+        };
+        await imageRepo.create(imageData);
       }
       
       navigate(`/gifts/${giftData.id}`);
@@ -273,6 +296,76 @@ export const GiftForm: React.FC = () => {
           </Card>
 
           <Card className="p-6">
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">写真</h2>
+            
+            <div className="space-y-4">
+              {/* 写真のプレビュー */}
+              {images.length > 0 && (
+                <div className="grid grid-cols-3 gap-4">
+                  {images.map((imageUrl, index) => (
+                    <div key={index} className="relative aspect-square">
+                      <img
+                        src={imageUrl}
+                        alt={`写真 ${index + 1}`}
+                        className="w-full h-full object-cover rounded-lg"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setImages(images.filter((_, i) => i !== index))}
+                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                        aria-label="削除"
+                      >
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M6 18L18 6M6 6l12 12"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              {/* カメラ起動ボタン */}
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowCamera(true)}
+                className="w-full"
+              >
+                <svg
+                  className="w-5 h-5 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                </svg>
+                写真を撮影
+              </Button>
+            </div>
+          </Card>
+
+          <Card className="p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">その他</h2>
             
             <div>
@@ -306,6 +399,17 @@ export const GiftForm: React.FC = () => {
             </Button>
           </div>
         </form>
+
+        {/* カメラキャプチャモーダル */}
+        {showCamera && (
+          <CameraCapture
+            onCapture={(dataURL) => {
+              setImages([...images, dataURL]);
+              setShowCamera(false);
+            }}
+            onCancel={() => setShowCamera(false)}
+          />
+        )}
       </div>
     </div>
   );

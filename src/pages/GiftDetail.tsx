@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Card, Button, Badge, Loading, EmptyState } from '@/components/ui';
-import { GiftRepository, PersonRepository } from '@/database';
-import { Gift, Person } from '@/types';
+import { GiftRepository, PersonRepository, ImageRepository } from '@/database';
+import { Gift, Person, Image } from '@/types';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale/ja';
 
@@ -11,6 +11,8 @@ export const GiftDetail: React.FC = () => {
   const navigate = useNavigate();
   const [gift, setGift] = useState<Gift | null>(null);
   const [person, setPerson] = useState<Person | null>(null);
+  const [images, setImages] = useState<Image[]>([]);
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -26,6 +28,7 @@ export const GiftDetail: React.FC = () => {
       
       const giftRepo = new GiftRepository();
       const personRepo = new PersonRepository();
+      const imageRepo = new ImageRepository();
       
       const giftData = await giftRepo.get(giftId);
       if (!giftData) {
@@ -38,6 +41,10 @@ export const GiftDetail: React.FC = () => {
         const personData = await personRepo.get(giftData.personId);
         setPerson(personData || null);
       }
+
+      // 画像を読み込む
+      const giftImages = await imageRepo.getByEntityId(giftId);
+      setImages(giftImages.sort((a, b) => a.order - b.order));
     } catch (error) {
       console.error('Failed to load gift detail:', error);
     } finally {
@@ -52,6 +59,10 @@ export const GiftDetail: React.FC = () => {
     
     try {
       const giftRepo = new GiftRepository();
+      const imageRepo = new ImageRepository();
+      
+      // 画像も削除
+      await imageRepo.deleteByEntityId(gift.id);
       await giftRepo.delete(gift.id);
       navigate('/gifts');
     } catch (error) {
@@ -118,6 +129,28 @@ export const GiftDetail: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* メイン情報 */}
         <div className="lg:col-span-2">
+          {/* 写真ギャラリー */}
+          {images.length > 0 && (
+            <Card className="p-6 mb-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">写真</h2>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {images.map((image, index) => (
+                  <button
+                    key={image.id}
+                    onClick={() => setSelectedImageIndex(index)}
+                    className="aspect-square rounded-lg overflow-hidden hover:opacity-90 transition-opacity"
+                  >
+                    <img
+                      src={image.imageUrl}
+                      alt={`写真 ${index + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+            </Card>
+          )}
+
           <Card className="p-6 mb-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">基本情報</h2>
             
@@ -243,6 +276,93 @@ export const GiftDetail: React.FC = () => {
           </Card>
         </div>
       </div>
+
+      {/* 画像モーダル */}
+      {selectedImageIndex !== null && images[selectedImageIndex] && (
+        <div 
+          className="fixed inset-0 z-50 bg-black bg-opacity-90 flex items-center justify-center"
+          onClick={() => setSelectedImageIndex(null)}
+        >
+          <button
+            onClick={() => setSelectedImageIndex(null)}
+            className="absolute top-4 right-4 text-white hover:text-gray-300 z-10"
+            aria-label="閉じる"
+          >
+            <svg
+              className="w-8 h-8"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setSelectedImageIndex(Math.max(0, selectedImageIndex - 1));
+            }}
+            disabled={selectedImageIndex === 0}
+            className="absolute left-4 text-white hover:text-gray-300 disabled:opacity-30"
+            aria-label="前の画像"
+          >
+            <svg
+              className="w-8 h-8"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
+          </button>
+
+          <img
+            src={images[selectedImageIndex].imageUrl}
+            alt={`写真 ${selectedImageIndex + 1}`}
+            className="max-w-full max-h-full object-contain p-4"
+            onClick={(e) => e.stopPropagation()}
+          />
+
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setSelectedImageIndex(Math.min(images.length - 1, selectedImageIndex + 1));
+            }}
+            disabled={selectedImageIndex === images.length - 1}
+            className="absolute right-4 text-white hover:text-gray-300 disabled:opacity-30"
+            aria-label="次の画像"
+          >
+            <svg
+              className="w-8 h-8"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5l7 7-7 7"
+              />
+            </svg>
+          </button>
+
+          <div className="absolute bottom-4 text-white text-sm">
+            {selectedImageIndex + 1} / {images.length}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
