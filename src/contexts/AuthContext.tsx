@@ -37,6 +37,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // 認証状態の永続化設定
     authService.setPersistence().catch(console.error);
 
+    // リダイレクト認証の結果を処理
+    authService.handleRedirectResult()
+      .then((user) => {
+        if (user) {
+          console.log('Redirect authentication successful:', user);
+        }
+      })
+      .catch((error) => {
+        console.error('Redirect result handling error:', error);
+      });
+
     // 認証状態の監視
     const unsubscribe = onAuthStateChanged(
       auth,

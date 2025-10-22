@@ -63,3 +63,24 @@ export { app, auth, db, storage };
 export const isFirebaseEnabled = (): boolean => {
   return app !== null && auth !== null && db !== null && storage !== null;
 };
+
+// Firebase設定診断
+export const getFirebaseConfigStatus = () => {
+  const config = {
+    apiKey: import.meta.env.VITE_FIREBASE_API_KEY ? '✓ Set' : '✗ Missing',
+    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN ? '✓ Set' : '✗ Missing',
+    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID ? '✓ Set' : '✗ Missing',
+    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET ? '✓ Set' : '✗ Missing',
+    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID ? '✓ Set' : '✗ Missing',
+    appId: import.meta.env.VITE_FIREBASE_APP_ID ? '✓ Set' : '✗ Missing',
+  };
+  
+  console.log('Firebase Configuration Status:');
+  console.table(config);
+  
+  return {
+    isConfigured: missingEnvVars.length === 0,
+    missing: missingEnvVars,
+    status: config,
+  };
+};

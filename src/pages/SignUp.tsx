@@ -62,9 +62,11 @@ const SignUp: React.FC = () => {
     setLoading(true);
 
     try {
+      console.log('Starting Google sign-up from SignUp page...');
       await signInWithGoogle();
       navigate('/');
     } catch (err) {
+      console.error('Google sign-up error:', err);
       setError(err instanceof Error ? err.message : '登録に失敗しました');
     } finally {
       setLoading(false);
