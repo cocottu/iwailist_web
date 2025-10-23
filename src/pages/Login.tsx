@@ -119,10 +119,15 @@ const Login: React.FC = () => {
 
     try {
       await signInWithGoogle();
+      // リダイレクトの場合はこの行には到達しない
       navigate('/');
     } catch (err) {
+      // リダイレクト中のエラーは無視（正常な動作）
+      if (err instanceof Error && err.message.includes('Redirecting')) {
+        console.log('Redirecting to Google for authentication...');
+        return;
+      }
       setError(err instanceof Error ? err.message : 'ログインに失敗しました');
-    } finally {
       setLoading(false);
     }
   };
@@ -197,6 +202,7 @@ const Login: React.FC = () => {
             onClick={handleGoogleLogin}
             loading={loading}
             className="w-full"
+            title="Googleアカウントでログイン（新しいページに移動します）"
           >
             <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
               <path
@@ -218,6 +224,12 @@ const Login: React.FC = () => {
             </svg>
             Googleでログイン
           </Button>
+          
+          {loading && (
+            <div className="text-center text-sm text-gray-600 mt-2">
+              Googleの認証ページに移動します...
+            </div>
+          )}
 
           <div className="text-center">
             <span className="text-sm text-gray-600">アカウントをお持ちでない方</span>

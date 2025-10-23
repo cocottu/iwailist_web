@@ -64,11 +64,16 @@ const SignUp: React.FC = () => {
     try {
       console.log('Starting Google sign-up from SignUp page...');
       await signInWithGoogle();
+      // リダイレクトの場合はこの行には到達しない
       navigate('/');
     } catch (err) {
       console.error('Google sign-up error:', err);
+      // リダイレクト中のエラーは無視（正常な動作）
+      if (err instanceof Error && err.message.includes('Redirecting')) {
+        console.log('Redirecting to Google for authentication...');
+        return;
+      }
       setError(err instanceof Error ? err.message : '登録に失敗しました');
-    } finally {
       setLoading(false);
     }
   };
@@ -152,6 +157,7 @@ const SignUp: React.FC = () => {
             onClick={handleGoogleSignUp}
             loading={loading}
             className="w-full"
+            title="Googleアカウントで登録（新しいページに移動します）"
           >
             <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
               <path
@@ -173,6 +179,12 @@ const SignUp: React.FC = () => {
             </svg>
             Googleで登録
           </Button>
+          
+          {loading && (
+            <div className="text-center text-sm text-gray-600 mt-2">
+              Googleの認証ページに移動します...
+            </div>
+          )}
 
           <div className="text-center">
             <span className="text-sm text-gray-600">既にアカウントをお持ちの方</span>

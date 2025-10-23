@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed - 2025-10-23
+
+#### Google認証の改善
+- **修正**: Googleログインボタンを押すと新しいタブが開くだけで何も起こらない問題を修正
+- **変更**: `signInWithPopup`から`signInWithRedirect`方式に変更
+  - より確実な認証フロー
+  - ポップアップブロックの影響を受けない
+  - すべてのブラウザとモバイルデバイスで安定動作
+- **改善**: エラーハンドリングの強化
+  - リダイレクト中の処理を正常な動作として扱う
+  - ユーザーへのフィードバックメッセージを追加
+- **追加**: `GOOGLE_LOGIN_TAB_FIX.md` - トラブルシューティングガイド
+  - Firebase Consoleの設定確認手順
+  - よくあるエラーと解決方法
+  - 設定チェックリスト
+
+#### 修正されたファイル
+- `src/services/authService.ts`: リダイレクト方式への変更
+- `src/contexts/AuthContext.tsx`: リダイレクトエラーの適切な処理
+- `src/pages/Login.tsx`: ユーザーフィードバックの改善
+- `src/pages/SignUp.tsx`: ユーザーフィードバックの改善
+
 ### Added - カメラ撮影機能 (Phase 2)
 
 #### カメラ機能

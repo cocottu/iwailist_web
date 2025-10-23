@@ -127,8 +127,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const user = await authService.signInWithGoogle();
       setUser(user);
-    } finally {
+    } catch (error) {
+      // リダイレクト処理の場合はエラーとして扱わない
+      if (error instanceof Error && error.message.includes('Redirecting')) {
+        console.log('Redirecting to Google authentication...');
+        // ローディング状態を維持（リダイレクト中）
+        return;
+      }
+      // その他のエラーはthrow
       setLoading(false);
+      throw error;
     }
   };
 
