@@ -9,9 +9,29 @@ export default [
     ignores: ['dist/**', 'node_modules/**', 'test-results/**'],
   },
   js.configs.recommended,
+  // Node.js scripts (ES Modules) - security-check.js
+  {
+    files: ['scripts/security-check.js'],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'module',
+      globals: {
+        process: 'readonly',
+        console: 'readonly',
+        __dirname: 'readonly',
+        __filename: 'readonly',
+      },
+    },
+    rules: {
+      'no-undef': 'error',
+      'no-unused-vars': 'warn',
+      'no-useless-escape': 'warn',
+    },
+  },
   // Node.js scripts (CommonJS)
   {
     files: ['scripts/**/*.js'],
+    ignores: ['scripts/security-check.js'],
     languageOptions: {
       ecmaVersion: 2020,
       sourceType: 'commonjs',
