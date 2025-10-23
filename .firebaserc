@@ -1,5 +1,10 @@
 {
   "projects": {
-    "default": "cocottu-iwailist"
-  }
+    "default": "cocottu-iwailist",
+    "development": "cocottu-iwailist-dev",
+    "staging": "cocottu-iwailist-staging",
+    "production": "cocottu-iwailist"
+  },
+  "targets": {},
+  "etags": {}
 }

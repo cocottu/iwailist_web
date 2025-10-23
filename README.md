@@ -241,6 +241,35 @@ npm run pre-commit
 npm run build:production
 ```
 
+## ドキュメント
+
+詳細なドキュメントは `docs/` および `design/` ディレクトリにあります。
+
+### 📚 セットアップガイド
+- [Firebase セットアップガイド](docs/FIREBASE_SETUP.md) - Firebase プロジェクトの初期設定
+- [マルチ環境セットアップガイド](docs/MULTI_ENVIRONMENT_SETUP.md) - 開発/ステージング/本番環境の構築
+- [GitHub Actions セットアップガイド](docs/GITHUB_ACTIONS_SETUP.md) - CI/CDパイプラインの設定
+- [GitHub Secrets セットアップガイド](docs/GITHUB_SECRETS_SETUP.md) - 環境変数とシークレットの管理
+- [クイックスタートガイド](docs/QUICK_START.md) - 最初に読むガイド
+
+### 🏗️ 設計ドキュメント
+- [アーキテクチャ設計](design/01_architecture.md) - システム全体の設計
+- [データベース設計](design/02_database.md) - IndexedDB、Firestoreの設計
+- [UI設計](design/03_ui_design.md) - ユーザーインターフェース設計
+- [API設計](design/04_api_design.md) - API仕様
+- [セキュリティ設計](design/05_security.md) - セキュリティポリシー
+- [デプロイメント設計](design/06_deployment.md) - デプロイ戦略
+- [**マルチ環境戦略設計**](design/07_multi_environment_strategy.md) - 環境分離のベストプラクティス ⭐ NEW
+
+### 🚀 デプロイメント
+- [Phase 3 デプロイガイド](docs/PHASE3_DEPLOYMENT_GUIDE.md) - 本番デプロイ手順
+- [Phase 3 実装サマリー](docs/PHASE3_IMPLEMENTATION_SUMMARY.md) - Phase 3の実装内容
+
+### 🛠️ 開発ガイド
+- [PWA セットアップガイド](docs/PWA_SETUP.md) - PWA機能の実装
+- [カメラ実装ガイド](docs/CAMERA_IMPLEMENTATION.md) - カメラ機能の実装
+- [環境変数ガイド](docs/ENVIRONMENT_VARIABLES_GUIDE.md) - 環境変数の管理
+
 ## トラブルシューティング
 
 ### Service Workerが更新されない
@@ -258,6 +287,18 @@ npm run dev
 1. HTTPSまたはlocalhostでアクセスしていることを確認
 2. Service Workerが登録されているか確認（DevTools > Application > Service Workers）
 3. 一度オンラインでページを読み込んでキャッシュさせる
+
+### 環境が正しく切り替わらない
+
+```bash
+# 現在の環境を確認
+npm run dev        # 開発環境
+npm run dev:staging  # ステージング環境
+npm run dev:prod    # 本番環境
+
+# ブラウザコンソールで確認
+# "🔧 Running in DEVELOPMENT mode" などが表示される
+```
 
 ## ライセンス
 
