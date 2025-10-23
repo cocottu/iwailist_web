@@ -1,67 +1,62 @@
-# Googleログイン問題のデバッグレポート
+# Googleログイン問題のデバッグレポート（修正版）
 
 ## 🔍 問題の特定
 
 Googleアカウントでのログインができない原因を調査しました。
 
-### 根本原因
+### 根本原因の訂正
 
-**環境変数ファイルが存在しないため、Firebaseが初期化されていません。**
+**ローカル開発環境で環境変数ファイルが存在しないため、Firebaseが初期化されていません。**
 
-### 詳細
+## 📊 CI環境とローカル環境の違い
 
-1. **環境変数ファイルの状態**
-   - `.env.development` ファイルが存在しませんでした
-   - `.env.local` ファイルも存在しませんでした
-   - Firebase初期化に必要な環境変数が読み込まれていません
+### CI環境（GitHub Actions）での動作
 
-2. **影響**
-   - Firebaseの`auth`、`db`、`storage`がすべて`null`
-   - `isFirebaseEnabled()`が`false`を返す
-   - Googleログインボタンをクリックすると「Firebase is not enabled」エラー
+GitHub Actionsでは、`.env`ファイルを作成せず、**ビルド時に環境変数を直接設定**しています：
 
-3. **確認したコード**
-   - `src/lib/firebase.ts`: 環境変数がないと警告を出してFirebaseを初期化しない
-   - `src/services/authService.ts`: Firebase無効時は「Firebase is not enabled」エラー
-   - `src/pages/Login.tsx`: Firebase無効時は設定画面を表示
+```yaml
+# .github/workflows/firebase-hosting-deploy.yml の例
+- name: Build application
+  env:
+    VITE_FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
+    VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.FIREBASE_AUTH_DOMAIN }}
+    VITE_FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+    VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
+    VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
+    VITE_FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
+    VITE_APP_ENV: production
+  run: npm run build
+```
 
-## ✅ 実施した対応
+✅ **CI環境では正常に動作**:
+- GitHub Secretsから環境変数として直接注入
+- Viteのビルドプロセスで`import.meta.env.VITE_*`として利用可能
+- `.env`ファイルは不要
 
-1. **`.env.development`ファイルを作成**
-   - `.env.development.example`をコピーして`.env.development`を作成
-   - ただし、実際のFirebase設定値はまだ入力されていません
+### ローカル開発環境での動作
+
+❌ **ローカル環境では動作しない**:
+- `.env.development`ファイルが存在しない
+- Firebase初期化に必要な環境変数が読み込まれない
+- `isFirebaseEnabled()`が`false`を返す
+- Googleログインで「Firebase is not enabled」エラー
 
 ## 🔧 解決方法
 
-### オプション1: 開発環境用のFirebase設定を使用（推奨）
+### ローカル開発環境でGoogleログインを動作させる手順
 
-このプロジェクトはマルチ環境戦略を採用しており、以下の3つの環境があります：
-
-- **開発環境**: `cocottu-iwailist-dev`
-- **ステージング環境**: `cocottu-iwailist-staging`
-- **本番環境**: `cocottu-iwailist`
-
-開発環境用のFirebase設定を取得して設定してください：
+#### 方法1: 開発環境用のFirebase設定を使用（推奨）
 
 ```bash
-# 1. Firebase Consoleにアクセス
+# 1. Firebase Console から開発環境の設定を取得
 # https://console.firebase.google.com/project/cocottu-iwailist-dev
+# ※プロジェクトが存在しない場合は作成が必要
 
-# 2. プロジェクトの設定 > 全般 に移動
-
-# 3. 「SDK の設定と構成」セクションから以下の情報を取得:
-#    - API Key
-#    - Auth Domain
-#    - Project ID
-#    - Storage Bucket
-#    - Messaging Sender ID
-#    - App ID
-
-# 4. .env.development ファイルを編集
-# プロジェクトルートの .env.development を開いて、実際の値を入力
+# 2. .env.development を編集
+# 実際のFirebase設定値を入力してください
 ```
 
-**`.env.development`ファイルの編集例:**
+**`.env.development`の編集例:**
 
 ```bash
 # Development Environment
@@ -76,38 +71,43 @@ VITE_FIREBASE_APP_ID=1:123456789012:web:xxxxxxxxxxxxx
 VITE_APP_ENV=development
 ```
 
-### オプション2: 本番環境の設定を一時的に使用（非推奨）
-
-開発環境プロジェクトがまだ作成されていない場合、一時的に本番環境の設定を使用できます：
-
 ```bash
-# 1. Firebase Consoleにアクセス
-# https://console.firebase.google.com/project/cocottu-iwailist
+# 3. 開発サーバーを起動
+npm run dev
 
-# 2. 上記と同じ手順で設定値を取得
-
-# 3. .env.development に入力
+# 4. ブラウザで http://localhost:3000/login にアクセス
+# 5. Googleログインをテスト
 ```
 
-⚠️ **注意**: この方法は開発中のデータが本番環境に影響する可能性があるため、本番環境プロジェクトの作成が推奨されます。
+#### 方法2: 本番環境の設定を一時的に使用（開発時のみ）
 
-### オプション3: 新規Firebase開発プロジェクトを作成
+⚠️ **注意**: 開発中のデータが本番環境に影響する可能性があります
 
-開発環境プロジェクトがまだ存在しない場合、新規作成してください：
+```bash
+# GitHub Secretsと同じ本番環境の値を .env.development に設定
+# ※本番環境への影響を避けるため、テスト用データのみ使用すること
+```
 
-1. [Firebase Console](https://console.firebase.google.com/) にアクセス
-2. 「プロジェクトを追加」をクリック
-3. プロジェクト名: `cocottu-iwailist-dev`
-4. 以下のサービスを有効化:
-   - **Authentication** > Sign-in method > Google を有効化
-   - **Firestore Database** を作成（リージョン: `asia-northeast1`）
-   - **Cloud Storage** を有効化
-5. 設定 > 全般 から設定値を取得
-6. `.env.development`に入力
+### GitHub Secretsの確認（参考情報）
 
-詳細は `docs/FIREBASE_SETUP.md` と `docs/MULTI_ENVIRONMENT_SETUP.md` を参照してください。
+現在のGitHub Actionsワークフローは以下のシークレットを使用しています：
 
-## 🚀 設定後の確認手順
+**必須シークレット:**
+- `FIREBASE_API_KEY`
+- `FIREBASE_AUTH_DOMAIN`
+- `FIREBASE_PROJECT_ID`
+- `FIREBASE_STORAGE_BUCKET`
+- `FIREBASE_MESSAGING_SENDER_ID`
+- `FIREBASE_APP_ID`
+- `FIREBASE_SERVICE_ACCOUNT`
+- `FIREBASE_TOKEN`
+
+**任意シークレット:**
+- `CODECOV_TOKEN` (コードカバレッジレポート用)
+
+これらのシークレットは**CI環境専用**で、ローカル開発環境には自動的に適用されません。
+
+## 🚀 動作確認手順
 
 1. **開発サーバーを起動**
    ```bash
@@ -132,6 +132,30 @@ VITE_APP_ENV=development
    - 「Googleでログイン」ボタンをクリック
    - Googleアカウント選択画面が表示される
    - ログインに成功する
+
+## 🎯 まとめ
+
+### CI環境（GitHub Actions）
+- ✅ 環境変数ファイルは**不要**
+- ✅ GitHub Secretsから直接環境変数として注入
+- ✅ すでに正しく設定済み
+
+### ローカル開発環境
+- ❌ `.env.development`ファイルが**必要**
+- ❌ 現在未設定のため、Googleログインが動作しない
+- ✅ Firebase設定を入力すれば動作する
+
+### 対応が必要な作業
+
+1. **Firebase Console**から開発環境プロジェクト（`cocottu-iwailist-dev`）の設定を取得
+   - プロジェクトが存在しない場合は新規作成
+   - または一時的に本番環境の設定を使用
+
+2. **`.env.development`ファイル**に実際の値を入力
+   - すでにテンプレートは作成済み
+   - 6つの`VITE_FIREBASE_*`変数を設定
+
+3. **開発サーバーを再起動**してテスト
 
 ## ❌ 想定されるエラーと解決方法
 
@@ -162,41 +186,29 @@ VITE_APP_ENV=development
 - `localhost`のポップアップを許可
 - アプリは自動的にリダイレクト方式にフォールバックします
 
-### エラー4: Environment variables not found
+## 📝 関連ファイル
 
-**原因**: 環境変数のプレフィックスが間違っている
+### GitHub Actionsワークフロー
+- `.github/workflows/firebase-hosting-deploy.yml` - 本番デプロイ
+- `.github/workflows/deploy-development.yml` - 開発環境デプロイ
+- `.github/workflows/deploy-staging.yml` - ステージング環境デプロイ
+- `.github/workflows/test.yml` - テスト実行
+- `.github/workflows/e2e-tests.yml` - E2Eテスト
 
-**解決方法**:
-- すべての環境変数が`VITE_`で始まっているか確認
-- ❌ `FIREBASE_API_KEY`
-- ✅ `VITE_FIREBASE_API_KEY`
-
-## 📝 追加情報
-
-### デバッグ情報の確認
-
-開発環境では、ログインページに「デバッグ情報を表示」ボタンが表示されます。
-このボタンをクリックすると、現在の環境変数の設定状態を確認できます。
-
-### 環境変数ファイルの優先順位
-
-Viteは以下の順序で環境変数ファイルを読み込みます（後から読み込まれるものが優先）：
-
-1. `.env` (すべての環境)
-2. `.env.local` (すべての環境、Git無視)
-3. `.env.[mode]` (指定された環境)
-4. `.env.[mode].local` (指定された環境、Git無視)
-
-`npm run dev`は`vite --mode development`として実行されるため：
-- `.env.development`が読み込まれます
+### 環境変数ファイル（ローカル用）
+- `.env.development` - 開発環境設定（要設定）
+- `.env.staging.example` - ステージング環境テンプレート
+- `.env.production.example` - 本番環境テンプレート
+- `.env.example` - 汎用テンプレート
 
 ### 関連ドキュメント
-
 - [Firebase セットアップガイド](docs/FIREBASE_SETUP.md)
 - [マルチ環境セットアップガイド](docs/MULTI_ENVIRONMENT_SETUP.md)
 - [環境変数ガイド](docs/ENVIRONMENT_VARIABLES_GUIDE.md)
+- [GitHub Secretsセットアップ](docs/GITHUB_SECRETS_SETUP.md)
 
 ---
 
 **作成日**: 2025-10-23  
+**最終更新**: 2025-10-23  
 **調査者**: Cursor AI Agent
