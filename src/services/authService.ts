@@ -5,6 +5,8 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   GoogleAuthProvider,
   signOut as firebaseSignOut,
   sendPasswordResetEmail,
@@ -83,8 +85,11 @@ class AuthService {
    */
   async signInWithGoogle(): Promise<User> {
     if (!isFirebaseEnabled() || !auth || !db) {
+      console.error('Firebase is not enabled. Please check your environment variables.');
       throw new Error('Firebase is not enabled');
     }
+
+    console.log('Starting Google sign-in process...');
 
     try {
       const provider = new GoogleAuthProvider();
@@ -92,7 +97,71 @@ class AuthService {
         prompt: 'select_account',
       });
 
-      const result = await signInWithPopup(auth, provider);
+      let result;
+      
+      try {
+        // ポップアップ方式を試行
+        console.log('Attempting popup sign-in...');
+        result = await signInWithPopup(auth, provider);
+        console.log('Popup sign-in successful');
+      } catch (popupError: unknown) {
+        console.error('Popup sign-in error:', popupError);
+        
+        // ポップアップがブロックされた場合はリダイレクト方式にフォールバック
+        if (
+          typeof popupError === 'object' && 
+          popupError !== null && 
+          'code' in popupError && 
+          (popupError as { code: string }).code === 'auth/popup-blocked'
+        ) {
+          console.log('Popup blocked, falling back to redirect method');
+          await signInWithRedirect(auth, provider);
+          // リダイレクト方式の場合は即座にreturnせず、リダイレクトが完了するのを待つ
+          throw new Error('Redirecting to Google login...');
+        }
+        throw popupError;
+      }
+
+      // 初回ログイン時はFirestoreにユーザープロファイル作成
+      console.log('Creating/checking user profile in Firestore...');
+      const userRef = doc(db, 'users', result.user.uid);
+      const userSnap = await getDoc(userRef);
+
+      if (!userSnap.exists()) {
+        console.log('Creating new user profile...');
+        await setDoc(userRef, {
+          email: result.user.email,
+          displayName: result.user.displayName || '',
+          photoURL: result.user.photoURL || null,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+        });
+      } else {
+        console.log('User profile already exists');
+      }
+
+      console.log('Google sign-in completed successfully');
+      return convertFirebaseUser(result.user);
+    } catch (error: unknown) {
+      console.error('Google sign-in failed:', error);
+      throw this.handleAuthError(error);
+    }
+  }
+
+  /**
+   * リダイレクト認証の結果を処理
+   */
+  async handleRedirectResult(): Promise<User | null> {
+    if (!isFirebaseEnabled() || !auth || !db) {
+      return null;
+    }
+
+    try {
+      const result = await getRedirectResult(auth);
+      
+      if (!result || !result.user) {
+        return null;
+      }
 
       // 初回ログイン時はFirestoreにユーザープロファイル作成
       const userRef = doc(db, 'users', result.user.uid);
@@ -110,6 +179,7 @@ class AuthService {
 
       return convertFirebaseUser(result.user);
     } catch (error: unknown) {
+      console.error('Redirect result error:', error);
       throw this.handleAuthError(error);
     }
   }
@@ -191,8 +261,21 @@ class AuthService {
           return new Error('リクエストが多すぎます。しばらく待ってから再試行してください');
         case AuthErrorCode.NETWORK_REQUEST_FAILED:
           return new Error('ネットワークエラーが発生しました');
+        // Google OAuth関連エラー
+        case AuthErrorCode.POPUP_CLOSED_BY_USER:
+          return new Error('ログインがキャンセルされました');
+        case AuthErrorCode.POPUP_BLOCKED:
+          return new Error('ポップアップがブロックされました。ポップアップを許可してから再試行してください');
+        case AuthErrorCode.UNAUTHORIZED_DOMAIN:
+          return new Error('このドメインは認証が許可されていません。Firebase Consoleで承認済みドメインを確認してください');
+        case AuthErrorCode.CANCELLED_POPUP_REQUEST:
+          return new Error('ログインリクエストがキャンセルされました');
+        case AuthErrorCode.ACCOUNT_EXISTS_WITH_DIFFERENT_CREDENTIAL:
+          return new Error('このメールアドレスは既に別の認証方法で登録されています');
         default:
-          return new Error('認証エラーが発生しました');
+          // エラーコードをログに出力（デバッグ用）
+          console.error('Unhandled auth error code:', code);
+          return new Error(`認証エラーが発生しました (${code})`);
       }
     }
 

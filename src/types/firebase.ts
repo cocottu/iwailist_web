@@ -105,6 +105,12 @@ export enum AuthErrorCode {
   WRONG_PASSWORD = 'auth/wrong-password',
   TOO_MANY_REQUESTS = 'auth/too-many-requests',
   NETWORK_REQUEST_FAILED = 'auth/network-request-failed',
+  // Google OAuth関連エラー
+  POPUP_CLOSED_BY_USER = 'auth/popup-closed-by-user',
+  POPUP_BLOCKED = 'auth/popup-blocked',
+  UNAUTHORIZED_DOMAIN = 'auth/unauthorized-domain',
+  CANCELLED_POPUP_REQUEST = 'auth/cancelled-popup-request',
+  ACCOUNT_EXISTS_WITH_DIFFERENT_CREDENTIAL = 'auth/account-exists-with-different-credential',
 }
 
 // Firebase User → User変換ヘルパー

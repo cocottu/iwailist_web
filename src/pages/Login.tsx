@@ -1,10 +1,10 @@
 /**
  * ログインページ
  */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { isFirebaseEnabled } from '../lib/firebase';
+import { isFirebaseEnabled, getFirebaseConfigStatus } from '../lib/firebase';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 
@@ -15,9 +15,19 @@ const Login: React.FC = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showDebugInfo, setShowDebugInfo] = useState(false);
+
+  // 開発環境でFirebase設定をコンソールに出力
+  useEffect(() => {
+    if (import.meta.env.DEV) {
+      getFirebaseConfigStatus();
+    }
+  }, []);
 
   // Firebase無効時の表示
   if (!isFirebaseEnabled()) {
+    const configStatus = getFirebaseConfigStatus();
+    
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
         <div className="max-w-md w-full space-y-8">
@@ -28,6 +38,47 @@ const Login: React.FC = () => {
             <p className="mt-4 text-gray-600">
               Firebase設定が完了していません。環境変数を設定してください。
             </p>
+            
+            {import.meta.env.DEV && (
+              <div className="mt-6 text-left">
+                <button
+                  onClick={() => setShowDebugInfo(!showDebugInfo)}
+                  className="text-sm text-blue-600 hover:text-blue-800 mb-2"
+                >
+                  {showDebugInfo ? '▼' : '▶'} デバッグ情報を{showDebugInfo ? '非表示' : '表示'}
+                </button>
+                
+                {showDebugInfo && (
+                  <div className="bg-gray-100 p-4 rounded text-xs text-left overflow-auto max-h-64">
+                    <p className="font-bold mb-2">環境変数の状態:</p>
+                    <ul className="space-y-1">
+                      {Object.entries(configStatus.status).map(([key, value]) => (
+                        <li key={key} className="flex justify-between">
+                          <span className="text-gray-700">{key}:</span>
+                          <span className={value.includes('✓') ? 'text-green-600' : 'text-red-600'}>
+                            {value}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                    {configStatus.missing.length > 0 && (
+                      <div className="mt-4">
+                        <p className="font-bold text-red-600">不足している環境変数:</p>
+                        <ul className="list-disc list-inside">
+                          {configStatus.missing.map((varName) => (
+                            <li key={varName} className="text-red-600">{varName}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    <p className="mt-4 text-gray-600">
+                      詳細は <code className="bg-white px-1">docs/FIREBASE_SETUP.md</code> を参照してください
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+            
             <Button
               variant="primary"
               onClick={() => navigate('/')}
