@@ -4,7 +4,6 @@
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  signInWithPopup,
   signInWithRedirect,
   getRedirectResult,
   GoogleAuthProvider,
@@ -82,6 +81,7 @@ class AuthService {
 
   /**
    * Google OAuthでログイン
+   * リダイレクト方式を使用（より確実な動作）
    */
   async signInWithGoogle(): Promise<User> {
     if (!isFirebaseEnabled() || !auth || !db) {
@@ -89,7 +89,7 @@ class AuthService {
       throw new Error('Firebase is not enabled');
     }
 
-    console.log('Starting Google sign-in process...');
+    console.log('Starting Google sign-in process with redirect method...');
 
     try {
       const provider = new GoogleAuthProvider();
@@ -97,53 +97,15 @@ class AuthService {
         prompt: 'select_account',
       });
 
-      let result;
+      // リダイレクト方式を使用（より確実で、タブの問題が発生しない）
+      console.log('Redirecting to Google sign-in...');
+      await signInWithRedirect(auth, provider);
       
-      try {
-        // ポップアップ方式を試行
-        console.log('Attempting popup sign-in...');
-        result = await signInWithPopup(auth, provider);
-        console.log('Popup sign-in successful');
-      } catch (popupError: unknown) {
-        console.error('Popup sign-in error:', popupError);
-        
-        // ポップアップがブロックされた場合はリダイレクト方式にフォールバック
-        if (
-          typeof popupError === 'object' && 
-          popupError !== null && 
-          'code' in popupError && 
-          (popupError as { code: string }).code === 'auth/popup-blocked'
-        ) {
-          console.log('Popup blocked, falling back to redirect method');
-          await signInWithRedirect(auth, provider);
-          // リダイレクト方式の場合は即座にreturnせず、リダイレクトが完了するのを待つ
-          throw new Error('Redirecting to Google login...');
-        }
-        throw popupError;
-      }
-
-      // 初回ログイン時はFirestoreにユーザープロファイル作成
-      console.log('Creating/checking user profile in Firestore...');
-      const userRef = doc(db, 'users', result.user.uid);
-      const userSnap = await getDoc(userRef);
-
-      if (!userSnap.exists()) {
-        console.log('Creating new user profile...');
-        await setDoc(userRef, {
-          email: result.user.email,
-          displayName: result.user.displayName || '',
-          photoURL: result.user.photoURL || null,
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp(),
-        });
-      } else {
-        console.log('User profile already exists');
-      }
-
-      console.log('Google sign-in completed successfully');
-      return convertFirebaseUser(result.user);
+      // この行には到達しない（リダイレクトされるため）
+      // 実際の認証結果は handleRedirectResult() で処理される
+      throw new Error('Redirecting to Google login...');
     } catch (error: unknown) {
-      console.error('Google sign-in failed:', error);
+      console.error('Google sign-in redirect failed:', error);
       throw this.handleAuthError(error);
     }
   }
