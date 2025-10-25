@@ -83,7 +83,7 @@ class AuthService {
    * Google OAuthでログイン
    * リダイレクト方式を使用（より確実な動作）
    */
-  async signInWithGoogle(): Promise<User> {
+  async signInWithGoogle(): Promise<void> {
     if (!isFirebaseEnabled() || !auth || !db) {
       console.error('Firebase is not enabled. Please check your environment variables.');
       throw new Error('Firebase is not enabled');
@@ -103,7 +103,6 @@ class AuthService {
       
       // この行には到達しない（リダイレクトされるため）
       // 実際の認証結果は handleRedirectResult() で処理される
-      throw new Error('Redirecting to Google login...');
     } catch (error: unknown) {
       console.error('Google sign-in redirect failed:', error);
       throw this.handleAuthError(error);

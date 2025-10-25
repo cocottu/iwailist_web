@@ -24,6 +24,14 @@ const Login: React.FC = () => {
     }
   }, []);
 
+  // ログイン済みの場合はダッシュボードへ自動遷移
+  useEffect(() => {
+    if (isAuthenticated) {
+      console.log('User is authenticated, redirecting to dashboard...');
+      navigate('/');
+    }
+  }, [isAuthenticated, navigate]);
+
   // Firebase無効時の表示
   if (!isFirebaseEnabled()) {
     const configStatus = getFirebaseConfigStatus();
@@ -92,12 +100,6 @@ const Login: React.FC = () => {
     );
   }
 
-  // ログイン済みの場合はダッシュボードへ
-  if (isAuthenticated) {
-    navigate('/');
-    return null;
-  }
-
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -118,15 +120,12 @@ const Login: React.FC = () => {
     setLoading(true);
 
     try {
+      console.log('Initiating Google login redirect...');
       await signInWithGoogle();
-      // リダイレクトの場合はこの行には到達しない
-      navigate('/');
+      // signInWithRedirect()はページをリダイレクトするため、この行には到達しない
+      // 認証完了後、ページが再読み込みされてダッシュボードに自動的に移動する
     } catch (err) {
-      // リダイレクト中のエラーは無視（正常な動作）
-      if (err instanceof Error && err.message.includes('Redirecting')) {
-        console.log('Redirecting to Google for authentication...');
-        return;
-      }
+      console.error('Google login failed:', err);
       setError(err instanceof Error ? err.message : 'ログインに失敗しました');
       setLoading(false);
     }
