@@ -10,7 +10,7 @@ import { Input } from '../components/ui/Input';
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
-  const { signIn, signInWithGoogle, isAuthenticated } = useAuth();
+  const { signIn, signInWithGoogle, isAuthenticated, loading: authLoading } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -31,6 +31,18 @@ const Login: React.FC = () => {
       navigate('/');
     }
   }, [isAuthenticated, navigate]);
+
+  // 認証状態確認中はローディング画面を表示
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+          <p className="text-gray-600">認証状態を確認中...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Firebase無効時の表示
   if (!isFirebaseEnabled()) {
