@@ -1,16 +1,35 @@
 /**
  * 同期状態インジケーター
  */
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSync } from '../../hooks/useSync';
 import { formatDistanceToNow } from 'date-fns';
 import { ja } from 'date-fns/locale';
 
 const SyncIndicator: React.FC = () => {
   const { isSyncing, lastSyncTime, pendingOperations, isOnline, sync, error } = useSync();
+  const [dismissed, setDismissed] = useState(false);
+  const [autoHide, setAutoHide] = useState(false);
+
+  // 「同期準備完了」状態の場合、5秒後に自動非表示
+  useEffect(() => {
+    if (isOnline && pendingOperations === 0 && lastSyncTime && !isSyncing && !error) {
+      const timer = setTimeout(() => {
+        setAutoHide(true);
+      }, 5000);
+      return () => clearTimeout(timer);
+    } else {
+      setAutoHide(false);
+    }
+  }, [isOnline, pendingOperations, lastSyncTime, isSyncing, error]);
 
   // Firebase無効の場合は表示しない
   if (!isOnline && pendingOperations === 0) {
+    return null;
+  }
+
+  // 閉じられた場合、または自動非表示の場合は表示しない
+  if (dismissed || autoHide) {
     return null;
   }
 
@@ -38,7 +57,7 @@ const SyncIndicator: React.FC = () => {
   };
 
   return (
-    <div className="fixed bottom-20 right-4 z-50">
+    <div className="fixed bottom-4 right-4 z-50">
       <div className="bg-white shadow-lg rounded-lg border border-gray-200 p-3 max-w-xs">
         <div className="flex items-center space-x-3">
           {/* ステータスインジケーター */}
@@ -80,6 +99,27 @@ const SyncIndicator: React.FC = () => {
               </svg>
             </button>
           )}
+
+          {/* 閉じるボタン */}
+          <button
+            onClick={() => setDismissed(true)}
+            className="text-gray-400 hover:text-gray-600 transition-colors"
+            aria-label="閉じる"
+          >
+            <svg 
+              className="w-4 h-4" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                strokeWidth={2} 
+                d="M6 18L18 6M6 6l12 12" 
+              />
+            </svg>
+          </button>
         </div>
       </div>
     </div>

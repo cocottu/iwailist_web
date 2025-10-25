@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useSWUpdate } from '@/hooks';
 import { Button } from './Button';
 
@@ -6,8 +7,13 @@ import { Button } from './Button';
  */
 export function UpdatePrompt() {
   const { needRefresh, offlineReady, updateServiceWorker } = useSWUpdate();
+  const [dismissed, setDismissed] = useState(false);
 
   if (!needRefresh && !offlineReady) {
+    return null;
+  }
+
+  if (dismissed) {
     return null;
   }
 
@@ -16,7 +22,7 @@ export function UpdatePrompt() {
   };
 
   return (
-    <div className="fixed bottom-20 left-4 right-4 md:left-auto md:right-4 md:w-96 z-50 bg-white rounded-lg shadow-xl border border-gray-200 p-4">
+    <div className="fixed bottom-44 left-4 right-4 md:left-auto md:right-4 md:w-96 z-50 bg-white rounded-lg shadow-xl border border-gray-200 p-4">
       <div className="flex items-start gap-3">
         {/* アイコン */}
         <div className="flex-shrink-0">
@@ -81,6 +87,27 @@ export function UpdatePrompt() {
             </>
           )}
         </div>
+
+        {/* 閉じるボタン */}
+        <button
+          onClick={() => setDismissed(true)}
+          className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+          aria-label="閉じる"
+        >
+          <svg 
+            className="w-5 h-5" 
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path 
+              strokeLinecap="round" 
+              strokeLinejoin="round" 
+              strokeWidth={2} 
+              d="M6 18L18 6M6 6l12 12" 
+            />
+          </svg>
+        </button>
       </div>
     </div>
   );
