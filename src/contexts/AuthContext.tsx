@@ -34,57 +34,72 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return;
     }
 
+    let isMounted = true;
+
     // 認証状態の永続化設定
     authService.setPersistence().catch(console.error);
 
-    // 認証状態の監視を先に設定
-    const unsubscribe = onAuthStateChanged(
-      auth,
-      async (firebaseUser: FirebaseUser | null) => {
-        console.log('Auth state changed:', firebaseUser ? firebaseUser.email : 'null');
+    // 認証の初期化処理
+    const initializeAuth = async () => {
+      try {
+        // リダイレクト認証の結果を先に処理
+        const redirectUser = await authService.handleRedirectResult();
         
-        if (firebaseUser) {
-          try {
-            // トークンをローカルストレージに保存
-            const token = await firebaseUser.getIdToken();
-            localStorage.setItem('authToken', token);
-
-            // ユーザー情報を設定
-            setUser(convertFirebaseUser(firebaseUser));
-            console.log('User authenticated:', firebaseUser.email);
-          } catch (error) {
-            console.error('Error getting user token:', error);
-            setUser(null);
-          }
-        } else {
-          // ログアウト状態
-          localStorage.removeItem('authToken');
-          setUser(null);
-          console.log('User signed out');
-        }
-        setLoading(false);
-      },
-      (error) => {
-        console.error('Auth state change error:', error);
-        setLoading(false);
-      }
-    );
-
-    // リダイレクト認証の結果を処理
-    authService.handleRedirectResult()
-      .then((user) => {
-        if (user) {
-          console.log('Redirect authentication successful:', user);
-          // onAuthStateChangedで既に処理されているため、ここでは何もしない
+        if (redirectUser) {
+          console.log('Redirect authentication successful:', redirectUser);
+          // onAuthStateChangedが自動的にユーザー情報を設定する
         } else {
           console.log('No redirect result found');
         }
-      })
-      .catch((error) => {
+      } catch (error) {
         console.error('Redirect result handling error:', error);
-        // エラーが発生した場合は、loading状態を解除
-        setLoading(false);
-      });
+      }
+    };
+
+    // リダイレクト処理を開始し、完了を待ってから監視を開始
+    let unsubscribe: (() => void) | undefined;
+    
+    initializeAuth().then(() => {
+      if (!isMounted) return;
+
+      // リダイレクト処理が完了してから認証状態の監視を設定
+      unsubscribe = onAuthStateChanged(
+        auth!,
+        async (firebaseUser: FirebaseUser | null) => {
+          if (!isMounted) return;
+          
+          console.log('Auth state changed:', firebaseUser ? firebaseUser.email : 'null');
+          
+          if (firebaseUser) {
+            try {
+              // トークンをローカルストレージに保存
+              const token = await firebaseUser.getIdToken();
+              localStorage.setItem('authToken', token);
+
+              // ユーザー情報を設定
+              setUser(convertFirebaseUser(firebaseUser));
+              console.log('User authenticated:', firebaseUser.email);
+            } catch (error) {
+              console.error('Error getting user token:', error);
+              setUser(null);
+            }
+          } else {
+            // ログアウト状態
+            localStorage.removeItem('authToken');
+            setUser(null);
+            console.log('User signed out');
+          }
+          
+          setLoading(false);
+        },
+        (error) => {
+          console.error('Auth state change error:', error);
+          if (isMounted) {
+            setLoading(false);
+          }
+        }
+      );
+    });
 
     // トークンの定期更新 (55分ごと)
     const tokenRefreshInterval = setInterval(async () => {
@@ -103,7 +118,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }, 55 * 60 * 1000); // 55分
 
     return () => {
-      unsubscribe();
+      isMounted = false;
+      if (unsubscribe) {
+        unsubscribe();
+      }
       clearInterval(tokenRefreshInterval);
     };
   }, []);
