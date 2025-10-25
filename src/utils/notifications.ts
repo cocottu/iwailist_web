@@ -1,7 +1,10 @@
 /**
- * 通知ユーティリティ
+ * 通知ユーティリティ (Sonnerベース)
  * alert()やconfirm()の代わりに使用する適切な通知システム
  */
+
+import React from 'react';
+import { toast } from 'sonner';
 
 export interface NotificationOptions {
   title?: string;
@@ -17,140 +20,126 @@ export interface ConfirmOptions {
   cancelText?: string;
 }
 
+/**
+ * 通知マネージャー
+ * Sonnerライブラリを使用した統一的な通知システム
+ */
 class NotificationManager {
-  private container: HTMLElement | null = null;
-
-  constructor() {
-    this.createContainer();
-  }
-
-  private createContainer(): void {
-    if (typeof document === 'undefined') return;
-
-    this.container = document.createElement('div');
-    this.container.id = 'notification-container';
-    this.container.style.cssText = `
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      z-index: 10000;
-      pointer-events: none;
-    `;
-    document.body.appendChild(this.container);
-  }
-
+  /**
+   * 通知を表示
+   */
   show(options: NotificationOptions): void {
-    if (!this.container) return;
+    const { title, message, type = 'info', duration } = options;
+    
+    const toastOptions = {
+      duration,
+      description: title ? message : undefined,
+    };
 
-    const notification = document.createElement('div');
-    notification.style.cssText = `
-      background: ${this.getBackgroundColor(options.type)};
-      color: white;
-      padding: 12px 16px;
-      margin-bottom: 8px;
-      border-radius: 4px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-      pointer-events: auto;
-      animation: slideIn 0.3s ease-out;
-      max-width: 300px;
-    `;
-
-    if (options.title) {
-      const title = document.createElement('div');
-      title.style.cssText = 'font-weight: bold; margin-bottom: 4px;';
-      title.textContent = options.title;
-      notification.appendChild(title);
-    }
-
-    const message = document.createElement('div');
-    message.textContent = options.message;
-    notification.appendChild(message);
-
-    this.container.appendChild(notification);
-
-    // 自動削除
-    setTimeout(() => {
-      if (notification.parentNode) {
-        notification.style.animation = 'slideOut 0.3s ease-in';
-        setTimeout(() => {
-          if (notification.parentNode) {
-            notification.parentNode.removeChild(notification);
-          }
-        }, 300);
-      }
-    }, options.duration || 3000);
-  }
-
-  private getBackgroundColor(type?: string): string {
     switch (type) {
-      case 'success': return '#10b981';
-      case 'error': return '#ef4444';
-      case 'warning': return '#f59e0b';
-      case 'info': return '#3b82f6';
-      default: return '#6b7280';
+      case 'success':
+        toast.success(title || message, toastOptions);
+        break;
+      case 'error':
+        toast.error(title || message, toastOptions);
+        break;
+      case 'warning':
+        toast.warning(title || message, toastOptions);
+        break;
+      case 'info':
+        toast.info(title || message, toastOptions);
+        break;
+      default:
+        toast(title || message, toastOptions);
     }
   }
 
-  // 確認ダイアログの代替（簡易版）
+  /**
+   * 確認ダイアログ
+   * Sonnerのカスタムトーストを使用した確認ダイアログ
+   */
   confirm(options: ConfirmOptions): Promise<boolean> {
     return new Promise((resolve) => {
-      const confirmed = window.confirm(
-        options.title 
-          ? `${options.title}\n\n${options.message}`
-          : options.message
-      );
-      resolve(confirmed);
+      const { title, message, confirmText = 'OK', cancelText = 'キャンセル' } = options;
+      
+      toast(title || message, {
+        description: title ? message : undefined,
+        action: {
+          label: confirmText,
+          onClick: () => resolve(true),
+        },
+        cancel: {
+          label: cancelText,
+          onClick: () => resolve(false),
+        },
+        duration: Infinity, // 手動で閉じるまで表示
+      });
     });
   }
 
-  // 成功通知
+  /**
+   * 成功通知
+   */
   success(message: string, title?: string): void {
     this.show({ message, title, type: 'success' });
   }
 
-  // エラー通知
+  /**
+   * エラー通知
+   */
   error(message: string, title?: string): void {
     this.show({ message, title, type: 'error' });
   }
 
-  // 警告通知
+  /**
+   * 警告通知
+   */
   warning(message: string, title?: string): void {
     this.show({ message, title, type: 'warning' });
   }
 
-  // 情報通知
+  /**
+   * 情報通知
+   */
   info(message: string, title?: string): void {
     this.show({ message, title, type: 'info' });
+  }
+
+  /**
+   * カスタムトーストを表示
+   * コールバック関数を渡してカスタムコンテンツを表示
+   */
+  custom(content: (id: string | number) => React.ReactElement, options?: { duration?: number }): string | number {
+    return toast.custom(content, options);
+  }
+
+  /**
+   * プロミストースト（読み込み中→成功/エラー）
+   */
+  promise<T>(
+    promise: Promise<T>,
+    messages: {
+      loading: string;
+      success: string | ((data: T) => string);
+      error: string | ((error: unknown) => string);
+    }
+  ): void {
+    toast.promise(promise, messages);
+  }
+
+  /**
+   * 読み込み中トーストを表示
+   */
+  loading(message: string): string | number {
+    return toast.loading(message);
+  }
+
+  /**
+   * 特定のトーストを閉じる
+   */
+  dismiss(toastId?: string | number): void {
+    toast.dismiss(toastId);
   }
 }
 
 export const notifications = new NotificationManager();
-
-// CSS アニメーションを追加
-if (typeof document !== 'undefined') {
-  const style = document.createElement('style');
-  style.textContent = `
-    @keyframes slideIn {
-      from {
-        transform: translateX(100%);
-        opacity: 0;
-      }
-      to {
-        transform: translateX(0);
-        opacity: 1;
-      }
-    }
-    
-    @keyframes slideOut {
-      from {
-        transform: translateX(0);
-        opacity: 1;
-      }
-      to {
-        transform: translateX(100%);
-        opacity: 0;
-      }
-    }
-  `;
-  document.head.appendChild(style);
-}
