@@ -35,46 +35,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
 
     let isMounted = true;
-
-    // 認証状態の永続化設定
-    authService.setPersistence().catch(console.error);
+    let unsubscribe: (() => void) | undefined;
 
     // 認証の初期化処理
     const initializeAuth = async () => {
       console.log('[DEBUG] AuthContext: initializeAuth starting...');
+      
       try {
-        // リダイレクト認証の結果を先に処理
-        console.log('[DEBUG] AuthContext: Calling handleRedirectResult...');
-        const redirectUser = await authService.handleRedirectResult();
-        
-        if (redirectUser) {
-          console.log('[DEBUG] AuthContext: Redirect authentication successful!');
-          console.log('Redirect authentication successful:', redirectUser);
-          // onAuthStateChangedが自動的にユーザー情報を設定する
-        } else {
-          console.log('[DEBUG] AuthContext: No redirect result');
-          console.log('No redirect result found');
-        }
+        // 認証状態の永続化設定を最初に行う
+        console.log('[DEBUG] AuthContext: Setting persistence...');
+        await authService.setPersistence();
+        console.log('[DEBUG] AuthContext: Persistence set successfully');
       } catch (error) {
-        console.error('[DEBUG] AuthContext: Redirect error:', error);
-        console.error('Redirect result handling error:', error);
-        if (typeof error === 'object' && error !== null) {
-          console.error('[DEBUG] AuthContext: Error details:', {
-            code: (error as any).code,
-            message: (error as any).message,
-          });
-        }
+        console.error('[DEBUG] AuthContext: Persistence error:', error);
       }
-      console.log('[DEBUG] AuthContext: initializeAuth completed');
-    };
 
-    // リダイレクト処理を開始し、完了を待ってから監視を開始
-    let unsubscribe: (() => void) | undefined;
-    
-    initializeAuth().then(() => {
+      // 認証状態の監視を先に設定（リダイレクト結果を逃さないため）
       if (!isMounted) return;
 
-      // リダイレクト処理が完了してから認証状態の監視を設定
       unsubscribe = onAuthStateChanged(
         auth!,
         async (firebaseUser: FirebaseUser | null) => {
@@ -111,7 +89,42 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           }
         }
       );
-    });
+
+      // リダイレクト認証の結果を処理（onAuthStateChangedの後に実行）
+      // iframe内では実行しない（親ウィンドウでのみ処理）
+      const isIframe = window.self !== window.top;
+      if (!isIframe) {
+        try {
+          console.log('[DEBUG] AuthContext: Calling handleRedirectResult...');
+          const redirectUser = await authService.handleRedirectResult();
+          
+          if (redirectUser) {
+            console.log('[DEBUG] AuthContext: Redirect authentication successful!');
+            console.log('Redirect authentication successful:', redirectUser);
+            // onAuthStateChangedが自動的にユーザー情報を設定する
+          } else {
+            console.log('[DEBUG] AuthContext: No redirect result');
+            console.log('No redirect result found');
+          }
+        } catch (error) {
+          console.error('[DEBUG] AuthContext: Redirect error:', error);
+          console.error('Redirect result handling error:', error);
+          if (typeof error === 'object' && error !== null) {
+            console.error('[DEBUG] AuthContext: Error details:', {
+              code: (error as any).code,
+              message: (error as any).message,
+            });
+          }
+        }
+      } else {
+        console.log('[DEBUG] AuthContext: Skipping handleRedirectResult in iframe');
+      }
+      
+      console.log('[DEBUG] AuthContext: initializeAuth completed');
+    };
+
+    // 認証初期化を開始
+    initializeAuth();
 
     // トークンの定期更新 (55分ごと)
     const tokenRefreshInterval = setInterval(async () => {

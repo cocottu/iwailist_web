@@ -136,6 +136,9 @@ class AuthService {
     }
 
     try {
+      // 少し待ってから getRedirectResult を呼び出す（認証状態の保存を確実にするため）
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       console.log('[DEBUG] handleRedirectResult: Calling getRedirectResult...');
       const result = await getRedirectResult(auth);
       console.log('[DEBUG] handleRedirectResult: Result received:', {

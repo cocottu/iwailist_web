@@ -1,7 +1,7 @@
 /**
  * サインアップページ
  */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { isFirebaseEnabled } from '../lib/firebase';
@@ -24,11 +24,13 @@ const SignUp: React.FC = () => {
     return null;
   }
 
-  // ログイン済みの場合はダッシュボードへ
-  if (isAuthenticated) {
-    navigate('/');
-    return null;
-  }
+  // ログイン済みの場合はダッシュボードへ自動遷移
+  useEffect(() => {
+    if (isAuthenticated) {
+      console.log('User is authenticated, redirecting to dashboard...');
+      navigate('/');
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
