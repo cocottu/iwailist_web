@@ -103,6 +103,9 @@ class AuthService {
 
       console.log('[DEBUG] signInWithGoogle: Provider configured, calling signInWithRedirect...');
       
+      // リダイレクト開始のフラグを設定（戻ってきた時に検知するため）
+      localStorage.setItem('authRedirectPending', 'true');
+      
       // リダイレクト方式を使用（より確実で、タブの問題が発生しない）
       console.log('Redirecting to Google sign-in...');
       await signInWithRedirect(auth, provider);
@@ -111,6 +114,8 @@ class AuthService {
       // この行には到達しない（リダイレクトされるため）
       // 実際の認証結果は handleRedirectResult() で処理される
     } catch (error: unknown) {
+      // エラー時はフラグをクリア
+      localStorage.removeItem('authRedirectPending');
       console.error('[DEBUG] signInWithGoogle: Error occurred:', error);
       if (typeof error === 'object' && error !== null) {
         console.error('[DEBUG] signInWithGoogle: Error details:', {
@@ -132,6 +137,8 @@ class AuthService {
     
     if (!isFirebaseEnabled() || !auth || !db) {
       console.log('[DEBUG] handleRedirectResult: Firebase not enabled');
+      // Firebaseが無効な場合もフラグをクリア
+      localStorage.removeItem('authRedirectPending');
       return null;
     }
 
@@ -150,6 +157,8 @@ class AuthService {
       
       if (!result || !result.user) {
         console.log('[DEBUG] handleRedirectResult: No result or user found');
+        // リダイレクト結果がない場合もフラグをクリア
+        localStorage.removeItem('authRedirectPending');
         return null;
       }
 
@@ -173,6 +182,8 @@ class AuthService {
       }
 
       console.log('[DEBUG] handleRedirectResult: Success!');
+      // 成功時にフラグをクリア
+      localStorage.removeItem('authRedirectPending');
       return convertFirebaseUser(result.user);
     } catch (error: unknown) {
       console.error('[DEBUG] handleRedirectResult: Error occurred:', error);
@@ -183,6 +194,8 @@ class AuthService {
           stack: (error as any).stack,
         });
       }
+      // エラー時もフラグをクリア
+      localStorage.removeItem('authRedirectPending');
       throw this.handleAuthError(error);
     }
   }
@@ -240,6 +253,13 @@ class AuthService {
       return null;
     }
     return auth.currentUser;
+  }
+
+  /**
+   * リダイレクト処理が保留中かチェック
+   */
+  isRedirectPending(): boolean {
+    return localStorage.getItem('authRedirectPending') === 'true';
   }
 
   /**
