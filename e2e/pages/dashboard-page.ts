@@ -51,19 +51,31 @@ export class DashboardPage {
   }
 
   async getPendingReturnsCount(): Promise<string> {
-    return await this.pendingReturnsCard.locator('..').locator('text=/\\d+件/').textContent() || '0件';
+    // 「未対応」を含むカード全体から数値を探す
+    const card = this.page.locator('p:has-text("未対応")').locator('..');
+    const countText = await card.locator('p.text-2xl').textContent();
+    return countText?.trim() || '0件';
   }
 
   async getMonthlyAmount(): Promise<string> {
-    return await this.monthlyAmountCard.locator('..').locator('text=/\\d+円/').textContent() || '0円';
+    // 「今月」を含むカード全体から数値を探す
+    const card = this.page.locator('p:has-text("今月")').locator('..');
+    const amountText = await card.locator('p.text-2xl').textContent();
+    return amountText?.trim() || '0円';
   }
 
   async getCompletedReturnsCount(): Promise<string> {
-    return await this.completedReturnsCard.locator('..').locator('text=/\\d+件/').textContent() || '0件';
+    // 「対応済」を含むカード全体から数値を探す
+    const card = this.page.locator('p:has-text("対応済")').locator('..');
+    const countText = await card.locator('p.text-2xl').textContent();
+    return countText?.trim() || '0件';
   }
 
   async getTotalAmount(): Promise<string> {
-    return await this.totalAmountCard.locator('..').locator('text=/\\d+円/').textContent() || '0円';
+    // 「総額」を含むカード全体から数値を探す
+    const card = this.page.locator('p:has-text("総額")').locator('..');
+    const amountText = await card.locator('p.text-2xl').textContent();
+    return amountText?.trim() || '0円';
   }
 
   async isRecentGiftsEmpty(): Promise<boolean> {

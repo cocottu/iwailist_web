@@ -12,12 +12,13 @@ export class PersonListPage {
 
   constructor(page: Page) {
     this.page = page;
-    this.title = page.locator('h1');
+    this.title = page.getByRole('heading', { name: '人物一覧' });
     this.description = page.locator('text=人の人物が登録されています');
     this.newPersonButton = page.locator('text=新規登録');
     this.searchInput = page.locator('input[placeholder="名前で検索..."]');
     this.relationshipSelect = page.locator('select');
-    this.personCards = page.locator('[data-testid="person-card"]');
+    // グリッド内のCardコンポーネント（「詳細を見る」ボタンを含む）
+    this.personCards = page.getByRole('button', { name: '詳細を見る' });
     this.emptyState = page.locator('text=人物が見つかりません');
   }
 

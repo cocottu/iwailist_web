@@ -69,12 +69,17 @@ export async function createTestPerson(page: Page, personData: {
   memo?: string;
 }) {
   await page.goto('/persons/new');
+  await page.waitForLoadState('networkidle');
   
   await page.fill('input[placeholder="例: 田中太郎"]', personData.name);
   if (personData.furigana) {
     await page.fill('input[placeholder="例: タナカタロウ"]', personData.furigana);
   }
-  await page.selectOption('select', { value: personData.relationship });
+  
+  // 関係性のselectを選択（label="関係性"を持つselectを探す）
+  const relationshipSelect = page.locator('select').first();
+  await relationshipSelect.selectOption({ label: personData.relationship });
+  
   if (personData.memo) {
     await page.fill('textarea[placeholder="特記事項があれば入力してください"]', personData.memo);
   }
@@ -82,7 +87,7 @@ export async function createTestPerson(page: Page, personData: {
   await page.getByRole('button', { name: '登録する' }).click();
   
   // 成功メッセージまたはリダイレクトを待機
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   // リダイレクト後のページを確認（人物詳細ページまたは一覧ページ）
   await expect(page).toHaveURL(/\/persons/);
 }
@@ -100,13 +105,22 @@ export async function createTestGift(page: Page, giftData: {
   memo?: string;
 }) {
   await page.goto('/gifts/new');
+  await page.waitForLoadState('networkidle');
   
   await page.fill('input[placeholder="例: 結婚祝い"]', giftData.giftName);
-  await page.selectOption('select', { value: giftData.personId });
+  
+  // 人物selectを選択（最初のselect）
+  const personSelect = page.locator('select').first();
+  await personSelect.selectOption({ value: giftData.personId });
+  
   await page.fill('input[type="date"]', giftData.receivedDate);
-  await page.locator('select').nth(1).selectOption({ value: giftData.category });
+  
+  // カテゴリselectを選択（2番目のselect）
+  const categorySelect = page.locator('select').nth(1);
+  await categorySelect.selectOption({ label: giftData.category });
+  
   // お返し状況のラベルをマッピング
-  const returnStatusLabels = {
+  const returnStatusLabels: Record<string, string> = {
     'pending': '未対応',
     'completed': '対応済',
     'not_required': '不要'
@@ -124,7 +138,7 @@ export async function createTestGift(page: Page, giftData: {
   await page.getByRole('button', { name: '登録する' }).click();
   
   // 成功メッセージまたはリダイレクトを待機
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(2000);
   // リダイレクト後のページを確認（贈答品詳細ページまたは一覧ページ）
   await expect(page).toHaveURL(/\/gifts/);
 }

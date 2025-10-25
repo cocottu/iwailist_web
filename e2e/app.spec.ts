@@ -4,6 +4,10 @@ test.describe('アプリケーション全体のテスト', () => {
   test.beforeEach(async ({ page }) => {
     // 各テストの前にアプリケーションにアクセス
     await page.goto('/');
+    // ローディングが完了するまで待機（Loadingコンポーネントが消えるのを待つ）
+    await page.waitForSelector('text=データを読み込み中', { state: 'hidden', timeout: 30000 }).catch(() => {
+      // Loadingが表示されない場合は無視（既に読み込み完了している）
+    });
   });
 
   test('アプリケーションが正常に読み込まれる', async ({ page }) => {

@@ -45,7 +45,7 @@ export class PersonFormPage {
   }
 
   async selectRelationship(relationship: string) {
-    await this.relationshipSelect.selectOption({ value: relationship });
+    await this.relationshipSelect.selectOption({ label: relationship });
   }
 
   async fillMemo(memo: string) {
@@ -54,6 +54,9 @@ export class PersonFormPage {
 
   async submit() {
     await this.submitButton.click();
+    // リダイレクトを待機
+    await this.page.waitForURL(/\/persons/, { timeout: 5000 });
+    await this.page.waitForLoadState('networkidle');
   }
 
   async cancel() {
