@@ -37,34 +37,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // 認証状態の永続化設定
     authService.setPersistence().catch(console.error);
 
-    // リダイレクト認証の結果を処理
-    let isHandlingRedirect = true;
-    authService.handleRedirectResult()
-      .then((user) => {
-        if (user) {
-          console.log('Redirect authentication successful:', user);
-          setUser(user);
-        }
-      })
-      .catch((error) => {
-        console.error('Redirect result handling error:', error);
-      })
-      .finally(() => {
-        isHandlingRedirect = false;
-        // リダイレクト処理完了後、loading状態を解除
-        // ただし、onAuthStateChangedでも処理されるため、ここでは設定しない
-      });
-
-    // 認証状態の監視
+    // 認証状態の監視を先に設定
     const unsubscribe = onAuthStateChanged(
       auth,
       async (firebaseUser: FirebaseUser | null) => {
-        // リダイレクト処理中は状態更新をスキップ
-        if (isHandlingRedirect) {
-          console.log('Skipping auth state update during redirect handling');
-          return;
-        }
-
+        console.log('Auth state changed:', firebaseUser ? firebaseUser.email : 'null');
+        
         if (firebaseUser) {
           try {
             // トークンをローカルストレージに保存
@@ -91,6 +69,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setLoading(false);
       }
     );
+
+    // リダイレクト認証の結果を処理
+    authService.handleRedirectResult()
+      .then((user) => {
+        if (user) {
+          console.log('Redirect authentication successful:', user);
+          // onAuthStateChangedで既に処理されているため、ここでは何もしない
+        } else {
+          console.log('No redirect result found');
+        }
+      })
+      .catch((error) => {
+        console.error('Redirect result handling error:', error);
+        // エラーが発生した場合は、loading状態を解除
+        setLoading(false);
+      });
 
     // トークンの定期更新 (55分ごと)
     const tokenRefreshInterval = setInterval(async () => {
