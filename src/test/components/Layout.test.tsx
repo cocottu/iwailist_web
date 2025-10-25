@@ -1,7 +1,55 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { Layout } from '@/components/layout/Layout'
 import { MemoryRouter } from 'react-router-dom'
+
+// date-fnsモック（実際の関数を使用）
+vi.mock('date-fns', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('date-fns')>()
+  return {
+    ...actual,
+    formatDistanceToNow: actual.formatDistanceToNow,
+  }
+})
+
+vi.mock('date-fns/locale', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('date-fns/locale')>()
+  return {
+    ...actual,
+    ja: actual.ja,
+  }
+})
+
+// モック
+vi.mock('@/contexts/AuthContext', () => ({
+  useAuth: () => ({
+    user: { 
+      uid: 'test-uid', 
+      displayName: 'Test User',
+      email: 'test@example.com',
+      photoURL: null
+    },
+    isAuthenticated: true,
+    signOut: vi.fn(),
+  }),
+}))
+
+vi.mock('@/hooks/useSync', () => ({
+  useSync: () => ({
+    isSyncing: false,
+    lastSyncTime: new Date('2024-01-01'),
+    pendingOperations: 0,
+    sync: vi.fn(),
+    retrySync: vi.fn(),
+    clearSyncQueue: vi.fn(),
+    error: null,
+    isOnline: true,
+  }),
+}))
+
+vi.mock('@/hooks/useOnlineStatus', () => ({
+  useOnlineStatus: () => true,
+}))
 
 // テスト用のラッパーコンポーネント
 const TestWrapper = ({ children }: { children: React.ReactNode }) => (
@@ -46,8 +94,8 @@ describe('Layout', () => {
     
     expect(screen.getAllByText('ホーム')).toHaveLength(2) // HeaderとBottomNavigationの両方に存在
     expect(screen.getAllByText('贈答品')).toHaveLength(2) // HeaderとBottomNavigationの両方に存在
-    expect(screen.getAllByText('人物')).toHaveLength(2) // HeaderとBottomNavigationの両方に存在
-    expect(screen.getAllByText('統計')).toHaveLength(2) // HeaderとBottomNavigationの両方に存在
+    expect(screen.getAllByText('リマインダー')).toHaveLength(2) // HeaderとBottomNavigationの両方に存在
+    expect(screen.getByText('人物')).toBeInTheDocument() // Headerにのみ存在
   })
 
   it('子要素が正しくレンダリングされる', () => {
@@ -193,6 +241,7 @@ describe('Layout', () => {
     
     expect(screen.getByText('タイトル')).toBeInTheDocument()
     expect(screen.getByText('説明文')).toBeInTheDocument()
-    expect(screen.getByRole('button')).toBeInTheDocument()
+    // 複数のボタンがある（同期ボタン、ユーザーメニューボタン、テスト用ボタン）
+    expect(screen.getByText('ボタン')).toBeInTheDocument()
   })
 })

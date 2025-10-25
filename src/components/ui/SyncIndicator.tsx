@@ -4,8 +4,6 @@
  */
 import { useEffect } from 'react';
 import { useSync } from '../../hooks/useSync';
-import { formatDistanceToNow } from 'date-fns';
-import { ja } from 'date-fns/locale';
 import { toast } from 'sonner';
 
 const SyncIndicator = () => {
@@ -119,27 +117,7 @@ const SyncIndicator = () => {
       };
     }
 
-    // 同期準備完了（最終同期時刻がある場合）
-    if (lastSyncTime) {
-      toastId = toast.success('同期準備完了', {
-        description: `最終同期: ${formatDistanceToNow(lastSyncTime, { locale: ja, addSuffix: true })}`,
-        duration: 5000, // 5秒後に自動非表示
-      });
-      return () => {
-        if (toastId) toast.dismiss(toastId);
-      };
-    }
-
-    // 初期状態: 同期準備完了
-    if (isOnline && pendingOperations === 0) {
-      toastId = toast.success('同期準備完了', {
-        description: 'データの同期が完了しました',
-        duration: 5000,
-      });
-      return () => {
-        if (toastId) toast.dismiss(toastId);
-      };
-    }
+    // 「同期準備完了」の通知は削除 - ヘッダーの同期ボタンで状態を表示
   }, [isSyncing, lastSyncTime, pendingOperations, isOnline, error, sync]);
 
   return null;
