@@ -84,11 +84,15 @@ class AuthService {
    * リダイレクト方式を使用（より確実な動作）
    */
   async signInWithGoogle(): Promise<void> {
+    console.log('[DEBUG] signInWithGoogle: Starting...');
+    
     if (!isFirebaseEnabled() || !auth || !db) {
+      console.error('[DEBUG] signInWithGoogle: Firebase is not enabled');
       console.error('Firebase is not enabled. Please check your environment variables.');
       throw new Error('Firebase is not enabled');
     }
 
+    console.log('[DEBUG] signInWithGoogle: Firebase enabled, current user:', auth.currentUser?.email || 'null');
     console.log('Starting Google sign-in process with redirect method...');
 
     try {
@@ -97,13 +101,24 @@ class AuthService {
         prompt: 'select_account',
       });
 
+      console.log('[DEBUG] signInWithGoogle: Provider configured, calling signInWithRedirect...');
+      
       // リダイレクト方式を使用（より確実で、タブの問題が発生しない）
       console.log('Redirecting to Google sign-in...');
       await signInWithRedirect(auth, provider);
       
+      console.log('[DEBUG] signInWithGoogle: This line should not be reached');
       // この行には到達しない（リダイレクトされるため）
       // 実際の認証結果は handleRedirectResult() で処理される
     } catch (error: unknown) {
+      console.error('[DEBUG] signInWithGoogle: Error occurred:', error);
+      if (typeof error === 'object' && error !== null) {
+        console.error('[DEBUG] signInWithGoogle: Error details:', {
+          code: (error as any).code,
+          message: (error as any).message,
+          stack: (error as any).stack,
+        });
+      }
       console.error('Google sign-in redirect failed:', error);
       throw this.handleAuthError(error);
     }
@@ -113,22 +128,36 @@ class AuthService {
    * リダイレクト認証の結果を処理
    */
   async handleRedirectResult(): Promise<User | null> {
+    console.log('[DEBUG] handleRedirectResult: Starting...');
+    
     if (!isFirebaseEnabled() || !auth || !db) {
+      console.log('[DEBUG] handleRedirectResult: Firebase not enabled');
       return null;
     }
 
     try {
+      console.log('[DEBUG] handleRedirectResult: Calling getRedirectResult...');
       const result = await getRedirectResult(auth);
+      console.log('[DEBUG] handleRedirectResult: Result received:', {
+        hasResult: !!result,
+        hasUser: !!result?.user,
+        userEmail: result?.user?.email,
+        providerId: result?.providerId,
+      });
       
       if (!result || !result.user) {
+        console.log('[DEBUG] handleRedirectResult: No result or user found');
         return null;
       }
 
+      console.log('[DEBUG] handleRedirectResult: Processing user profile...');
+      
       // 初回ログイン時はFirestoreにユーザープロファイル作成
       const userRef = doc(db, 'users', result.user.uid);
       const userSnap = await getDoc(userRef);
 
       if (!userSnap.exists()) {
+        console.log('[DEBUG] handleRedirectResult: Creating new user profile in Firestore');
         await setDoc(userRef, {
           email: result.user.email,
           displayName: result.user.displayName || '',
@@ -136,11 +165,21 @@ class AuthService {
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
         });
+      } else {
+        console.log('[DEBUG] handleRedirectResult: User profile already exists');
       }
 
+      console.log('[DEBUG] handleRedirectResult: Success!');
       return convertFirebaseUser(result.user);
     } catch (error: unknown) {
-      console.error('Redirect result error:', error);
+      console.error('[DEBUG] handleRedirectResult: Error occurred:', error);
+      if (typeof error === 'object' && error !== null) {
+        console.error('[DEBUG] handleRedirectResult: Error details:', {
+          code: (error as any).code,
+          message: (error as any).message,
+          stack: (error as any).stack,
+        });
+      }
       throw this.handleAuthError(error);
     }
   }

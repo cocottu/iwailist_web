@@ -62,6 +62,7 @@ let storage: FirebaseStorage | null = null;
 
 try {
   if (missingEnvVars.length === 0) {
+    console.log('[DEBUG] Firebase: Initializing...');
     app = initializeApp(firebaseConfig);
     auth = getAuth(app);
     db = getFirestore(app);
@@ -71,17 +72,24 @@ try {
     if (isDevelopment()) {
       console.log('🔧 Running in DEVELOPMENT mode');
       console.log('Firebase Project:', firebaseConfig.projectId);
+      console.log('[DEBUG] Firebase: Auth Domain:', firebaseConfig.authDomain);
+      console.log('[DEBUG] Firebase: Current URL:', window.location.href);
       console.log('Firebase initialized successfully');
     } else if (isStaging()) {
       console.log('🧪 Running in STAGING mode');
       console.log('Firebase Project:', firebaseConfig.projectId);
+      console.log('[DEBUG] Firebase: Auth Domain:', firebaseConfig.authDomain);
       console.log('Firebase initialized successfully');
     } else if (isProduction()) {
       console.log('🚀 Running in PRODUCTION mode');
       // 本番環境では詳細なログを抑制
     }
+    console.log('[DEBUG] Firebase: Initialization complete');
+  } else {
+    console.log('[DEBUG] Firebase: Missing environment variables:', missingEnvVars);
   }
 } catch (error) {
+  console.error('[DEBUG] Firebase: Initialization failed:', error);
   console.error('Firebase initialization error:', error);
 }
 
