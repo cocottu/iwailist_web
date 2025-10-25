@@ -18,9 +18,9 @@ const SyncIndicator: React.FC = () => {
         setAutoHide(true);
       }, 5000);
       return () => clearTimeout(timer);
-    } else {
-      setAutoHide(false);
     }
+    // 条件が変わった場合はautoHideをリセット
+    return () => setAutoHide(false);
   }, [isOnline, pendingOperations, lastSyncTime, isSyncing, error]);
 
   // Firebase無効の場合は表示しない
