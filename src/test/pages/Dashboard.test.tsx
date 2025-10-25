@@ -2,22 +2,30 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@/test/utils/testUtils'
 import { Dashboard } from '@/pages/Dashboard'
 import { mockGifts, mockPersons } from '@/test/mocks/mockData'
-import { GiftRepository, PersonRepository } from '@/database'
+import { GiftRepository, PersonRepository, ReminderRepository } from '@/database'
 
 // リポジトリのモック
 vi.mock('@/database', () => ({
   GiftRepository: vi.fn().mockImplementation(() => ({
     getStatistics: vi.fn(),
     getAll: vi.fn(),
+    get: vi.fn(),
   })),
   PersonRepository: vi.fn().mockImplementation(() => ({
     getAll: vi.fn(),
+  })),
+  ReminderRepository: vi.fn().mockImplementation(() => ({
+    getUpcoming: vi.fn(),
+    getOverdue: vi.fn(),
+    markComplete: vi.fn(),
+    delete: vi.fn(),
   })),
 }))
 
 describe('Dashboard', () => {
   let mockGiftRepo: any
   let mockPersonRepo: any
+  let mockReminderRepo: any
 
   beforeEach(() => {
     vi.clearAllMocks()
@@ -26,14 +34,22 @@ describe('Dashboard', () => {
     mockGiftRepo = {
       getStatistics: vi.fn(),
       getAll: vi.fn(),
+      get: vi.fn(),
     }
     mockPersonRepo = {
       getAll: vi.fn(),
+    }
+    mockReminderRepo = {
+      getUpcoming: vi.fn().mockResolvedValue([]),
+      getOverdue: vi.fn().mockResolvedValue([]),
+      markComplete: vi.fn(),
+      delete: vi.fn(),
     }
     
     // コンストラクタのモック
     ;(GiftRepository as any).mockImplementation(() => mockGiftRepo)
     ;(PersonRepository as any).mockImplementation(() => mockPersonRepo)
+    ;(ReminderRepository as any).mockImplementation(() => mockReminderRepo)
   })
 
   it('ローディング状態が正しく表示される', () => {
