@@ -124,6 +124,7 @@ const Login: React.FC = () => {
       await signInWithGoogle();
       // signInWithRedirect()はページをリダイレクトするため、この行には到達しない
       // 認証完了後、ページが再読み込みされてダッシュボードに自動的に移動する
+      // loading状態はリダイレクトによってリセットされる
     } catch (err) {
       console.error('Google login failed:', err);
       setError(err instanceof Error ? err.message : 'ログインに失敗しました');
