@@ -14,7 +14,13 @@ const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  // リダイレクト処理中かチェック（初期表示時からローディングを表示するため）
+  const [loading, setLoading] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('authRedirectPending') === 'true';
+    }
+    return false;
+  });
   const [showDebugInfo, setShowDebugInfo] = useState(false);
 
   // 開発環境でFirebase設定をコンソールに出力
@@ -32,13 +38,22 @@ const Login: React.FC = () => {
     }
   }, [isAuthenticated, navigate]);
 
-  // 認証状態確認中はローディング画面を表示
-  if (authLoading) {
+  // 認証状態の確認が完了したらローディングを解除
+  useEffect(() => {
+    if (!authLoading) {
+      setLoading(false);
+    }
+  }, [authLoading]);
+
+  // 認証状態確認中またはリダイレクト処理中はローディング画面を表示
+  if (authLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-          <p className="text-gray-600">認証状態を確認中...</p>
+          <p className="text-gray-600">
+            {loading ? 'Googleでログイン中...' : '認証状態を確認中...'}
+          </p>
         </div>
       </div>
     );

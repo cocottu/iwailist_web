@@ -26,6 +26,7 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  // リダイレクト処理中は必ずローディング状態にする
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -40,6 +41,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // 認証の初期化処理
     const initializeAuth = async () => {
       console.log('[DEBUG] AuthContext: initializeAuth starting...');
+      console.log('[DEBUG] AuthContext: isRedirectPending:', authService.isRedirectPending());
       
       try {
         // 認証状態の永続化設定を最初に行う
@@ -80,11 +82,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             console.log('User signed out');
           }
           
-          setLoading(false);
+          // リダイレクト処理中でなければローディング解除
+          if (!authService.isRedirectPending()) {
+            setLoading(false);
+          }
         },
         (error) => {
           console.error('Auth state change error:', error);
-          if (isMounted) {
+          if (isMounted && !authService.isRedirectPending()) {
             setLoading(false);
           }
         }
@@ -115,9 +120,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               message: (error as any).message,
             });
           }
+        } finally {
+          // リダイレクト処理が完了したらローディング解除
+          if (isMounted) {
+            setLoading(false);
+            console.log('[DEBUG] AuthContext: Redirect processing completed, loading set to false');
+          }
         }
       } else {
         console.log('[DEBUG] AuthContext: Skipping handleRedirectResult in iframe');
+        // iframe内ではリダイレクト処理をしない
+        if (isMounted && !authService.isRedirectPending()) {
+          setLoading(false);
+        }
       }
       
       console.log('[DEBUG] AuthContext: initializeAuth completed');
