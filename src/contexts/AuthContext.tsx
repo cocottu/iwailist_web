@@ -38,20 +38,33 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     authService.setPersistence().catch(console.error);
 
     // リダイレクト認証の結果を処理
+    let isHandlingRedirect = true;
     authService.handleRedirectResult()
       .then((user) => {
         if (user) {
           console.log('Redirect authentication successful:', user);
+          setUser(user);
         }
       })
       .catch((error) => {
         console.error('Redirect result handling error:', error);
+      })
+      .finally(() => {
+        isHandlingRedirect = false;
+        // リダイレクト処理完了後、loading状態を解除
+        // ただし、onAuthStateChangedでも処理されるため、ここでは設定しない
       });
 
     // 認証状態の監視
     const unsubscribe = onAuthStateChanged(
       auth,
       async (firebaseUser: FirebaseUser | null) => {
+        // リダイレクト処理中は状態更新をスキップ
+        if (isHandlingRedirect) {
+          console.log('Skipping auth state update during redirect handling');
+          return;
+        }
+
         if (firebaseUser) {
           try {
             // トークンをローカルストレージに保存
@@ -60,6 +73,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
             // ユーザー情報を設定
             setUser(convertFirebaseUser(firebaseUser));
+            console.log('User authenticated:', firebaseUser.email);
           } catch (error) {
             console.error('Error getting user token:', error);
             setUser(null);
@@ -68,6 +82,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           // ログアウト状態
           localStorage.removeItem('authToken');
           setUser(null);
+          console.log('User signed out');
         }
         setLoading(false);
       },
@@ -84,6 +99,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         try {
           const token = await currentUser.getIdToken(true); // 強制更新
           localStorage.setItem('authToken', token);
+          console.log('Auth token refreshed');
         } catch (error) {
           console.error('Token refresh failed:', error);
           // 再ログイン促進
@@ -125,16 +141,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signInWithGoogle = async (): Promise<void> => {
     setLoading(true);
     try {
-      const user = await authService.signInWithGoogle();
-      setUser(user);
+      await authService.signInWithGoogle();
+      // signInWithRedirectはページをリダイレクトするため、この行には到達しない
+      // 認証完了後、ページが再読み込みされ、handleRedirectResultで処理される
     } catch (error) {
-      // リダイレクト処理の場合はエラーとして扱わない
-      if (error instanceof Error && error.message.includes('Redirecting')) {
-        console.log('Redirecting to Google authentication...');
-        // ローディング状態を維持（リダイレクト中）
-        return;
-      }
-      // その他のエラーはthrow
+      // エラーが発生した場合のみloading状態を解除
+      console.error('Failed to initiate Google sign-in:', error);
       setLoading(false);
       throw error;
     }
