@@ -18,12 +18,6 @@ const SignUp: React.FC = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Firebase無効時はログインページへ
-  if (!isFirebaseEnabled()) {
-    navigate('/login');
-    return null;
-  }
-
   // ログイン済みの場合はダッシュボードへ自動遷移
   useEffect(() => {
     if (isAuthenticated) {
@@ -31,6 +25,13 @@ const SignUp: React.FC = () => {
       navigate('/');
     }
   }, [isAuthenticated, navigate]);
+
+  // Firebase無効時はログインページへ
+  useEffect(() => {
+    if (!isFirebaseEnabled()) {
+      navigate('/login');
+    }
+  }, [navigate]);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
