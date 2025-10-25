@@ -116,16 +116,20 @@ const Login: React.FC = () => {
   };
 
   const handleGoogleLogin = async () => {
+    console.log('[DEBUG] Login: handleGoogleLogin called');
     setError('');
     setLoading(true);
 
     try {
+      console.log('[DEBUG] Login: Calling signInWithGoogle...');
       console.log('Initiating Google login redirect...');
       await signInWithGoogle();
+      console.log('[DEBUG] Login: This line should not be reached');
       // signInWithRedirect()はページをリダイレクトするため、この行には到達しない
       // 認証完了後、ページが再読み込みされてダッシュボードに自動的に移動する
       // loading状態はリダイレクトによってリセットされる
     } catch (err) {
+      console.error('[DEBUG] Login: Google login error:', err);
       console.error('Google login failed:', err);
       setError(err instanceof Error ? err.message : 'ログインに失敗しました');
       setLoading(false);

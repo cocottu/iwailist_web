@@ -41,19 +41,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     // 認証の初期化処理
     const initializeAuth = async () => {
+      console.log('[DEBUG] AuthContext: initializeAuth starting...');
       try {
         // リダイレクト認証の結果を先に処理
+        console.log('[DEBUG] AuthContext: Calling handleRedirectResult...');
         const redirectUser = await authService.handleRedirectResult();
         
         if (redirectUser) {
+          console.log('[DEBUG] AuthContext: Redirect authentication successful!');
           console.log('Redirect authentication successful:', redirectUser);
           // onAuthStateChangedが自動的にユーザー情報を設定する
         } else {
+          console.log('[DEBUG] AuthContext: No redirect result');
           console.log('No redirect result found');
         }
       } catch (error) {
+        console.error('[DEBUG] AuthContext: Redirect error:', error);
         console.error('Redirect result handling error:', error);
+        if (typeof error === 'object' && error !== null) {
+          console.error('[DEBUG] AuthContext: Error details:', {
+            code: (error as any).code,
+            message: (error as any).message,
+          });
+        }
       }
+      console.log('[DEBUG] AuthContext: initializeAuth completed');
     };
 
     // リダイレクト処理を開始し、完了を待ってから監視を開始
@@ -151,13 +163,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const signInWithGoogle = async (): Promise<void> => {
+    console.log('[DEBUG] AuthContext: signInWithGoogle called');
     setLoading(true);
     try {
+      console.log('[DEBUG] AuthContext: Calling authService.signInWithGoogle...');
       await authService.signInWithGoogle();
+      console.log('[DEBUG] AuthContext: This line should not be reached');
       // signInWithRedirectはページをリダイレクトするため、この行には到達しない
       // 認証完了後、ページが再読み込みされ、handleRedirectResultで処理される
     } catch (error) {
       // エラーが発生した場合のみloading状態を解除
+      console.error('[DEBUG] AuthContext: Google sign-in error:', error);
       console.error('Failed to initiate Google sign-in:', error);
       setLoading(false);
       throw error;
