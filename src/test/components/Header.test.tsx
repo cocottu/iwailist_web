@@ -1,7 +1,55 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { Header } from '@/components/layout/Header'
 import { MemoryRouter } from 'react-router-dom'
+
+// date-fnsモック（実際の関数を使用）
+vi.mock('date-fns', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('date-fns')>()
+  return {
+    ...actual,
+    formatDistanceToNow: actual.formatDistanceToNow,
+  }
+})
+
+vi.mock('date-fns/locale', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('date-fns/locale')>()
+  return {
+    ...actual,
+    ja: actual.ja,
+  }
+})
+
+// モック
+vi.mock('@/contexts/AuthContext', () => ({
+  useAuth: () => ({
+    user: { 
+      uid: 'test-uid', 
+      displayName: 'Test User',
+      email: 'test@example.com',
+      photoURL: null
+    },
+    isAuthenticated: true,
+    signOut: vi.fn(),
+  }),
+}))
+
+vi.mock('@/hooks/useSync', () => ({
+  useSync: () => ({
+    isSyncing: false,
+    lastSyncTime: new Date('2024-01-01'),
+    pendingOperations: 0,
+    sync: vi.fn(),
+    retrySync: vi.fn(),
+    clearSyncQueue: vi.fn(),
+    error: null,
+    isOnline: true,
+  }),
+}))
+
+vi.mock('@/hooks/useOnlineStatus', () => ({
+  useOnlineStatus: () => true,
+}))
 
 // テスト用のラッパーコンポーネント
 const TestWrapper = ({ children, initialEntries = ['/'] }: { children: React.ReactNode, initialEntries?: string[] }) => (

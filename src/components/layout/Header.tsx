@@ -1,12 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useSync } from '../../hooks/useSync';
+import { useOnlineStatus } from '../../hooks/useOnlineStatus';
+import { formatDistanceToNow } from 'date-fns';
+import { ja } from 'date-fns/locale';
 
 export const Header: React.FC = () => {
   const location = useLocation();
   const { user, isAuthenticated, signOut } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const { isSyncing, lastSyncTime, pendingOperations, sync } = useSync();
+  const isOnline = useOnlineStatus();
 
   // ドロップダウンメニューの外側をクリックしたら閉じる
   useEffect(() => {
@@ -103,8 +109,70 @@ export const Header: React.FC = () => {
             </Link>
           </nav>
 
-          {/* ユーザーメニュー */}
-          {isAuthenticated && user && (
+          <div className="flex items-center gap-3">
+            {/* 同期ボタン - 認証済みの場合のみ表示 */}
+            {isAuthenticated && user && (
+              <div className="flex items-center gap-2">
+                {/* オンライン/オフライン状態インジケーター */}
+                <div className="flex items-center gap-1.5">
+                  <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-green-500' : 'bg-gray-400'}`} />
+                  <span className="text-xs text-gray-600 hidden sm:inline">
+                    {isOnline ? 'オンライン' : 'オフライン'}
+                  </span>
+                </div>
+                
+                {/* 同期ボタン */}
+                <button
+                  onClick={() => sync()}
+                  disabled={isSyncing || !isOnline}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                    isSyncing
+                      ? 'bg-blue-50 text-blue-600 cursor-wait'
+                      : !isOnline
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : pendingOperations > 0
+                      ? 'bg-yellow-50 text-yellow-700 hover:bg-yellow-100'
+                      : 'bg-green-50 text-green-700 hover:bg-green-100'
+                  }`}
+                  title={
+                    isSyncing
+                      ? '同期中...'
+                      : !isOnline
+                      ? 'オフライン - 同期できません'
+                      : pendingOperations > 0
+                      ? `${pendingOperations}件の変更を同期待ち`
+                      : lastSyncTime
+                      ? `最終同期: ${formatDistanceToNow(lastSyncTime, { locale: ja, addSuffix: true })}`
+                      : '同期準備完了'
+                  }
+                  aria-label="データ同期"
+                >
+                  <svg
+                    className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                    />
+                  </svg>
+                  <span className="hidden md:inline">
+                    {isSyncing
+                      ? '同期中'
+                      : pendingOperations > 0
+                      ? `${pendingOperations}件`
+                      : '同期済み'}
+                  </span>
+                </button>
+              </div>
+            )}
+
+            {/* ユーザーメニュー */}
+            {isAuthenticated && user && (
             <div className="relative ml-6" ref={dropdownRef}>
               <button
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -177,7 +245,8 @@ export const Header: React.FC = () => {
                 </div>
               )}
             </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </header>
