@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Toaster } from 'sonner';
 import { Layout } from '@/components/layout/Layout';
 import { PWAInstallPrompt, UpdatePrompt, SyncIndicator } from '@/components/ui';
 import { initializeDB } from '@/database';
@@ -30,6 +31,20 @@ function App() {
   return (
     <Router>
       <AuthProvider>
+        {/* Sonner Toaster */}
+        <Toaster 
+          position="top-right" 
+          richColors 
+          closeButton 
+          expand={true}
+          toastOptions={{
+            duration: 3000,
+            style: {
+              fontSize: '14px',
+            },
+          }}
+        />
+        
         {/* PWA関連のUI */}
         <PWAInstallPrompt />
         <UpdatePrompt />
