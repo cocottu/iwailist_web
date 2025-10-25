@@ -95,7 +95,7 @@ export default defineConfig({
           }
         ],
         navigateFallback: '/index.html',
-        navigateFallbackDenylist: [/^\/api/],
+        navigateFallbackDenylist: [/^\/api/, /^\/__\/auth\//],
         cleanupOutdatedCaches: true,
         skipWaiting: true,
         clientsClaim: true
