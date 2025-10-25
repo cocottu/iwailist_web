@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@/test/utils/testUtils'
 import { Statistics } from '@/pages/Statistics'
-import { GiftRepository, PersonRepository } from '@/database'
+import { GiftRepository, PersonRepository, ReturnRepository } from '@/database'
 
 // リポジトリのモック
 vi.mock('@/database', () => ({
@@ -11,11 +11,15 @@ vi.mock('@/database', () => ({
   PersonRepository: vi.fn().mockImplementation(() => ({
     getAll: vi.fn(),
   })),
+  ReturnRepository: vi.fn().mockImplementation(() => ({
+    getByGiftId: vi.fn(),
+  })),
 }))
 
 describe('Statistics', () => {
   let mockGiftRepo: any
   let mockPersonRepo: any
+  let mockReturnRepo: any
 
   beforeEach(() => {
     vi.clearAllMocks()
@@ -28,17 +32,33 @@ describe('Statistics', () => {
       getAll: vi.fn(),
     }
     
+    mockReturnRepo = {
+      getByGiftId: vi.fn().mockResolvedValue([]),
+    }
+    
     ;(GiftRepository as any).mockImplementation(() => mockGiftRepo)
     ;(PersonRepository as any).mockImplementation(() => mockPersonRepo)
+    ;(ReturnRepository as any).mockImplementation(() => mockReturnRepo)
   })
 
-  it('ローディング状態が正しく表示される', () => {
-    mockGiftRepo.getAll.mockImplementation(() => new Promise(() => {}))
-    mockPersonRepo.getAll.mockImplementation(() => new Promise(() => {}))
+  it('ローディング状態が正しく表示される', async () => {
+    // 非同期処理を少し遅延させる
+    mockGiftRepo.getAll.mockImplementation(() => 
+      new Promise((resolve) => setTimeout(() => resolve([]), 100))
+    )
+    mockPersonRepo.getAll.mockImplementation(() => 
+      new Promise((resolve) => setTimeout(() => resolve([]), 100))
+    )
 
     render(<Statistics />)
     
+    // ローディングテキストが表示されることを確認
     expect(screen.getByText('データを読み込み中...')).toBeInTheDocument()
+    
+    // ローディングが完了するまで待つ
+    await waitFor(() => {
+      expect(screen.queryByText('データを読み込み中...')).not.toBeInTheDocument()
+    }, { timeout: 3000 })
   })
 
   it('データがない場合のEmptyStateが表示される', async () => {
@@ -118,8 +138,15 @@ describe('Statistics', () => {
       expect(screen.getByText('統計・分析')).toBeInTheDocument()
     })
 
+    // ローディングが完了してデータが表示されるまで待つ
+    await waitFor(() => {
+      expect(screen.queryByText('データを読み込み中...')).not.toBeInTheDocument()
+    })
+
     // 統計カードの確認
-    expect(screen.getByText('2件')).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByText('2件')).toBeInTheDocument()
+    })
     expect(screen.getByText('15,000円')).toBeInTheDocument()
   })
 
@@ -163,8 +190,19 @@ describe('Statistics', () => {
       expect(screen.getByText('統計・分析')).toBeInTheDocument()
     })
 
+    // ローディングが完了するまで待つ
+    await waitFor(() => {
+      expect(screen.queryByText('データを読み込み中...')).not.toBeInTheDocument()
+    })
+
     expect(screen.getByText('対象年:')).toBeInTheDocument()
-    expect(screen.getByText('2025年')).toBeInTheDocument()
+    
+    // selectのoptionに「2025年」が含まれていることを確認
+    await waitFor(() => {
+      const select = screen.getByRole('combobox')
+      expect(select).toBeInTheDocument()
+      expect(screen.getByRole('option', { name: '2025年' })).toBeInTheDocument()
+    })
   })
 
   it('ページタイトルが正しく表示される', async () => {
