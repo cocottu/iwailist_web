@@ -114,18 +114,73 @@ class SyncManager {
     try {
       // 双方向同期を実行
       if (userId) {
-        await this.syncGifts(userId);
-        await this.syncPersons(userId);
+        try {
+          await this.syncGifts(userId);
+        } catch (error) {
+          console.error('Gift sync failed:', error);
+          result.errors.push({
+            operation: {
+              id: crypto.randomUUID(),
+              type: 'update',
+              collection: 'gifts',
+              documentId: 'all',
+              timestamp: new Date(),
+              retryCount: 0,
+              status: 'failed',
+            },
+            error: error instanceof Error ? error : new Error('贈答品の同期に失敗しました'),
+            timestamp: new Date(),
+          });
+          result.failed++;
+        }
+
+        try {
+          await this.syncPersons(userId);
+        } catch (error) {
+          console.error('Person sync failed:', error);
+          result.errors.push({
+            operation: {
+              id: crypto.randomUUID(),
+              type: 'update',
+              collection: 'persons',
+              documentId: 'all',
+              timestamp: new Date(),
+              retryCount: 0,
+              status: 'failed',
+            },
+            error: error instanceof Error ? error : new Error('人物の同期に失敗しました'),
+            timestamp: new Date(),
+          });
+          result.failed++;
+        }
       }
 
       // 同期キューを処理
       await this.processSyncQueue(result);
+
+      // すべてが失敗した場合のみ、同期失敗とする
+      if (result.failed > 0 && result.processed === 0) {
+        result.success = false;
+      }
 
       this.lastSyncTime = new Date();
       localStorage.setItem('lastSyncTime', this.lastSyncTime.toISOString());
     } catch (error) {
       console.error('Sync error:', error);
       result.success = false;
+      result.errors.push({
+        operation: {
+          id: crypto.randomUUID(),
+          type: 'update',
+          collection: 'gifts',
+          documentId: 'unknown',
+          timestamp: new Date(),
+          retryCount: 0,
+          status: 'failed',
+        },
+        error: error instanceof Error ? error : new Error('同期処理中に予期しないエラーが発生しました'),
+        timestamp: new Date(),
+      });
     } finally {
       this.isSyncing = false;
     }
@@ -170,8 +225,128 @@ class SyncManager {
    * 同期操作を実行
    */
   private async executeSyncOperation(operation: SyncOperation): Promise<void> {
-    // 実装は省略（実際の同期ロジック）
-    console.log('Executing sync operation:', operation);
+    const { type, collection, documentId, data } = operation;
+
+    try {
+      switch (collection) {
+        case 'gifts':
+          await this.executeSyncOperationForGifts(type, documentId, data);
+          break;
+        case 'persons':
+          await this.executeSyncOperationForPersons(type, documentId, data);
+          break;
+        case 'returns':
+          // お返しの同期は将来実装予定
+          console.log('Returns sync not yet implemented');
+          break;
+        case 'images':
+          // 画像の同期は将来実装予定
+          console.log('Images sync not yet implemented');
+          break;
+        default:
+          throw new Error(`Unknown collection: ${collection}`);
+      }
+    } catch (error) {
+      console.error(`Failed to execute sync operation for ${collection}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * 贈答品の同期操作を実行
+   */
+  private async executeSyncOperationForGifts(
+    type: 'create' | 'update' | 'delete',
+    documentId: string,
+    data?: unknown
+  ): Promise<void> {
+    // ユーザーIDはdataから取得するか、localStorageから取得
+    const userId = (data as any)?.userId || this.getCurrentUserId();
+    if (!userId) {
+      throw new Error('贈答品の同期にユーザーIDが必要です');
+    }
+
+    switch (type) {
+      case 'create': {
+        if (!data) {
+          throw new Error('作成操作にはデータが必要です');
+        }
+        // idを除外してcreateメソッドに渡す
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { id: _giftId, ...giftData } = data as any;
+        await firestoreGiftRepository.create(userId, giftData as any);
+        break;
+      }
+      case 'update': {
+        if (!data) {
+          throw new Error('更新操作にはデータが必要です');
+        }
+        await firestoreGiftRepository.update(userId, documentId, data as any);
+        break;
+      }
+      case 'delete':
+        await firestoreGiftRepository.delete(userId, documentId);
+        break;
+      default:
+        throw new Error(`不明な操作タイプ: ${type}`);
+    }
+  }
+
+  /**
+   * 人物の同期操作を実行
+   */
+  private async executeSyncOperationForPersons(
+    type: 'create' | 'update' | 'delete',
+    documentId: string,
+    data?: unknown
+  ): Promise<void> {
+    // ユーザーIDはdataから取得するか、localStorageから取得
+    const userId = (data as any)?.userId || this.getCurrentUserId();
+    if (!userId) {
+      throw new Error('人物の同期にユーザーIDが必要です');
+    }
+
+    switch (type) {
+      case 'create': {
+        if (!data) {
+          throw new Error('作成操作にはデータが必要です');
+        }
+        // idを除外してcreateメソッドに渡す
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { id: _personId, ...personData } = data as any;
+        await firestorePersonRepository.create(userId, personData as any);
+        break;
+      }
+      case 'update': {
+        if (!data) {
+          throw new Error('更新操作にはデータが必要です');
+        }
+        await firestorePersonRepository.update(userId, documentId, data as any);
+        break;
+      }
+      case 'delete':
+        await firestorePersonRepository.delete(userId, documentId);
+        break;
+      default:
+        throw new Error(`不明な操作タイプ: ${type}`);
+    }
+  }
+
+  /**
+   * 現在のユーザーIDを取得
+   */
+  private getCurrentUserId(): string | null {
+    // AuthContextから取得するのが理想だが、ここではlocalStorageから取得
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        return user.uid;
+      } catch (error) {
+        console.error('Failed to parse user from localStorage:', error);
+      }
+    }
+    return null;
   }
 
   /**
@@ -204,7 +379,9 @@ class SyncManager {
       for (const localGift of localGifts) {
         const remoteGift = remoteGifts.find((g: any) => g.id === localGift.id);
         if (!remoteGift) {
-          await firestoreGiftRepository.create(userId, localGift);
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { id, ...giftWithoutId } = localGift;
+          await firestoreGiftRepository.create(userId, giftWithoutId as any);
         }
       }
     } catch (error) {
@@ -243,7 +420,9 @@ class SyncManager {
       for (const localPerson of localPersons) {
         const remotePerson = remotePersons.find((p: any) => p.id === localPerson.id);
         if (!remotePerson) {
-          await firestorePersonRepository.create(userId, localPerson);
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { id, ...personWithoutId } = localPerson;
+          await firestorePersonRepository.create(userId, personWithoutId as any);
         }
       }
     } catch (error) {
