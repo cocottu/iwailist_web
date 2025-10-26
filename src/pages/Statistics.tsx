@@ -5,6 +5,8 @@ import { Gift, Person, GiftCategory, Return } from '@/types';
 import { format, startOfMonth, endOfMonth, eachMonthOfInterval, startOfYear, endOfYear, differenceInDays } from 'date-fns';
 import { ja } from 'date-fns/locale/ja';
 import { useAuth } from '@/contexts/AuthContext';
+import { syncManager } from '@/services/syncManager';
+import { isFirebaseEnabled } from '@/lib/firebase';
 
 export const Statistics: React.FC = () => {
   const { user } = useAuth();
@@ -19,6 +21,18 @@ export const Statistics: React.FC = () => {
       try {
         setLoading(true);
         const userId = user?.uid || 'demo-user';
+        
+        // Firebaseが有効な場合、最初に同期を実行
+        if (isFirebaseEnabled() && user?.uid && navigator.onLine) {
+          console.log('[Statistics] Syncing data before load...');
+          try {
+            await syncManager.triggerSync(user.uid);
+            console.log('[Statistics] Sync completed');
+          } catch (error) {
+            console.error('[Statistics] Sync failed:', error);
+            // 同期に失敗してもローカルデータは表示する
+          }
+        }
         
         const giftRepo = new GiftRepository();
         const personRepo = new PersonRepository();

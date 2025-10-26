@@ -7,6 +7,8 @@ import { format } from 'date-fns';
 import { ja } from 'date-fns/locale/ja';
 import { ReminderCard } from '@/components/reminders/ReminderCard';
 import { useAuth } from '@/contexts/AuthContext';
+import { syncManager } from '@/services/syncManager';
+import { isFirebaseEnabled } from '@/lib/firebase';
 
 export const Dashboard: React.FC = () => {
   const { user } = useAuth();
@@ -27,8 +29,20 @@ export const Dashboard: React.FC = () => {
     try {
       setLoading(true);
       
-      // ダミーユーザーID（Phase 1では固定）
+      // ユーザーID取得
       const userId = user?.uid || 'demo-user';
+      
+      // Firebaseが有効な場合、最初に同期を実行
+      if (isFirebaseEnabled() && user?.uid && navigator.onLine) {
+        console.log('[Dashboard] Syncing data before load...');
+        try {
+          await syncManager.triggerSync(user.uid);
+          console.log('[Dashboard] Sync completed');
+        } catch (error) {
+          console.error('[Dashboard] Sync failed:', error);
+          // 同期に失敗してもローカルデータは表示する
+        }
+      }
       
       const giftRepo = new GiftRepository();
       const personRepo = new PersonRepository();

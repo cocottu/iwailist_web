@@ -6,6 +6,8 @@ import { Gift, Person, GiftFilters, GiftCategory, ReturnStatus } from '@/types';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale/ja';
 import { useAuth } from '@/contexts/AuthContext';
+import { syncManager } from '@/services/syncManager';
+import { isFirebaseEnabled } from '@/lib/firebase';
 
 export const GiftList: React.FC = () => {
   const { user } = useAuth();
@@ -37,6 +39,18 @@ export const GiftList: React.FC = () => {
       try {
         setLoading(true);
         const userId = user?.uid || 'demo-user';
+        
+        // Firebaseが有効な場合、最初に同期を実行
+        if (isFirebaseEnabled() && user?.uid && navigator.onLine) {
+          console.log('[GiftList] Syncing data before load...');
+          try {
+            await syncManager.triggerSync(user.uid);
+            console.log('[GiftList] Sync completed');
+          } catch (error) {
+            console.error('[GiftList] Sync failed:', error);
+            // 同期に失敗してもローカルデータは表示する
+          }
+        }
         
         const personRepo = new PersonRepository();
         const personsData = await personRepo.getAll(userId);

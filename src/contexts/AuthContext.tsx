@@ -6,6 +6,7 @@ import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { auth, isFirebaseEnabled } from '../lib/firebase';
 import { User, convertFirebaseUser } from '../types/firebase';
 import { authService } from '../services/authService';
+import { syncManager } from '../services/syncManager';
 
 interface AuthContextType {
   user: User | null;
@@ -69,8 +70,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               localStorage.setItem('authToken', token);
 
               // ユーザー情報を設定
-              setUser(convertFirebaseUser(firebaseUser));
+              const userData = convertFirebaseUser(firebaseUser);
+              setUser(userData);
               console.log('User authenticated:', firebaseUser.email);
+              
+              // 認証直後にFirestoreからデータを同期
+              if (isFirebaseEnabled() && navigator.onLine) {
+                console.log('[AuthContext] Triggering initial sync for user:', userData.uid);
+                syncManager.triggerSync(userData.uid).catch((error) => {
+                  console.error('[AuthContext] Initial sync failed:', error);
+                });
+              }
             } catch (error) {
               console.error('Error getting user token:', error);
               setUser(null);
