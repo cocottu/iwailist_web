@@ -353,6 +353,11 @@ class SyncManager {
    * 贈答品の同期
    */
   private async syncGifts(userId: string): Promise<void> {
+    if (!isFirebaseEnabled()) {
+      console.log('Firebase is not enabled, skipping gift sync');
+      return;
+    }
+
     try {
       // Firestoreから最新データ取得
       const remoteGifts = await firestoreGiftRepository.getAll(userId);
@@ -376,12 +381,28 @@ class SyncManager {
       }
 
       // ローカルにあってリモートにない → アップロード
+      // 既にFirestoreに同じIDで存在する可能性があるので、まず確認
       for (const localGift of localGifts) {
         const remoteGift = remoteGifts.find((g: any) => g.id === localGift.id);
         if (!remoteGift) {
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const { id, ...giftWithoutId } = localGift;
-          await firestoreGiftRepository.create(userId, giftWithoutId as any);
+          try {
+            // 既存のドキュメントがあるかチェック
+            const existing = await firestoreGiftRepository.get(userId, localGift.id);
+            if (!existing) {
+              // 存在しない場合のみ作成（IDを保持するため直接createDocumentを使用）
+              const { id, userId: _userId, ...giftData } = localGift;
+              await firestoreGiftRepository.create(userId, { ...giftData, userId } as any);
+            } else if (localGift.updatedAt > existing.updatedAt) {
+              // 既に存在するがローカルの方が新しい場合は更新
+              await firestoreGiftRepository.update(userId, localGift.id, localGift);
+            }
+          } catch (error) {
+            console.error('Failed to sync local gift to Firestore:', error);
+            // 個別のエラーは記録するが、全体の同期は続行
+          }
+        } else if (localGift.updatedAt > remoteGift.updatedAt) {
+          // ローカルの方が新しい場合は更新
+          await firestoreGiftRepository.update(userId, localGift.id, localGift);
         }
       }
     } catch (error) {
@@ -394,6 +415,11 @@ class SyncManager {
    * 人物の同期
    */
   private async syncPersons(userId: string): Promise<void> {
+    if (!isFirebaseEnabled()) {
+      console.log('Firebase is not enabled, skipping person sync');
+      return;
+    }
+
     try {
       // Firestoreから最新データ取得
       const remotePersons = await firestorePersonRepository.getAll(userId);
@@ -417,12 +443,28 @@ class SyncManager {
       }
 
       // ローカルにあってリモートにない → アップロード
+      // 既にFirestoreに同じIDで存在する可能性があるので、まず確認
       for (const localPerson of localPersons) {
         const remotePerson = remotePersons.find((p: any) => p.id === localPerson.id);
         if (!remotePerson) {
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const { id, ...personWithoutId } = localPerson;
-          await firestorePersonRepository.create(userId, personWithoutId as any);
+          try {
+            // 既存のドキュメントがあるかチェック
+            const existing = await firestorePersonRepository.get(userId, localPerson.id);
+            if (!existing) {
+              // 存在しない場合のみ作成
+              const { id, userId: _userId, ...personData } = localPerson;
+              await firestorePersonRepository.create(userId, { ...personData, userId } as any);
+            } else if (localPerson.updatedAt > existing.updatedAt) {
+              // 既に存在するがローカルの方が新しい場合は更新
+              await firestorePersonRepository.update(userId, localPerson.id, localPerson);
+            }
+          } catch (error) {
+            console.error('Failed to sync local person to Firestore:', error);
+            // 個別のエラーは記録するが、全体の同期は続行
+          }
+        } else if (localPerson.updatedAt > remotePerson.updatedAt) {
+          // ローカルの方が新しい場合は更新
+          await firestorePersonRepository.update(userId, localPerson.id, localPerson);
         }
       }
     } catch (error) {
