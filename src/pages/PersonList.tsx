@@ -36,7 +36,7 @@ export const PersonList: React.FC = () => {
     } catch (error) {
       console.error('Failed to load persons:', error);
     }
-  }, [searchText, relationshipFilter]);
+  }, [searchText, relationshipFilter, user?.uid]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -54,7 +54,7 @@ export const PersonList: React.FC = () => {
       }
     };
     loadData();
-  }, []);
+  }, [user?.uid]);
 
   useEffect(() => {
     loadPersons();

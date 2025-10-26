@@ -44,7 +44,7 @@ export const Statistics: React.FC = () => {
       }
     };
     loadData();
-  }, []);
+  }, [user?.uid]);
 
   const yearGifts = useMemo(() => {
     const yearStart = startOfYear(new Date(selectedYear, 0, 1));

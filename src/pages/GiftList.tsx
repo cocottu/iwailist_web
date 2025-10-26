@@ -30,7 +30,7 @@ export const GiftList: React.FC = () => {
     } catch (error) {
       console.error('Failed to load gifts:', error);
     }
-  }, [filters, searchText]);
+  }, [filters, searchText, user?.uid]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -48,7 +48,7 @@ export const GiftList: React.FC = () => {
       }
     };
     loadData();
-  }, []);
+  }, [user?.uid]);
 
   useEffect(() => {
     loadGifts();

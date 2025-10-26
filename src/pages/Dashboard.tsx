@@ -20,7 +20,8 @@ export const Dashboard: React.FC = () => {
 
   useEffect(() => {
     loadDashboardData();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.uid]);
 
   const loadDashboardData = async () => {
     try {

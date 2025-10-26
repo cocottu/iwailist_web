@@ -4,6 +4,15 @@ import { GiftList } from '@/pages/GiftList'
 import { mockGifts, mockPersons } from '@/test/mocks/mockData'
 import { GiftRepository, PersonRepository } from '@/database'
 
+// AuthContextのモック
+vi.mock('@/contexts/AuthContext', () => ({
+  useAuth: () => ({
+    user: { uid: 'test-user-id', email: 'test@example.com' },
+    loading: false,
+    isAuthenticated: true,
+  }),
+}))
+
 // リポジトリのモック
 vi.mock('@/database', () => ({
   GiftRepository: vi.fn().mockImplementation(() => ({
