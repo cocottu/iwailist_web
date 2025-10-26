@@ -53,11 +53,11 @@ export const PersonDetail: React.FC = () => {
       
       // 関連する贈答品を削除
       for (const gift of gifts) {
-        await giftRepo.delete(gift.id);
+        await giftRepo.delete(gift.id, gift.userId);
       }
       
       // 人物を削除
-      await personRepo.delete(person.id);
+      await personRepo.delete(person.id, person.userId);
       
       navigate('/persons');
     } catch (error) {

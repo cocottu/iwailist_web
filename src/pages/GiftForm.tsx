@@ -3,10 +3,12 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Card, Button, Input, Select, CameraCapture } from '@/components/ui';
 import { GiftRepository, PersonRepository, ImageRepository } from '@/database';
 import { Gift, Person, GiftFormData, GiftCategory, ReturnStatus, Image } from '@/types';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const GiftForm: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const isEdit = !!id;
   
   const [formData, setFormData] = useState<GiftFormData>({
@@ -39,7 +41,7 @@ export const GiftForm: React.FC = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      const userId = 'demo-user';
+      const userId = user?.uid || 'demo-user';
       
       const personRepo = new PersonRepository();
       const personsData = await personRepo.getAll(userId);
@@ -126,7 +128,7 @@ export const GiftForm: React.FC = () => {
     
     try {
       setSaving(true);
-      const userId = 'demo-user';
+      const userId = user?.uid || 'demo-user';
       const giftRepo = new GiftRepository();
       const imageRepo = new ImageRepository();
       

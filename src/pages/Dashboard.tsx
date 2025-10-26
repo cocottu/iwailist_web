@@ -6,8 +6,10 @@ import { Gift, Statistics, GiftCategory, Person, Reminder } from '@/types';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale/ja';
 import { ReminderCard } from '@/components/reminders/ReminderCard';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const Dashboard: React.FC = () => {
+  const { user } = useAuth();
   const [statistics, setStatistics] = useState<Statistics | null>(null);
   const [recentGifts, setRecentGifts] = useState<Gift[]>([]);
   const [persons, setPersons] = useState<Person[]>([]);
@@ -25,7 +27,7 @@ export const Dashboard: React.FC = () => {
       setLoading(true);
       
       // ダミーユーザーID（Phase 1では固定）
-      const userId = 'demo-user';
+      const userId = user?.uid || 'demo-user';
       
       const giftRepo = new GiftRepository();
       const personRepo = new PersonRepository();

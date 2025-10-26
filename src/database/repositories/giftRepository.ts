@@ -1,10 +1,22 @@
 import { getDB } from '../schema';
 import { Gift, GiftFilters } from '@/types';
+import { firestoreGiftRepository } from '@/repositories/firebase/giftRepository';
+import { isFirebaseEnabled } from '@/lib/firebase';
 
 export class GiftRepository {
   async create(gift: Gift): Promise<void> {
     const db = await getDB();
     await db.add('gifts', gift);
+    
+    // Firestoreに同期
+    if (isFirebaseEnabled() && gift.userId) {
+      try {
+        await firestoreGiftRepository.create(gift.userId, gift);
+      } catch (error) {
+        console.error('Failed to sync gift to Firestore:', error);
+        // IndexedDBには保存されているので、エラーは無視（後で同期マネージャーが再試行）
+      }
+    }
   }
   
   async get(id: string): Promise<Gift | undefined> {
@@ -20,11 +32,31 @@ export class GiftRepository {
   async update(gift: Gift): Promise<void> {
     const db = await getDB();
     await db.put('gifts', gift);
+    
+    // Firestoreに同期
+    if (isFirebaseEnabled() && gift.userId) {
+      try {
+        await firestoreGiftRepository.update(gift.userId, gift.id, gift);
+      } catch (error) {
+        console.error('Failed to sync gift update to Firestore:', error);
+        // IndexedDBには保存されているので、エラーは無視（後で同期マネージャーが再試行）
+      }
+    }
   }
   
-  async delete(id: string): Promise<void> {
+  async delete(id: string, userId?: string): Promise<void> {
     const db = await getDB();
     await db.delete('gifts', id);
+    
+    // Firestoreに同期
+    if (isFirebaseEnabled() && userId) {
+      try {
+        await firestoreGiftRepository.delete(userId, id);
+      } catch (error) {
+        console.error('Failed to sync gift deletion to Firestore:', error);
+        // IndexedDBからは削除されているので、エラーは無視
+      }
+    }
   }
   
   async query(userId: string, filters: GiftFilters = {}): Promise<Gift[]> {

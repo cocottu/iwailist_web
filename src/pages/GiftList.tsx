@@ -5,8 +5,10 @@ import { GiftRepository, PersonRepository } from '@/database';
 import { Gift, Person, GiftFilters, GiftCategory, ReturnStatus } from '@/types';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale/ja';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const GiftList: React.FC = () => {
+  const { user } = useAuth();
   const [gifts, setGifts] = useState<Gift[]>([]);
   const [persons, setPersons] = useState<Person[]>([]);
   const [loading, setLoading] = useState(true);
@@ -15,7 +17,7 @@ export const GiftList: React.FC = () => {
 
   const loadGifts = useCallback(async () => {
     try {
-      const userId = 'demo-user';
+      const userId = user?.uid || 'demo-user';
       const giftRepo = new GiftRepository();
       
       const giftFilters: GiftFilters = {
@@ -34,7 +36,7 @@ export const GiftList: React.FC = () => {
     const loadData = async () => {
       try {
         setLoading(true);
-        const userId = 'demo-user';
+        const userId = user?.uid || 'demo-user';
         
         const personRepo = new PersonRepository();
         const personsData = await personRepo.getAll(userId);

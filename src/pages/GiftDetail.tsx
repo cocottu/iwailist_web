@@ -66,7 +66,7 @@ export const GiftDetail: React.FC = () => {
       
       // 画像も削除
       await imageRepo.deleteByEntityId(gift.id);
-      await giftRepo.delete(gift.id);
+      await giftRepo.delete(gift.id, gift.userId);
       navigate('/gifts');
     } catch (error) {
       console.error('Failed to delete gift:', error);

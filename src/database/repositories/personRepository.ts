@@ -1,10 +1,22 @@
 import { getDB } from '../schema';
 import { Person } from '@/types';
+import { firestorePersonRepository } from '@/repositories/firebase/personRepository';
+import { isFirebaseEnabled } from '@/lib/firebase';
 
 export class PersonRepository {
   async create(person: Person): Promise<void> {
     const db = await getDB();
     await db.add('persons', person);
+    
+    // Firestoreに同期
+    if (isFirebaseEnabled() && person.userId) {
+      try {
+        await firestorePersonRepository.create(person.userId, person);
+      } catch (error) {
+        console.error('Failed to sync person to Firestore:', error);
+        // IndexedDBには保存されているので、エラーは無視（後で同期マネージャーが再試行）
+      }
+    }
   }
   
   async get(id: string): Promise<Person | undefined> {
@@ -20,11 +32,31 @@ export class PersonRepository {
   async update(person: Person): Promise<void> {
     const db = await getDB();
     await db.put('persons', person);
+    
+    // Firestoreに同期
+    if (isFirebaseEnabled() && person.userId) {
+      try {
+        await firestorePersonRepository.update(person.userId, person.id, person);
+      } catch (error) {
+        console.error('Failed to sync person update to Firestore:', error);
+        // IndexedDBには保存されているので、エラーは無視（後で同期マネージャーが再試行）
+      }
+    }
   }
   
-  async delete(id: string): Promise<void> {
+  async delete(id: string, userId?: string): Promise<void> {
     const db = await getDB();
     await db.delete('persons', id);
+    
+    // Firestoreに同期
+    if (isFirebaseEnabled() && userId) {
+      try {
+        await firestorePersonRepository.delete(userId, id);
+      } catch (error) {
+        console.error('Failed to sync person deletion to Firestore:', error);
+        // IndexedDBからは削除されているので、エラーは無視
+      }
+    }
   }
   
   async search(userId: string, searchText: string): Promise<Person[]> {

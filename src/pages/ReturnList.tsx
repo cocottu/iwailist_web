@@ -5,6 +5,7 @@ import { ReturnRepository, GiftRepository, ImageRepository } from '@/database';
 import { Return, Gift, Image as ImageType } from '@/types';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale/ja';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ReturnWithGift extends Return {
   gift?: Gift;
@@ -12,6 +13,7 @@ interface ReturnWithGift extends Return {
 }
 
 export const ReturnList: React.FC = () => {
+  const { user } = useAuth();
   const [returns, setReturns] = useState<ReturnWithGift[]>([]);
   const [filteredReturns, setFilteredReturns] = useState<ReturnWithGift[]>([]);
   const [loading, setLoading] = useState(true);
@@ -29,7 +31,7 @@ export const ReturnList: React.FC = () => {
   const loadReturns = async () => {
     try {
       setLoading(true);
-      const userId = 'demo-user';
+      const userId = user?.uid || 'demo-user';
       
       const giftRepo = new GiftRepository();
       const returnRepo = new ReturnRepository();
