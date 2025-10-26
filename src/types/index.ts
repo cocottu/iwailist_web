@@ -72,6 +72,7 @@ export interface Image {
   entityId: string;
   entityType: 'gift' | 'return';
   imageUrl: string;
+  imageData?: Blob; // IndexedDBに保存されるBlobデータ（オプショナル）
   order: number;
   createdAt: Date;
 }

@@ -31,6 +31,7 @@
     "deploy:prod": "npm run build:prod && firebase use production && firebase deploy"
   },
   "dependencies": {
+    "@heroicons/react": "^2.2.0",
     "chart.js": "^4.5.1",
     "date-fns": "^4.1.0",
     "firebase": "^12.4.0",
