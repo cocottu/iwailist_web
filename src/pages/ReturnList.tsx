@@ -6,6 +6,8 @@ import { Return, Gift, Image as ImageType } from '@/types';
 import { format } from 'date-fns';
 import { ja } from 'date-fns/locale/ja';
 import { useAuth } from '@/contexts/AuthContext';
+import { syncManager } from '@/services/syncManager';
+import { isFirebaseEnabled } from '@/lib/firebase';
 
 interface ReturnWithGift extends Return {
   gift?: Gift;
@@ -32,6 +34,18 @@ export const ReturnList: React.FC = () => {
     try {
       setLoading(true);
       const userId = user?.uid || 'demo-user';
+      
+      // Firebaseが有効な場合、最初に同期を実行
+      if (isFirebaseEnabled() && user?.uid && navigator.onLine) {
+        console.log('[ReturnList] Syncing data before load...');
+        try {
+          await syncManager.triggerSync(user.uid);
+          console.log('[ReturnList] Sync completed');
+        } catch (error) {
+          console.error('[ReturnList] Sync failed:', error);
+          // 同期に失敗してもローカルデータは表示する
+        }
+      }
       
       const giftRepo = new GiftRepository();
       const returnRepo = new ReturnRepository();

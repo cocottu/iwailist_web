@@ -4,6 +4,8 @@ import { Card, Button, Input, Select, Loading, EmptyState } from '@/components/u
 import { PersonRepository, GiftRepository } from '@/database';
 import { Person, Gift, Relationship } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
+import { syncManager } from '@/services/syncManager';
+import { isFirebaseEnabled } from '@/lib/firebase';
 // import { format } from 'date-fns';
 // import { ja } from 'date-fns/locale';
 
@@ -43,6 +45,18 @@ export const PersonList: React.FC = () => {
       try {
         setLoading(true);
         const userId = user?.uid || 'demo-user';
+        
+        // Firebaseが有効な場合、最初に同期を実行
+        if (isFirebaseEnabled() && user?.uid && navigator.onLine) {
+          console.log('[PersonList] Syncing data before load...');
+          try {
+            await syncManager.triggerSync(user.uid);
+            console.log('[PersonList] Sync completed');
+          } catch (error) {
+            console.error('[PersonList] Sync failed:', error);
+            // 同期に失敗してもローカルデータは表示する
+          }
+        }
         
         const giftRepo = new GiftRepository();
         const giftsData = await giftRepo.getAll(userId);

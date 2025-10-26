@@ -4,6 +4,8 @@ import { ReminderRepository, GiftRepository } from '@/database';
 import { Reminder, Gift } from '@/types';
 import { ReminderCard } from '@/components/reminders/ReminderCard';
 import { useAuth } from '@/contexts/AuthContext';
+import { syncManager } from '@/services/syncManager';
+import { isFirebaseEnabled } from '@/lib/firebase';
 
 interface ReminderWithGift extends Reminder {
   gift?: Gift;
@@ -23,6 +25,18 @@ export const ReminderList: React.FC = () => {
     try {
       setLoading(true);
       const userId = user?.uid || 'demo-user';
+      
+      // Firebaseが有効な場合、最初に同期を実行
+      if (isFirebaseEnabled() && user?.uid && navigator.onLine) {
+        console.log('[ReminderList] Syncing data before load...');
+        try {
+          await syncManager.triggerSync(user.uid);
+          console.log('[ReminderList] Sync completed');
+        } catch (error) {
+          console.error('[ReminderList] Sync failed:', error);
+          // 同期に失敗してもローカルデータは表示する
+        }
+      }
       
       const reminderRepo = new ReminderRepository();
       const giftRepo = new GiftRepository();
