@@ -14,7 +14,7 @@ import {
 import { BellIcon, BellSlashIcon, CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/outline';
 
 export default function NotificationSettings() {
-  const [permission, setPermission] = useState<NotificationPermission>('default');
+  const [permission, setPermission] = useState<'default' | 'granted' | 'denied'>('default');
   const [isSupported, setIsSupported] = useState(false);
   const [settings, setSettings] = useState<Settings>(getNotificationSettings());
   const [isRequesting, setIsRequesting] = useState(false);

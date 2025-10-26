@@ -14,7 +14,7 @@ export interface NotificationOptions {
 }
 
 export interface NotificationPermissionResult {
-  permission: NotificationPermission;
+  permission: 'default' | 'granted' | 'denied';
   isSupported: boolean;
 }
 
@@ -30,7 +30,7 @@ export function isNotificationSupported(): boolean {
  */
 export function getNotificationPermission(): NotificationPermissionResult {
   const isSupported = isNotificationSupported();
-  const permission = isSupported ? Notification.permission : 'denied';
+  const permission = isSupported ? (window.Notification?.permission || 'denied') : 'denied';
   
   return {
     permission,
@@ -41,14 +41,14 @@ export function getNotificationPermission(): NotificationPermissionResult {
 /**
  * 通知の許可をリクエスト
  */
-export async function requestNotificationPermission(): Promise<NotificationPermission> {
+export async function requestNotificationPermission(): Promise<'default' | 'granted' | 'denied'> {
   if (!isNotificationSupported()) {
     console.warn('Notifications are not supported in this browser');
     return 'denied';
   }
 
   try {
-    const permission = await Notification.requestPermission();
+    const permission = await window.Notification.requestPermission();
     console.log('Notification permission:', permission);
     return permission;
   } catch (error) {
@@ -84,7 +84,7 @@ export async function showNotification(options: NotificationOptions): Promise<vo
       tag: options.tag || `notification-${Date.now()}`,
       data: options.data,
       requireInteraction: options.requireInteraction || false,
-      // @ts-ignore - vibrate is not in TypeScript type definition but is a valid Web API
+      // @ts-expect-error - vibrate is not in TypeScript type definition but is a valid Web API
       vibrate: [200, 100, 200], // バイブレーションパターン
       actions: [
         {
@@ -101,8 +101,8 @@ export async function showNotification(options: NotificationOptions): Promise<vo
     console.error('Failed to show notification:', error);
     
     // フォールバック: 通常の通知
-    if (Notification.permission === 'granted') {
-      new Notification(options.title, {
+    if (window.Notification?.permission === 'granted') {
+      new window.Notification(options.title, {
         body: options.body,
         icon: options.icon || '/pwa-192x192.png',
         tag: options.tag,
