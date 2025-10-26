@@ -32,7 +32,8 @@ export const useSync = (): UseSyncReturn => {
   // 手動同期
   const sync = useCallback(async () => {
     if (!user) {
-      setError(new Error('ユーザーがログインしていません'));
+      // Firebase無効時はエラーを表示しない
+      console.log('User not logged in, skipping sync');
       return;
     }
 

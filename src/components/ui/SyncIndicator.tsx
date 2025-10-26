@@ -4,13 +4,21 @@
  */
 import { useEffect } from 'react';
 import { useSync } from '../../hooks/useSync';
+import { useAuth } from '../../contexts/AuthContext';
+import { isFirebaseEnabled } from '../../lib/firebase';
 import { toast } from 'sonner';
 
 const SyncIndicator = () => {
   const { isSyncing, lastSyncTime, pendingOperations, isOnline, sync, error } = useSync();
+  const { user } = useAuth();
 
   // 同期状態の通知
   useEffect(() => {
+    // Firebase無効またはユーザー未ログインの場合は表示しない
+    if (!isFirebaseEnabled() || !user) {
+      return;
+    }
+
     // Firebase無効の場合は表示しない
     if (!isOnline && pendingOperations === 0) {
       return;
@@ -118,7 +126,7 @@ const SyncIndicator = () => {
     }
 
     // 「同期準備完了」の通知は削除 - ヘッダーの同期ボタンで状態を表示
-  }, [isSyncing, lastSyncTime, pendingOperations, isOnline, error, sync]);
+  }, [isSyncing, lastSyncTime, pendingOperations, isOnline, error, sync, user]);
 
   return null;
 };
