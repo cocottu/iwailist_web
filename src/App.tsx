@@ -16,6 +16,8 @@ import { PersonForm } from '@/pages/PersonForm';
 import { ReturnList } from '@/pages/ReturnList';
 import { ReminderList } from '@/pages/ReminderList';
 import { Statistics } from '@/pages/Statistics';
+import DataManagement from '@/pages/DataManagement';
+import Settings from '@/pages/Settings';
 import Login from '@/pages/Login';
 import SignUp from '@/pages/SignUp';
 import ForgotPassword from '@/pages/ForgotPassword';
@@ -138,6 +140,20 @@ function App() {
             <ProtectedRoute>
               <Layout>
                 <Statistics />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          <Route path="/data-management" element={
+            <ProtectedRoute>
+              <Layout>
+                <DataManagement />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          <Route path="/settings" element={
+            <ProtectedRoute>
+              <Layout>
+                <Settings />
               </Layout>
             </ProtectedRoute>
           } />
