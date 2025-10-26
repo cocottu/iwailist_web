@@ -3,10 +3,12 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Card, Button, Input, Select } from '@/components/ui';
 import { PersonRepository } from '@/database';
 import { Person, PersonFormData, Relationship } from '@/types';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const PersonForm: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const isEdit = !!id;
   
   const [formData, setFormData] = useState<PersonFormData>({
@@ -102,7 +104,7 @@ export const PersonForm: React.FC = () => {
     
     try {
       setSaving(true);
-      const userId = 'demo-user';
+      const userId = user?.uid || 'demo-user';
       const personRepo = new PersonRepository();
       
       const personData: Person = {

@@ -3,6 +3,15 @@ import { render, screen, waitFor } from '@/test/utils/testUtils'
 import { Statistics } from '@/pages/Statistics'
 import { GiftRepository, PersonRepository, ReturnRepository } from '@/database'
 
+// AuthContextのモック
+vi.mock('@/contexts/AuthContext', () => ({
+  useAuth: () => ({
+    user: { uid: 'test-user-id', email: 'test@example.com' },
+    loading: false,
+    isAuthenticated: true,
+  }),
+}))
+
 // リポジトリのモック
 vi.mock('@/database', () => ({
   GiftRepository: vi.fn().mockImplementation(() => ({

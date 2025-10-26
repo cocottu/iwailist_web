@@ -3,10 +3,12 @@ import { Link } from 'react-router-dom';
 import { Card, Button, Input, Select, Loading, EmptyState } from '@/components/ui';
 import { PersonRepository, GiftRepository } from '@/database';
 import { Person, Gift, Relationship } from '@/types';
+import { useAuth } from '@/contexts/AuthContext';
 // import { format } from 'date-fns';
 // import { ja } from 'date-fns/locale';
 
 export const PersonList: React.FC = () => {
+  const { user } = useAuth();
   const [persons, setPersons] = useState<Person[]>([]);
   const [gifts, setGifts] = useState<Gift[]>([]);
   const [loading, setLoading] = useState(true);
@@ -15,7 +17,7 @@ export const PersonList: React.FC = () => {
 
   const loadPersons = useCallback(async () => {
     try {
-      const userId = 'demo-user';
+      const userId = user?.uid || 'demo-user';
       const personRepo = new PersonRepository();
       
       let personsData: Person[];
@@ -34,13 +36,13 @@ export const PersonList: React.FC = () => {
     } catch (error) {
       console.error('Failed to load persons:', error);
     }
-  }, [searchText, relationshipFilter]);
+  }, [searchText, relationshipFilter, user?.uid]);
 
   useEffect(() => {
     const loadData = async () => {
       try {
         setLoading(true);
-        const userId = 'demo-user';
+        const userId = user?.uid || 'demo-user';
         
         const giftRepo = new GiftRepository();
         const giftsData = await giftRepo.getAll(userId);
@@ -52,7 +54,7 @@ export const PersonList: React.FC = () => {
       }
     };
     loadData();
-  }, []);
+  }, [user?.uid]);
 
   useEffect(() => {
     loadPersons();

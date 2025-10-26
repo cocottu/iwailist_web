@@ -4,8 +4,10 @@ import { GiftRepository, PersonRepository, ReturnRepository } from '@/database';
 import { Gift, Person, GiftCategory, Return } from '@/types';
 import { format, startOfMonth, endOfMonth, eachMonthOfInterval, startOfYear, endOfYear, differenceInDays } from 'date-fns';
 import { ja } from 'date-fns/locale/ja';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const Statistics: React.FC = () => {
+  const { user } = useAuth();
   const [gifts, setGifts] = useState<Gift[]>([]);
   const [persons, setPersons] = useState<Person[]>([]);
   const [returns, setReturns] = useState<Return[]>([]);
@@ -16,7 +18,7 @@ export const Statistics: React.FC = () => {
     const loadData = async () => {
       try {
         setLoading(true);
-        const userId = 'demo-user';
+        const userId = user?.uid || 'demo-user';
         
         const giftRepo = new GiftRepository();
         const personRepo = new PersonRepository();
@@ -42,7 +44,7 @@ export const Statistics: React.FC = () => {
       }
     };
     loadData();
-  }, []);
+  }, [user?.uid]);
 
   const yearGifts = useMemo(() => {
     const yearStart = startOfYear(new Date(selectedYear, 0, 1));

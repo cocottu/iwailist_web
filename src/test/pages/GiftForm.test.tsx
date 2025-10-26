@@ -3,6 +3,15 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { GiftForm } from '@/pages/GiftForm';
 
+// AuthContextのモック
+vi.mock('@/contexts/AuthContext', () => ({
+  useAuth: () => ({
+    user: { uid: 'test-user-id', email: 'test@example.com' },
+    loading: false,
+    isAuthenticated: true,
+  }),
+}));
+
 // データベースをモック
 vi.mock('@/database', () => ({
   GiftRepository: vi.fn().mockImplementation(() => ({

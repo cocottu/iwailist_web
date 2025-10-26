@@ -3,12 +3,14 @@ import { Card, Loading, EmptyState, Button } from '@/components/ui';
 import { ReminderRepository, GiftRepository } from '@/database';
 import { Reminder, Gift } from '@/types';
 import { ReminderCard } from '@/components/reminders/ReminderCard';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ReminderWithGift extends Reminder {
   gift?: Gift;
 }
 
 export const ReminderList: React.FC = () => {
+  const { user } = useAuth();
   const [reminders, setReminders] = useState<ReminderWithGift[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'upcoming' | 'overdue' | 'completed'>('upcoming');
@@ -20,7 +22,7 @@ export const ReminderList: React.FC = () => {
   const loadReminders = async () => {
     try {
       setLoading(true);
-      const userId = 'demo-user';
+      const userId = user?.uid || 'demo-user';
       
       const reminderRepo = new ReminderRepository();
       const giftRepo = new GiftRepository();

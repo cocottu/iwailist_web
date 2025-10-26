@@ -4,6 +4,15 @@ import { PersonList } from '@/pages/PersonList'
 import { mockPersons } from '@/test/mocks/mockData'
 import { PersonRepository, GiftRepository } from '@/database'
 
+// AuthContextのモック
+vi.mock('@/contexts/AuthContext', () => ({
+  useAuth: () => ({
+    user: { uid: 'test-user-id', email: 'test@example.com' },
+    loading: false,
+    isAuthenticated: true,
+  }),
+}))
+
 // リポジトリのモック
 vi.mock('@/database', () => ({
   PersonRepository: vi.fn().mockImplementation(() => ({
@@ -92,7 +101,7 @@ describe('PersonList', () => {
     fireEvent.change(searchInput, { target: { value: '田中' } })
 
     await waitFor(() => {
-      expect(mockPersonRepo.search).toHaveBeenCalledWith('demo-user', '田中')
+      expect(mockPersonRepo.search).toHaveBeenCalledWith('test-user-id', '田中')
     })
   })
 
