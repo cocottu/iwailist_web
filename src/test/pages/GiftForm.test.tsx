@@ -42,6 +42,11 @@ vi.mock('@/database', () => ({
         updatedAt: new Date()
       }
     ])
+  })),
+  ImageRepository: vi.fn().mockImplementation(() => ({
+    getByEntityId: vi.fn().mockResolvedValue([]),
+    create: vi.fn().mockResolvedValue(undefined),
+    delete: vi.fn().mockResolvedValue(undefined)
   }))
 }));
 
