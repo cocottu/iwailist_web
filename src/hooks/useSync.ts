@@ -40,11 +40,20 @@ export const useSync = (): UseSyncReturn => {
     try {
       const result = await syncManager.triggerSync(user.uid);
       if (!result.success) {
-        setError(new Error('同期に失敗しました'));
+        // 具体的なエラーメッセージを生成
+        const errorMessages = result.errors.map(e => e.error.message).join(', ');
+        const message = errorMessages 
+          ? `同期に失敗しました: ${errorMessages}`
+          : '同期に失敗しました';
+        setError(new Error(message));
+      } else if (result.errors.length > 0) {
+        // 一部失敗した場合
+        const errorMessages = result.errors.map(e => e.error.message).join(', ');
+        setError(new Error(`一部のデータの同期に失敗しました: ${errorMessages}`));
       }
       setSyncStatus(syncManager.getSyncStatus());
     } catch (err) {
-      const error = err instanceof Error ? err : new Error('同期エラー');
+      const error = err instanceof Error ? err : new Error('同期処理中に予期しないエラーが発生しました');
       setError(error);
     }
   }, [user]);
