@@ -4,6 +4,7 @@ import { Link, useLocation } from 'react-router-dom';
 const navigationItems = [
   { path: '/', label: 'ホーム', icon: '🏠' },
   { path: '/gifts', label: '贈答品', icon: '🎁' },
+  { path: '/persons', label: '人物', icon: '👤' },
   { path: '/returns', label: 'お返し', icon: '↩️' },
   { path: '/reminders', label: 'リマインダー', icon: '⏰' }
 ];
@@ -13,7 +14,7 @@ export const BottomNavigation: React.FC = () => {
   
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 md:hidden z-50">
-      <div className="grid grid-cols-4 h-16">
+      <div className="grid grid-cols-5 h-16">
         {navigationItems.map((item) => (
           <Link
             key={item.path}
