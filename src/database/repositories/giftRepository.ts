@@ -8,16 +8,25 @@ export class GiftRepository {
     const db = await getDB();
     await db.add('gifts', gift);
     
+    console.log('[GiftRepository] Gift added to IndexedDB:', gift.id);
+    console.log('[GiftRepository] Firebase enabled:', isFirebaseEnabled());
+    console.log('[GiftRepository] Gift userId:', gift.userId);
+    console.log('[GiftRepository] Gift id:', gift.id);
+    
     // Firestoreに同期（同じIDを使用）
     if (isFirebaseEnabled() && gift.userId && gift.id) {
       try {
+        console.log('[GiftRepository] Syncing gift to Firestore...');
         // IDを含む完全なオブジェクトをFirestoreに保存
         const { id, userId, ...giftData } = gift;
         await firestoreGiftRepository.createWithId(userId, id, giftData);
+        console.log('[GiftRepository] Gift successfully synced to Firestore:', id);
       } catch (error) {
-        console.error('Failed to sync gift to Firestore:', error);
+        console.error('[GiftRepository] Failed to sync gift to Firestore:', error);
         // IndexedDBには保存されているので、エラーは無視（後で同期マネージャーが再試行）
       }
+    } else {
+      console.warn('[GiftRepository] Skipping Firestore sync - Firebase enabled:', isFirebaseEnabled(), ', userId:', gift.userId, ', id:', gift.id);
     }
   }
   

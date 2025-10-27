@@ -29,16 +29,32 @@ class FirestoreService {
     docId: string,
     data: T
   ): Promise<void> {
+    console.log('[FirestoreService] createDocument called');
+    console.log('[FirestoreService] Collection path:', collectionPath);
+    console.log('[FirestoreService] Document ID:', docId);
+    console.log('[FirestoreService] isFirebaseEnabled:', isFirebaseEnabled());
+    console.log('[FirestoreService] db:', db ? 'initialized' : 'null');
+    
     if (!isFirebaseEnabled() || !db) {
-      throw new Error('Firestore is not enabled');
+      const error = new Error('Firestore is not enabled');
+      console.error('[FirestoreService] Error:', error);
+      throw error;
     }
 
     const docRef = doc(db, collectionPath, docId);
-    await setDoc(docRef, {
-      ...data,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    });
+    console.log('[FirestoreService] Document reference created:', docRef.path);
+    
+    try {
+      await setDoc(docRef, {
+        ...data,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+      console.log('[FirestoreService] Document successfully created:', docRef.path);
+    } catch (error) {
+      console.error('[FirestoreService] setDoc failed:', error);
+      throw error;
+    }
   }
 
   /**
