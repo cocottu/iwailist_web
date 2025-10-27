@@ -8,7 +8,7 @@ import { FirestoreGift } from '../../types/firebase';
 
 class FirestoreGiftRepository {
   /**
-   * 贈答品を作成
+   * 贈答品を作成（自動ID生成）
    */
   async create(userId: string, gift: Omit<Gift, 'id'>): Promise<string> {
     const collectionPath = firestoreService.getUserCollectionPath(userId, 'gifts');
@@ -27,6 +27,26 @@ class FirestoreGiftRepository {
 
     await firestoreService.createDocument(collectionPath, giftId, firestoreGift);
     return giftId;
+  }
+
+  /**
+   * 贈答品を作成（ID指定）
+   */
+  async createWithId(userId: string, giftId: string, gift: Omit<Gift, 'id' | 'userId'>): Promise<void> {
+    const collectionPath = firestoreService.getUserCollectionPath(userId, 'gifts');
+
+    const firestoreGift: Omit<FirestoreGift, 'createdAt' | 'updatedAt'> = {
+      personId: gift.personId,
+      giftName: gift.giftName,
+      receivedDate: Timestamp.fromDate(gift.receivedDate),
+      amount: gift.amount,
+      category: gift.category,
+      returnStatus: gift.returnStatus,
+      memo: gift.memo,
+      syncStatus: 'synced',
+    };
+
+    await firestoreService.createDocument(collectionPath, giftId, firestoreGift);
   }
 
   /**

@@ -8,10 +8,12 @@ export class PersonRepository {
     const db = await getDB();
     await db.add('persons', person);
     
-    // Firestoreに同期
-    if (isFirebaseEnabled() && person.userId) {
+    // Firestoreに同期（同じIDを使用）
+    if (isFirebaseEnabled() && person.userId && person.id) {
       try {
-        await firestorePersonRepository.create(person.userId, person);
+        // IDを含む完全なオブジェクトをFirestoreに保存
+        const { id, userId, ...personData } = person;
+        await firestorePersonRepository.createWithId(userId, id, personData);
       } catch (error) {
         console.error('Failed to sync person to Firestore:', error);
         // IndexedDBには保存されているので、エラーは無視（後で同期マネージャーが再試行）
