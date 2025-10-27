@@ -2,12 +2,14 @@
  * データ同期マネージャー
  * IndexedDB ⇔ Firestore の双方向同期を管理
  */
+import { onSnapshot, collection, query, orderBy as firestoreOrderBy } from 'firebase/firestore';
 import { GiftRepository } from '../database/repositories/giftRepository';
 import { PersonRepository } from '../database/repositories/personRepository';
 import { firestoreGiftRepository } from '../repositories/firebase/giftRepository';
 import { firestorePersonRepository } from '../repositories/firebase/personRepository';
-import { isFirebaseEnabled } from '../lib/firebase';
+import { isFirebaseEnabled, db } from '../lib/firebase';
 import { SyncOperation, SyncResult, SyncStatus } from '../types/firebase';
+import { firestoreService } from './firestoreService';
 
 const giftRepository = new GiftRepository();
 const personRepository = new PersonRepository();
@@ -17,6 +19,10 @@ class SyncManager {
   private lastSyncTime: Date | null = null;
   private syncQueue: SyncOperation[] = [];
   private readonly SYNC_QUEUE_KEY = 'syncQueue';
+  private unsubscribeGifts: (() => void) | null = null;
+  private unsubscribePersons: (() => void) | null = null;
+  private isFirstGiftsSnapshot = true;
+  private isFirstPersonsSnapshot = true;
 
   constructor() {
     this.loadSyncQueue();
@@ -271,10 +277,14 @@ class SyncManager {
         if (!data) {
           throw new Error('作成操作にはデータが必要です');
         }
-        // idを除外してcreateメソッドに渡す
+        // IDを保持して作成
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { id: _giftId, ...giftData } = data as any;
-        await firestoreGiftRepository.create(userId, giftData as any);
+        const { id: giftId, userId: _userId, ...giftData } = data as any;
+        if (giftId) {
+          await firestoreGiftRepository.createWithId(userId, giftId, giftData);
+        } else {
+          await firestoreGiftRepository.create(userId, giftData as any);
+        }
         break;
       }
       case 'update': {
@@ -311,10 +321,14 @@ class SyncManager {
         if (!data) {
           throw new Error('作成操作にはデータが必要です');
         }
-        // idを除外してcreateメソッドに渡す
+        // IDを保持して作成
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { id: _personId, ...personData } = data as any;
-        await firestorePersonRepository.create(userId, personData as any);
+        const { id: personId, userId: _userId, ...personData } = data as any;
+        if (personId) {
+          await firestorePersonRepository.createWithId(userId, personId, personData);
+        } else {
+          await firestorePersonRepository.create(userId, personData as any);
+        }
         break;
       }
       case 'update': {
@@ -389,9 +403,9 @@ class SyncManager {
             // 既存のドキュメントがあるかチェック
             const existing = await firestoreGiftRepository.get(userId, localGift.id);
             if (!existing) {
-              // 存在しない場合のみ作成（IDを保持するため直接createDocumentを使用）
+              // 存在しない場合のみ作成（IDを保持）
               const { id, userId: _userId, ...giftData } = localGift;
-              await firestoreGiftRepository.create(userId, { ...giftData, userId } as any);
+              await firestoreGiftRepository.createWithId(userId, id, giftData);
             } else if (localGift.updatedAt > existing.updatedAt) {
               // 既に存在するがローカルの方が新しい場合は更新
               await firestoreGiftRepository.update(userId, localGift.id, localGift);
@@ -451,9 +465,9 @@ class SyncManager {
             // 既存のドキュメントがあるかチェック
             const existing = await firestorePersonRepository.get(userId, localPerson.id);
             if (!existing) {
-              // 存在しない場合のみ作成
+              // 存在しない場合のみ作成（IDを保持）
               const { id, userId: _userId, ...personData } = localPerson;
-              await firestorePersonRepository.create(userId, { ...personData, userId } as any);
+              await firestorePersonRepository.createWithId(userId, id, personData);
             } else if (localPerson.updatedAt > existing.updatedAt) {
               // 既に存在するがローカルの方が新しい場合は更新
               await firestorePersonRepository.update(userId, localPerson.id, localPerson);
@@ -501,6 +515,211 @@ class SyncManager {
    */
   async triggerSync(userId: string): Promise<SyncResult> {
     return this.executeSync(userId);
+  }
+
+  /**
+   * リアルタイムリスナーを開始
+   */
+  startRealtimeSync(userId: string): void {
+    if (!isFirebaseEnabled() || !db) {
+      console.log('Firebase is not enabled, skipping realtime sync setup');
+      return;
+    }
+
+    // 既存のリスナーを停止
+    this.stopRealtimeSync();
+
+    this.isFirstGiftsSnapshot = true;
+    this.isFirstPersonsSnapshot = true;
+    console.log('[SyncManager] Starting realtime sync for user:', userId);
+
+    try {
+      // 贈答品のリスナーを設定
+      const giftsPath = firestoreService.getUserCollectionPath(userId, 'gifts');
+      const giftsRef = collection(db, giftsPath);
+      const giftsQuery = query(giftsRef, firestoreOrderBy('receivedDate', 'desc'));
+
+      this.unsubscribeGifts = onSnapshot(
+        giftsQuery,
+        async (snapshot) => {
+          console.log('[SyncManager] Gifts snapshot received:', snapshot.size, 'documents');
+          
+          // 初回読み込みをスキップ（既にtriggerSyncで処理済み）
+          if (this.isFirstGiftsSnapshot) {
+            console.log('[SyncManager] Skipping first gifts snapshot (initial load)');
+            this.isFirstGiftsSnapshot = false;
+            return;
+          }
+          
+          // 自分の書き込みをスキップ
+          if (snapshot.metadata.hasPendingWrites) {
+            console.log('[SyncManager] Skipping gifts snapshot (pending writes)');
+            return;
+          }
+
+          try {
+            const changes = snapshot.docChanges();
+            console.log('[SyncManager] Processing', changes.length, 'gift changes');
+
+            for (const change of changes) {
+              const giftId = change.doc.id;
+              const data = change.doc.data();
+
+              if (change.type === 'added' || change.type === 'modified') {
+                // Firestoreの形式からGift型に変換
+                const gift = {
+                  id: giftId,
+                  userId,
+                  personId: data.personId,
+                  giftName: data.giftName,
+                  receivedDate: data.receivedDate.toDate(),
+                  amount: data.amount,
+                  category: data.category,
+                  returnStatus: data.returnStatus,
+                  memo: data.memo,
+                  createdAt: data.createdAt.toDate(),
+                  updatedAt: data.updatedAt.toDate(),
+                };
+
+                // IndexedDBに反映（既存チェックして更新または追加）
+                const existing = await giftRepository.get(giftId);
+                if (existing) {
+                  // ローカルの方が新しい場合はスキップ
+                  if (existing.updatedAt >= gift.updatedAt) {
+                    console.log('[SyncManager] Local gift is newer, skipping update:', giftId);
+                    continue;
+                  }
+                  await giftRepository.update(gift);
+                  console.log('[SyncManager] Gift updated in IndexedDB:', giftId);
+                } else {
+                  await giftRepository.create(gift);
+                  console.log('[SyncManager] Gift added to IndexedDB:', giftId);
+                }
+              } else if (change.type === 'removed') {
+                // 削除された場合
+                await giftRepository.delete(giftId, userId);
+                console.log('[SyncManager] Gift deleted from IndexedDB:', giftId);
+              }
+            }
+
+            this.lastSyncTime = new Date();
+            localStorage.setItem('lastSyncTime', this.lastSyncTime.toISOString());
+          } catch (error) {
+            console.error('[SyncManager] Error processing gifts snapshot:', error);
+          }
+        },
+        (error) => {
+          console.error('[SyncManager] Gifts snapshot error:', error);
+        }
+      );
+
+      // 人物のリスナーを設定
+      const personsPath = firestoreService.getUserCollectionPath(userId, 'persons');
+      const personsRef = collection(db, personsPath);
+      const personsQuery = query(personsRef, firestoreOrderBy('name', 'asc'));
+
+      this.unsubscribePersons = onSnapshot(
+        personsQuery,
+        async (snapshot) => {
+          console.log('[SyncManager] Persons snapshot received:', snapshot.size, 'documents');
+          
+          // 初回読み込みをスキップ（既にtriggerSyncで処理済み）
+          if (this.isFirstPersonsSnapshot) {
+            console.log('[SyncManager] Skipping first persons snapshot (initial load)');
+            this.isFirstPersonsSnapshot = false;
+            return;
+          }
+          
+          // 自分の書き込みをスキップ
+          if (snapshot.metadata.hasPendingWrites) {
+            console.log('[SyncManager] Skipping persons snapshot (pending writes)');
+            return;
+          }
+
+          try {
+            const changes = snapshot.docChanges();
+            console.log('[SyncManager] Processing', changes.length, 'person changes');
+
+            for (const change of changes) {
+              const personId = change.doc.id;
+              const data = change.doc.data();
+
+              if (change.type === 'added' || change.type === 'modified') {
+                // Firestoreの形式からPerson型に変換
+                const person = {
+                  id: personId,
+                  userId,
+                  name: data.name,
+                  furigana: data.furigana,
+                  relationship: data.relationship,
+                  contact: data.contact,
+                  memo: data.memo,
+                  createdAt: data.createdAt.toDate(),
+                  updatedAt: data.updatedAt.toDate(),
+                };
+
+                // IndexedDBに反映
+                const existing = await personRepository.get(personId);
+                if (existing) {
+                  // ローカルの方が新しい場合はスキップ
+                  if (existing.updatedAt >= person.updatedAt) {
+                    console.log('[SyncManager] Local person is newer, skipping update:', personId);
+                    continue;
+                  }
+                  await personRepository.update(person);
+                  console.log('[SyncManager] Person updated in IndexedDB:', personId);
+                } else {
+                  await personRepository.create(person);
+                  console.log('[SyncManager] Person added to IndexedDB:', personId);
+                }
+              } else if (change.type === 'removed') {
+                // 削除された場合
+                await personRepository.delete(personId, userId);
+                console.log('[SyncManager] Person deleted from IndexedDB:', personId);
+              }
+            }
+
+            this.lastSyncTime = new Date();
+            localStorage.setItem('lastSyncTime', this.lastSyncTime.toISOString());
+          } catch (error) {
+            console.error('[SyncManager] Error processing persons snapshot:', error);
+          }
+        },
+        (error) => {
+          console.error('[SyncManager] Persons snapshot error:', error);
+        }
+      );
+
+      console.log('[SyncManager] Realtime sync started successfully');
+    } catch (error) {
+      console.error('[SyncManager] Failed to start realtime sync:', error);
+    }
+  }
+
+  /**
+   * リアルタイムリスナーを停止
+   */
+  stopRealtimeSync(): void {
+    console.log('[SyncManager] Stopping realtime sync');
+    
+    if (this.unsubscribeGifts) {
+      this.unsubscribeGifts();
+      this.unsubscribeGifts = null;
+      console.log('[SyncManager] Gifts listener unsubscribed');
+    }
+
+    if (this.unsubscribePersons) {
+      this.unsubscribePersons();
+      this.unsubscribePersons = null;
+      console.log('[SyncManager] Persons listener unsubscribed');
+    }
+  }
+
+  /**
+   * リアルタイム同期が実行中かどうか
+   */
+  isRealtimeSyncActive(): boolean {
+    return this.unsubscribeGifts !== null || this.unsubscribePersons !== null;
   }
 }
 

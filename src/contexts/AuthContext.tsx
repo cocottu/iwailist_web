@@ -77,8 +77,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               // 認証直後にFirestoreからデータを同期
               if (isFirebaseEnabled() && navigator.onLine) {
                 console.log('[AuthContext] Triggering initial sync for user:', userData.uid);
-                syncManager.triggerSync(userData.uid).catch((error) => {
+                syncManager.triggerSync(userData.uid).then(() => {
+                  // 初回同期完了後にリアルタイムリスナーを開始
+                  console.log('[AuthContext] Starting realtime sync for user:', userData.uid);
+                  syncManager.startRealtimeSync(userData.uid);
+                }).catch((error) => {
                   console.error('[AuthContext] Initial sync failed:', error);
+                  // 同期失敗時もリスナーは開始する（リアルタイム更新は受信できるようにする）
+                  syncManager.startRealtimeSync(userData.uid);
                 });
               }
             } catch (error) {
@@ -90,6 +96,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             localStorage.removeItem('authToken');
             setUser(null);
             console.log('User signed out');
+            
+            // リアルタイムリスナーを停止
+            syncManager.stopRealtimeSync();
           }
           
           // リダイレクト処理中でなければローディング解除

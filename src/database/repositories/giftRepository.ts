@@ -8,10 +8,12 @@ export class GiftRepository {
     const db = await getDB();
     await db.add('gifts', gift);
     
-    // Firestoreに同期
-    if (isFirebaseEnabled() && gift.userId) {
+    // Firestoreに同期（同じIDを使用）
+    if (isFirebaseEnabled() && gift.userId && gift.id) {
       try {
-        await firestoreGiftRepository.create(gift.userId, gift);
+        // IDを含む完全なオブジェクトをFirestoreに保存
+        const { id, userId, ...giftData } = gift;
+        await firestoreGiftRepository.createWithId(userId, id, giftData);
       } catch (error) {
         console.error('Failed to sync gift to Firestore:', error);
         // IndexedDBには保存されているので、エラーは無視（後で同期マネージャーが再試行）

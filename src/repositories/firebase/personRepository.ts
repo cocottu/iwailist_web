@@ -7,7 +7,7 @@ import { FirestorePerson } from '../../types/firebase';
 
 class FirestorePersonRepository {
   /**
-   * 人物を作成
+   * 人物を作成（自動ID生成）
    */
   async create(userId: string, person: Omit<Person, 'id'>): Promise<string> {
     const collectionPath = firestoreService.getUserCollectionPath(userId, 'persons');
@@ -23,6 +23,23 @@ class FirestorePersonRepository {
 
     await firestoreService.createDocument(collectionPath, personId, firestorePerson);
     return personId;
+  }
+
+  /**
+   * 人物を作成（ID指定）
+   */
+  async createWithId(userId: string, personId: string, person: Omit<Person, 'id' | 'userId'>): Promise<void> {
+    const collectionPath = firestoreService.getUserCollectionPath(userId, 'persons');
+
+    const firestorePerson: Omit<FirestorePerson, 'createdAt' | 'updatedAt'> = {
+      name: person.name,
+      furigana: person.furigana,
+      relationship: person.relationship,
+      contact: person.contact,
+      memo: person.memo,
+    };
+
+    await firestoreService.createDocument(collectionPath, personId, firestorePerson);
   }
 
   /**
