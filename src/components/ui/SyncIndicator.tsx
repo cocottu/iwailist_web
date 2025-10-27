@@ -9,7 +9,7 @@ import { isFirebaseEnabled } from '../../lib/firebase';
 import { toast } from 'sonner';
 
 const SyncIndicator = () => {
-  const { isSyncing, lastSyncTime, pendingOperations, isOnline, sync, error } = useSync();
+  const { isSyncing, lastSyncTime, pendingOperations, isOnline, sync, error, clearError } = useSync();
   const { user } = useAuth();
 
   // 同期状態の通知
@@ -36,14 +36,21 @@ const SyncIndicator = () => {
       };
     }
 
-    // エラー
+    // エラー - 一度だけ表示してクリア
     if (error) {
       toastId = toast.error('同期エラー', {
         description: error.message,
         duration: 5000,
       });
+      
+      // エラートーストを表示したらエラー状態をクリア
+      const timer = setTimeout(() => {
+        clearError();
+      }, 100);
+      
       return () => {
         if (toastId) toast.dismiss(toastId);
+        clearTimeout(timer);
       };
     }
 

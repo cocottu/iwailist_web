@@ -11,6 +11,7 @@ interface UseSyncReturn extends SyncStatus {
   sync: () => Promise<void>;
   retrySync: () => Promise<void>;
   clearSyncQueue: () => void;
+  clearError: () => void;
   error: Error | null;
 }
 
@@ -79,11 +80,17 @@ export const useSync = (): UseSyncReturn => {
     setSyncStatus(syncManager.getSyncStatus());
   }, []);
 
+  // エラーをクリア
+  const clearError = useCallback(() => {
+    setError(null);
+  }, []);
+
   return {
     ...syncStatus,
     sync,
     retrySync,
     clearSyncQueue,
+    clearError,
     error,
   };
 };
