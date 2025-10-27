@@ -18,6 +18,7 @@ import { ReminderList } from '@/pages/ReminderList';
 import { Statistics } from '@/pages/Statistics';
 import DataManagement from '@/pages/DataManagement';
 import Settings from '@/pages/Settings';
+import { DiagnosticsPage } from '@/pages/DiagnosticsPage';
 import Login from '@/pages/Login';
 import SignUp from '@/pages/SignUp';
 import ForgotPassword from '@/pages/ForgotPassword';
@@ -154,6 +155,13 @@ function App() {
             <ProtectedRoute>
               <Layout>
                 <Settings />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          <Route path="/diagnostics" element={
+            <ProtectedRoute>
+              <Layout>
+                <DiagnosticsPage />
               </Layout>
             </ProtectedRoute>
           } />

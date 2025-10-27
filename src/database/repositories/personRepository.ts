@@ -8,16 +8,25 @@ export class PersonRepository {
     const db = await getDB();
     await db.add('persons', person);
     
+    console.log('[PersonRepository] Person added to IndexedDB:', person.id);
+    console.log('[PersonRepository] Firebase enabled:', isFirebaseEnabled());
+    console.log('[PersonRepository] Person userId:', person.userId);
+    console.log('[PersonRepository] Person id:', person.id);
+    
     // Firestoreに同期（同じIDを使用）
     if (isFirebaseEnabled() && person.userId && person.id) {
       try {
+        console.log('[PersonRepository] Syncing person to Firestore...');
         // IDを含む完全なオブジェクトをFirestoreに保存
         const { id, userId, ...personData } = person;
         await firestorePersonRepository.createWithId(userId, id, personData);
+        console.log('[PersonRepository] Person successfully synced to Firestore:', id);
       } catch (error) {
-        console.error('Failed to sync person to Firestore:', error);
+        console.error('[PersonRepository] Failed to sync person to Firestore:', error);
         // IndexedDBには保存されているので、エラーは無視（後で同期マネージャーが再試行）
       }
+    } else {
+      console.warn('[PersonRepository] Skipping Firestore sync - Firebase enabled:', isFirebaseEnabled(), ', userId:', person.userId, ', id:', person.id);
     }
   }
   
