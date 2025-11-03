@@ -95,7 +95,7 @@ describe('Layout', () => {
     expect(screen.getAllByText('ホーム')).toHaveLength(2) // HeaderとBottomNavigationの両方に存在
     expect(screen.getAllByText('贈答品')).toHaveLength(2) // HeaderとBottomNavigationの両方に存在
     expect(screen.getAllByText('リマインダー')).toHaveLength(2) // HeaderとBottomNavigationの両方に存在
-    expect(screen.getByText('人物')).toBeInTheDocument() // Headerにのみ存在
+    expect(screen.getAllByText('人物')).toHaveLength(2) // HeaderとBottomNavigationの両方に存在
   })
 
   it('子要素が正しくレンダリングされる', () => {
