@@ -45,8 +45,9 @@ class FirestoreService {
     console.log('[FirestoreService] Document reference created:', docRef.path);
     
     try {
+      const sanitizedData = this.removeUndefined(data ?? {});
       await setDoc(docRef, {
-        ...data,
+        ...sanitizedData,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
@@ -94,8 +95,9 @@ class FirestoreService {
     }
 
     const docRef = doc(db, collectionPath, docId);
+    const sanitizedData = this.removeUndefined(data ?? {});
     await updateDoc(docRef, {
-      ...data,
+      ...sanitizedData,
       updatedAt: serverTimestamp(),
     });
   }
@@ -169,6 +171,53 @@ class FirestoreService {
    */
   dateToTimestamp(date: Date | undefined): Timestamp | undefined {
     return date ? Timestamp.fromDate(date) : undefined;
+  }
+
+  private removeUndefined<T>(obj: T): T {
+    if (obj === null || obj === undefined) {
+      return obj;
+    }
+
+    if (obj instanceof Timestamp || obj instanceof Date) {
+      return obj;
+    }
+
+    if (Array.isArray(obj)) {
+      return obj
+        .map((item) => this.removeUndefined(item))
+        .filter((item) => item !== undefined) as unknown as T;
+    }
+
+    if (typeof obj === 'object') {
+      const result: Record<string, unknown> = {};
+      const entries = Object.entries(obj as Record<string, unknown>);
+
+      for (const [key, value] of entries) {
+        if (value === undefined) {
+          continue;
+        }
+
+        const isPlainObject =
+          value !== null &&
+          typeof value === 'object' &&
+          !Array.isArray(value) &&
+          !(value instanceof Timestamp) &&
+          !(value instanceof Date) &&
+          value.constructor === Object;
+
+        if (isPlainObject) {
+          result[key] = this.removeUndefined(value);
+        } else if (Array.isArray(value)) {
+          result[key] = this.removeUndefined(value);
+        } else {
+          result[key] = value;
+        }
+      }
+
+      return result as T;
+    }
+
+    return obj;
   }
 }
 
