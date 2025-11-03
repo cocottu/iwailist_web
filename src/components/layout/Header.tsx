@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useSync } from '../../hooks/useSync';
 import { useOnlineStatus } from '../../hooks/useOnlineStatus';
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow, format } from 'date-fns';
 import { ja } from 'date-fns/locale';
 
 export const Header: React.FC = () => {
@@ -188,6 +188,16 @@ export const Header: React.FC = () => {
                       : '同期済み'}
                   </span>
                 </button>
+
+                {/* 最終同期日時（インライン表示） */}
+                {lastSyncTime && (
+                  <span
+                    className="hidden sm:inline text-xs text-gray-500 ml-1"
+                    aria-label="最終同期日時"
+                  >
+                    最終同期: {format(lastSyncTime, 'yyyy/MM/dd HH:mm')}
+                  </span>
+                )}
               </div>
             )}
 
