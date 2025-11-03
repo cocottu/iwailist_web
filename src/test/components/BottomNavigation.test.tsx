@@ -147,7 +147,7 @@ describe('BottomNavigation', () => {
     
     const nav = screen.getByRole('navigation')
     const grid = nav.querySelector('.grid')
-    expect(grid).toHaveClass('grid-cols-4', 'h-16')
+    expect(grid).toHaveClass('grid-cols-5', 'h-16')
   })
 
   it('リンクの基本スタイルが適用される', () => {
