@@ -3,6 +3,7 @@
  */
 import { useState, useEffect, useCallback } from 'react';
 import { syncManager } from '../services/syncManager';
+import { isFirebaseEnabled } from '../lib/firebase';
 import { useAuth } from '../contexts/AuthContext';
 import { useOnlineStatus } from './useOnlineStatus';
 import { SyncStatus } from '../types/firebase';
@@ -32,25 +33,29 @@ export const useSync = (): UseSyncReturn => {
 
   // 手動同期
   const sync = useCallback(async () => {
+    // ユーザー未ログインやFirebase無効時は同期しない（通知も出さない）
     if (!user) {
-      // Firebase無効時はエラーを表示しない
       console.log('User not logged in, skipping sync');
+      return;
+    }
+    if (!isFirebaseEnabled()) {
+      console.log('Firebase disabled, skipping sync without error');
       return;
     }
 
     setError(null);
     try {
       const result = await syncManager.triggerSync(user.uid);
-      if (!result.success) {
-        // 具体的なエラーメッセージを生成
-        const errorMessages = result.errors.map(e => e.error.message).join(', ');
-        const message = errorMessages 
+      // Firebaseが有効でも、致命的エラー時のみエラー表示
+      if (!result.success && result.errors.length > 0) {
+        const errorMessages = result.errors.map((e) => e.error.message).join(', ');
+        const message = errorMessages
           ? `同期に失敗しました: ${errorMessages}`
           : '同期に失敗しました';
         setError(new Error(message));
       } else if (result.errors.length > 0) {
         // 一部失敗した場合
-        const errorMessages = result.errors.map(e => e.error.message).join(', ');
+        const errorMessages = result.errors.map((e) => e.error.message).join(', ');
         setError(new Error(`一部のデータの同期に失敗しました: ${errorMessages}`));
       }
       setSyncStatus(syncManager.getSyncStatus());
