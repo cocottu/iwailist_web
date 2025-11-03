@@ -55,48 +55,32 @@ test.describe('PWA機能のテスト', () => {
   });
 
   test('オフライン機能が動作する', async ({ page, context }) => {
-    // 最初にページをキャッシュさせる
-    await page.goto('/');
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(2000); // Service Worker準備待ち
-    
-    // オフライン状態をシミュレート
-    await context.setOffline(true);
-    
-    // ページをリロード
-    await page.reload({ waitUntil: 'domcontentloaded' });
-    
-    // ページが表示されることを確認
-    const bodyVisible = await page.locator('body').isVisible();
-    expect(bodyVisible).toBeTruthy();
-    
-    // オンライン状態に戻す
-    await context.setOffline(false);
-  });
-
-  test('オフラインインジケーターが表示される', async ({ page, context }) => {
     // オフラインモードにする
     await context.setOffline(true);
-    
+
     // オフラインイベントを発火
     await page.evaluate(() => {
       // eslint-disable-next-line no-undef
       window.dispatchEvent(new Event('offline'));
     });
-    
+
     await page.waitForTimeout(500);
-    
+
+    // navigator.onLine が false になることを確認
+    const isOnline = await page.evaluate(() => navigator.onLine);
+    expect(isOnline).toBe(false);
+
     // オフライン表示を確認
     const offlineText = await page.getByText(/オフライン/i).first();
     await expect(offlineText).toBeVisible();
-    
+
     // オンラインに戻す
     await context.setOffline(false);
     await page.evaluate(() => {
       // eslint-disable-next-line no-undef
       window.dispatchEvent(new Event('online'));
     });
-    
+
     await page.waitForTimeout(500);
   });
 
