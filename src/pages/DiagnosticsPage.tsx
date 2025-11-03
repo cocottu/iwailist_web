@@ -13,11 +13,7 @@ export const DiagnosticsPage: React.FC = () => {
   const [diagnostics, setDiagnostics] = useState<any>(null);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    runDiagnostics();
-  }, []);
-
-  const runDiagnostics = async () => {
+  const runDiagnostics = async (): Promise<void> => {
     setLoading(true);
     const results: any = {
       timestamp: new Date().toISOString(),
@@ -75,6 +71,14 @@ export const DiagnosticsPage: React.FC = () => {
     setDiagnostics(results);
     setLoading(false);
   };
+
+  useEffect(() => {
+    // 初回マウント時に診断を実行（同期setState回避のため次タスクにスケジュール）
+    const timer = setTimeout(() => {
+      void runDiagnostics();
+    }, 0);
+    return () => clearTimeout(timer);
+  }, []);
 
   const testPersonCreate = async () => {
     if (!user?.uid) {
