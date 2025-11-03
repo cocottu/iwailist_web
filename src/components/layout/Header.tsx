@@ -5,6 +5,7 @@ import { useSync } from '../../hooks/useSync';
 import { useOnlineStatus } from '../../hooks/useOnlineStatus';
 import { formatDistanceToNow } from 'date-fns';
 import { ja } from 'date-fns/locale';
+import { isFirebaseEnabled } from '../../lib/firebase';
 
 export const Header: React.FC = () => {
   const location = useLocation();
@@ -13,6 +14,16 @@ export const Header: React.FC = () => {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { isSyncing, lastSyncTime, pendingOperations, sync } = useSync();
   const isOnline = useOnlineStatus();
+  const firebaseEnabled = isFirebaseEnabled();
+
+  const canSync = isAuthenticated && !!user && isOnline && firebaseEnabled;
+
+  const syncUnavailableReason: string | null = (() => {
+    if (!firebaseEnabled) return '同期を利用できません（設定未完了）';
+    if (!isAuthenticated || !user) return 'ログインが必要です';
+    if (!isOnline) return 'オフラインのため同期不可';
+    return null;
+  })();
 
   // ドロップダウンメニューの外側をクリックしたら閉じる
   useEffect(() => {
@@ -130,41 +141,38 @@ export const Header: React.FC = () => {
           </nav>
 
           <div className="flex items-center gap-3">
-            {/* 同期ボタン - 認証済みの場合のみ表示 */}
-            {isAuthenticated && user && (
-              <div className="flex items-center gap-2">
-                {/* オンライン/オフライン状態インジケーター */}
-                <div className="flex items-center gap-1.5">
-                  <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-green-500' : 'bg-gray-400'}`} />
-                  <span className="text-xs text-gray-600 hidden sm:inline">
-                    {isOnline ? 'オンライン' : 'オフライン'}
-                  </span>
+            {/* 同期ステータス/ボタン領域（未ログイン時も理由を表示） */}
+            <div className="flex items-center gap-2">
+              {/* オンライン/オフライン状態インジケーター */}
+              <div className="flex items-center gap-1.5">
+                <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-green-500' : 'bg-gray-400'}`} />
+                <span className="text-xs text-gray-600 hidden sm:inline">
+                  {isOnline ? 'オンライン' : 'オフライン'}
+                </span>
+              </div>
+
+              {/* 同期不可理由（モバイルで見やすいインライン表示） */}
+              {syncUnavailableReason && (
+                <div className="flex items-center gap-1 px-2 py-1 rounded-md bg-gray-100 text-gray-600 text-xs">
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M12 18a9 9 0 110-18 9 9 0 010 18z" />
+                  </svg>
+                  <span className="whitespace-nowrap">{syncUnavailableReason}</span>
                 </div>
-                
-                {/* 同期ボタン */}
+              )}
+
+              {/* 同期ボタン（利用可能時のみ表示） */}
+              {canSync && (
                 <button
                   onClick={() => sync()}
-                  disabled={isSyncing || !isOnline}
+                  disabled={isSyncing}
                   className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                     isSyncing
                       ? 'bg-blue-50 text-blue-600 cursor-wait'
-                      : !isOnline
-                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                       : pendingOperations > 0
                       ? 'bg-yellow-50 text-yellow-700 hover:bg-yellow-100'
                       : 'bg-green-50 text-green-700 hover:bg-green-100'
                   }`}
-                  title={
-                    isSyncing
-                      ? '同期中...'
-                      : !isOnline
-                      ? 'オフライン - 同期できません'
-                      : pendingOperations > 0
-                      ? `${pendingOperations}件の変更を同期待ち`
-                      : lastSyncTime
-                      ? `最終同期: ${formatDistanceToNow(lastSyncTime, { locale: ja, addSuffix: true })}`
-                      : '同期準備完了'
-                  }
                   aria-label="データ同期"
                 >
                   <svg
@@ -185,11 +193,13 @@ export const Header: React.FC = () => {
                       ? '同期中'
                       : pendingOperations > 0
                       ? `${pendingOperations}件`
+                      : lastSyncTime
+                      ? `最終: ${formatDistanceToNow(lastSyncTime, { locale: ja, addSuffix: true })}`
                       : '同期済み'}
                   </span>
                 </button>
-              </div>
-            )}
+              )}
+            </div>
 
             {/* ユーザーメニュー */}
             {isAuthenticated && user && (
