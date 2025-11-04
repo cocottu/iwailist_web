@@ -111,6 +111,7 @@ export function useCamera(options: UseCameraOptions = {}): UseCameraReturn {
         stopCameraStream(streamRef.current);
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoStart]);
 
   /**

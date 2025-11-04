@@ -133,10 +133,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         } catch (error) {
           console.error('[DEBUG] AuthContext: Redirect error:', error);
           console.error('Redirect result handling error:', error);
-          if (typeof error === 'object' && error !== null) {
+          if (typeof error === 'object' && error !== null && 'code' in error && 'message' in error) {
             console.error('[DEBUG] AuthContext: Error details:', {
-              code: (error as any).code,
-              message: (error as any).message,
+              code: String(error.code),
+              message: String(error.message),
             });
           }
         } finally {
@@ -255,6 +255,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (context === undefined) {

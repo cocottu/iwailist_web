@@ -133,7 +133,7 @@ const SyncIndicator = () => {
     }
 
     // 「同期準備完了」の通知は削除 - ヘッダーの同期ボタンで状態を表示
-  }, [isSyncing, lastSyncTime, pendingOperations, isOnline, error, sync, user]);
+  }, [isSyncing, lastSyncTime, pendingOperations, isOnline, error, sync, user, clearError]);
 
   return null;
 };

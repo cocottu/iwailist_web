@@ -117,11 +117,11 @@ class AuthService {
       // エラー時はフラグをクリア
       localStorage.removeItem('authRedirectPending');
       console.error('[DEBUG] signInWithGoogle: Error occurred:', error);
-      if (typeof error === 'object' && error !== null) {
+      if (typeof error === 'object' && error !== null && 'code' in error && 'message' in error) {
         console.error('[DEBUG] signInWithGoogle: Error details:', {
-          code: (error as any).code,
-          message: (error as any).message,
-          stack: (error as any).stack,
+          code: String(error.code),
+          message: String(error.message),
+          stack: 'stack' in error ? String(error.stack) : undefined,
         });
       }
       console.error('Google sign-in redirect failed:', error);
@@ -187,11 +187,11 @@ class AuthService {
       return convertFirebaseUser(result.user);
     } catch (error: unknown) {
       console.error('[DEBUG] handleRedirectResult: Error occurred:', error);
-      if (typeof error === 'object' && error !== null) {
+      if (typeof error === 'object' && error !== null && 'code' in error && 'message' in error) {
         console.error('[DEBUG] handleRedirectResult: Error details:', {
-          code: (error as any).code,
-          message: (error as any).message,
-          stack: (error as any).stack,
+          code: String(error.code),
+          message: String(error.message),
+          stack: 'stack' in error ? String(error.stack) : undefined,
         });
       }
       // エラー時もフラグをクリア

@@ -11,13 +11,21 @@ vi.mock('sonner', () => ({
 
 // toast のメソッドをモック
 Object.assign(toast, {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   success: vi.fn((_message: string, _options?: unknown) => 'toast-id'),
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   error: vi.fn((_message: string, _options?: unknown) => 'toast-id'),
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   warning: vi.fn((_message: string, _options?: unknown) => 'toast-id'),
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   info: vi.fn((_message: string, _options?: unknown) => 'toast-id'),
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   loading: vi.fn((_message: string) => 'toast-id'),
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   custom: vi.fn((_content: unknown, _options?: unknown) => 'toast-id'),
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   promise: vi.fn((promise: Promise<unknown>, _messages: unknown) => promise),
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   dismiss: vi.fn((_toastId?: string | number) => {}),
 });
 
@@ -204,6 +212,7 @@ describe('NotificationManager (Sonnerベース)', () => {
     });
 
     it('customメソッドが呼び出せる', () => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const customContent = (_id: string | number) => ({ type: 'div', props: { children: 'Custom content' } } as React.ReactElement);
       notifications.custom(customContent, { duration: 2000 });
       

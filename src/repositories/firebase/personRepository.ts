@@ -2,7 +2,7 @@
  * Firestore Person Repository
  */
 import { firestoreService, orderBy } from '../../services/firestoreService';
-import { Person } from '../../types';
+import { Person, Relationship } from '../../types';
 import { FirestorePerson } from '../../types/firebase';
 
 class FirestorePersonRepository {
@@ -104,7 +104,7 @@ class FirestorePersonRepository {
       userId: userId || '',
       name: firestorePerson.name,
       furigana: firestorePerson.furigana,
-      relationship: firestorePerson.relationship as any,
+      relationship: firestorePerson.relationship as Relationship,
       contact: firestorePerson.contact,
       memo: firestorePerson.memo,
       createdAt: firestorePerson.createdAt.toDate(),
