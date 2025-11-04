@@ -8,14 +8,37 @@ import { firestorePersonRepository } from '@/repositories/firebase/personReposit
 import { firestoreGiftRepository } from '@/repositories/firebase/giftRepository';
 import { Relationship, GiftCategory, ReturnStatus } from '@/types';
 
+interface DiagnosticsResult {
+  timestamp: string;
+  user: {
+    authenticated: boolean;
+    uid: string;
+    email: string;
+  };
+  firebase: {
+    enabled: boolean;
+    config: ReturnType<typeof getFirebaseConfigStatus>;
+  };
+  indexedDB: {
+    persons: number;
+    gifts: number;
+  };
+  firestore: {
+    persons: number;
+    gifts: number;
+    accessible: boolean;
+    error: string | null;
+  };
+}
+
 export const DiagnosticsPage: React.FC = () => {
   const { user } = useAuth();
-  const [diagnostics, setDiagnostics] = useState<any>(null);
+  const [diagnostics, setDiagnostics] = useState<DiagnosticsResult | null>(null);
   const [loading, setLoading] = useState(false);
 
   const runDiagnostics = async (): Promise<void> => {
     setLoading(true);
-    const results: any = {
+    const results: DiagnosticsResult = {
       timestamp: new Date().toISOString(),
       user: {
         authenticated: !!user,
@@ -78,6 +101,7 @@ export const DiagnosticsPage: React.FC = () => {
       void runDiagnostics();
     }, 0);
     return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const testPersonCreate = async () => {

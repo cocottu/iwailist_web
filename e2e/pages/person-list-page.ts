@@ -78,7 +78,7 @@ export class PersonListPage {
               getAllRequest.onerror = () => resolve(0);
             };
             request.onerror = () => resolve(0);
-          } catch (error) {
+          } catch {
             resolve(0);
           }
         });

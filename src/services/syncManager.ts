@@ -267,7 +267,7 @@ class SyncManager {
     data?: unknown
   ): Promise<void> {
     // ユーザーIDはdataから取得するか、localStorageから取得
-    const userId = (data as any)?.userId || this.getCurrentUserId();
+    const userId = (data && typeof data === 'object' && 'userId' in data ? String(data.userId) : null) || this.getCurrentUserId();
     if (!userId) {
       throw new Error('贈答品の同期にユーザーIDが必要です');
     }
@@ -278,11 +278,12 @@ class SyncManager {
           throw new Error('作成操作にはデータが必要です');
         }
         // IDを保持して作成
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
         const { id: giftId, userId: _userId, ...giftData } = data as any;
         if (giftId) {
-          await firestoreGiftRepository.createWithId(userId, giftId, giftData);
+          await firestoreGiftRepository.createWithId(userId, String(giftId), giftData);
         } else {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           await firestoreGiftRepository.create(userId, giftData as any);
         }
         break;
@@ -291,6 +292,7 @@ class SyncManager {
         if (!data) {
           throw new Error('更新操作にはデータが必要です');
         }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         await firestoreGiftRepository.update(userId, documentId, data as any);
         break;
       }
@@ -311,7 +313,7 @@ class SyncManager {
     data?: unknown
   ): Promise<void> {
     // ユーザーIDはdataから取得するか、localStorageから取得
-    const userId = (data as any)?.userId || this.getCurrentUserId();
+    const userId = (data && typeof data === 'object' && 'userId' in data ? String(data.userId) : null) || this.getCurrentUserId();
     if (!userId) {
       throw new Error('人物の同期にユーザーIDが必要です');
     }
@@ -322,11 +324,12 @@ class SyncManager {
           throw new Error('作成操作にはデータが必要です');
         }
         // IDを保持して作成
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
         const { id: personId, userId: _userId, ...personData } = data as any;
         if (personId) {
-          await firestorePersonRepository.createWithId(userId, personId, personData);
+          await firestorePersonRepository.createWithId(userId, String(personId), personData);
         } else {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           await firestorePersonRepository.create(userId, personData as any);
         }
         break;
@@ -335,6 +338,7 @@ class SyncManager {
         if (!data) {
           throw new Error('更新操作にはデータが必要です');
         }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         await firestorePersonRepository.update(userId, documentId, data as any);
         break;
       }
@@ -381,7 +385,7 @@ class SyncManager {
 
       // リモートとローカルを比較して同期
       for (const remoteGift of remoteGifts) {
-        const localGift = localGifts.find((g: any) => g.id === remoteGift.id);
+        const localGift = localGifts.find((g) => g.id === remoteGift.id);
 
         if (!localGift) {
           // ローカルに存在しない → 追加
@@ -397,13 +401,14 @@ class SyncManager {
       // ローカルにあってリモートにない → アップロード
       // 既にFirestoreに同じIDで存在する可能性があるので、まず確認
       for (const localGift of localGifts) {
-        const remoteGift = remoteGifts.find((g: any) => g.id === localGift.id);
+        const remoteGift = remoteGifts.find((g) => g.id === localGift.id);
         if (!remoteGift) {
           try {
             // 既存のドキュメントがあるかチェック
             const existing = await firestoreGiftRepository.get(userId, localGift.id);
             if (!existing) {
               // 存在しない場合のみ作成（IDを保持）
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
               const { id, userId: _userId, ...giftData } = localGift;
               await firestoreGiftRepository.createWithId(userId, id, giftData);
             } else if (localGift.updatedAt > existing.updatedAt) {
@@ -443,7 +448,7 @@ class SyncManager {
 
       // リモートとローカルを比較して同期
       for (const remotePerson of remotePersons) {
-        const localPerson = localPersons.find((p: any) => p.id === remotePerson.id);
+        const localPerson = localPersons.find((p) => p.id === remotePerson.id);
 
         if (!localPerson) {
           // ローカルに存在しない → 追加
@@ -459,13 +464,14 @@ class SyncManager {
       // ローカルにあってリモートにない → アップロード
       // 既にFirestoreに同じIDで存在する可能性があるので、まず確認
       for (const localPerson of localPersons) {
-        const remotePerson = remotePersons.find((p: any) => p.id === localPerson.id);
+        const remotePerson = remotePersons.find((p) => p.id === localPerson.id);
         if (!remotePerson) {
           try {
             // 既存のドキュメントがあるかチェック
             const existing = await firestorePersonRepository.get(userId, localPerson.id);
             if (!existing) {
               // 存在しない場合のみ作成（IDを保持）
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
               const { id, userId: _userId, ...personData } = localPerson;
               await firestorePersonRepository.createWithId(userId, id, personData);
             } else if (localPerson.updatedAt > existing.updatedAt) {

@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom'
 import { vi } from 'vitest'
 
 // テスト用のプロバイダーコンポーネント
+// eslint-disable-next-line react-refresh/only-export-components
 const AllTheProviders = ({ children }: { children: React.ReactNode }) => {
   return (
     <BrowserRouter>
@@ -89,5 +90,6 @@ export const resetAllMocks = () => {
 }
 
 // 再エクスポート
+// eslint-disable-next-line react-refresh/only-export-components
 export * from '@testing-library/react'
 export { customRender as render }

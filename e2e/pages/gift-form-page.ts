@@ -51,8 +51,8 @@ export class GiftFormPage {
   async selectPerson(personName: string) {
     await this.page.waitForFunction(
       (name) => {
-        const select = document.querySelectorAll('select')[0] as HTMLSelectElement | undefined;
-        if (!select) return false;
+        const select = document.querySelectorAll('select')[0];
+        if (!select || !('options' in select)) return false;
         return Array.from(select.options).some((option) => option.value === name || option.textContent === name);
       },
       personName,

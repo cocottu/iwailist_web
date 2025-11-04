@@ -3,7 +3,7 @@
  */
 import { Timestamp } from 'firebase/firestore';
 import { firestoreService, where, orderBy } from '../../services/firestoreService';
-import { Gift } from '../../types';
+import { Gift, GiftCategory, ReturnStatus } from '../../types';
 import { FirestoreGift } from '../../types/firebase';
 
 class FirestoreGiftRepository {
@@ -154,8 +154,8 @@ class FirestoreGiftRepository {
       giftName: firestoreGift.giftName,
       receivedDate: firestoreGift.receivedDate.toDate(),
       amount: firestoreGift.amount,
-      category: firestoreGift.category as any,
-      returnStatus: firestoreGift.returnStatus as any,
+      category: firestoreGift.category as GiftCategory,
+      returnStatus: firestoreGift.returnStatus as ReturnStatus,
       memo: firestoreGift.memo,
       createdAt: firestoreGift.createdAt.toDate(),
       updatedAt: firestoreGift.updatedAt.toDate(),
