@@ -25,10 +25,12 @@ export class PersonFormPage {
 
   async goto() {
     await this.page.goto('/persons/new');
+    await this.waitForLoad();
   }
 
   async gotoEdit(personId: string) {
     await this.page.goto(`/persons/${personId}/edit`);
+    await this.waitForLoad();
   }
 
   async waitForLoad() {
@@ -45,7 +47,24 @@ export class PersonFormPage {
   }
 
   async selectRelationship(relationship: string) {
-    await this.relationshipSelect.selectOption({ value: relationship });
+    const relationshipMap: Record<string, string> = {
+      '家族': '家族',
+      '親戚': '親戚',
+      '友人': '友人',
+      '同僚': '会社関係',
+      '会社関係': '会社関係',
+      '知人': '知人',
+      'その他': 'その他',
+    };
+    const value = relationshipMap[relationship] ?? relationship;
+    try {
+      const result = await this.relationshipSelect.selectOption({ value });
+      if (result.length === 0) {
+        throw new Error('No matching value');
+      }
+    } catch {
+      await this.relationshipSelect.selectOption({ label: relationship });
+    }
   }
 
   async fillMemo(memo: string) {
@@ -53,7 +72,11 @@ export class PersonFormPage {
   }
 
   async submit() {
-    await this.submitButton.click();
+    const detailUrlPattern = /\/persons\/(?!new$)[^/]+$/;
+    await Promise.all([
+      this.page.waitForURL((url) => detailUrlPattern.test(url)),
+      this.submitButton.click(),
+    ]);
   }
 
   async cancel() {

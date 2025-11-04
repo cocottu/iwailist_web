@@ -8,6 +8,9 @@ import { getStorage, FirebaseStorage } from 'firebase/storage';
 
 // 環境変数から現在の環境を取得
 export const APP_ENV = import.meta.env.VITE_APP_ENV || 'development';
+const MODE = import.meta.env.MODE;
+const firebaseEnabledFlag = (import.meta.env.VITE_FIREBASE_ENABLED ?? 'true') !== 'false';
+const isTestLikeEnvironment = MODE === 'test' || MODE === 'e2e' || APP_ENV === 'test' || APP_ENV === 'e2e';
 
 // 環境判定ヘルパー
 export const isDevelopment = (): boolean => APP_ENV === 'development';
@@ -47,7 +50,13 @@ const missingEnvVars = requiredEnvVars.filter(
   (key) => !import.meta.env[key]
 );
 
-if (missingEnvVars.length > 0) {
+const shouldInitializeFirebase = firebaseEnabledFlag && !isTestLikeEnvironment && missingEnvVars.length === 0;
+
+if (!firebaseEnabledFlag) {
+  console.info('[DEBUG] Firebase: Disabled via VITE_FIREBASE_ENABLED flag.');
+} else if (isTestLikeEnvironment) {
+  console.info('[DEBUG] Firebase: Disabled in test/e2e environment.');
+} else if (missingEnvVars.length > 0) {
   console.warn(
     `Missing Firebase environment variables: ${missingEnvVars.join(', ')}`
   );
@@ -61,7 +70,7 @@ let db: Firestore | null = null;
 let storage: FirebaseStorage | null = null;
 
 try {
-  if (missingEnvVars.length === 0) {
+  if (shouldInitializeFirebase) {
     console.log('[DEBUG] Firebase: Initializing...');
     app = initializeApp(firebaseConfig);
     auth = getAuth(app);
@@ -85,7 +94,7 @@ try {
       // 本番環境では詳細なログを抑制
     }
     console.log('[DEBUG] Firebase: Initialization complete');
-  } else {
+  } else if (!isTestLikeEnvironment) {
     console.log('[DEBUG] Firebase: Missing environment variables:', missingEnvVars);
   }
 } catch (error) {
@@ -98,7 +107,7 @@ export { app, auth, db, storage };
 
 // Firebase有効性チェック
 export const isFirebaseEnabled = (): boolean => {
-  return app !== null && auth !== null && db !== null && storage !== null;
+  return shouldInitializeFirebase && app !== null && auth !== null && db !== null && storage !== null;
 };
 
 // Firebase設定診断

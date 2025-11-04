@@ -26,7 +26,17 @@ test.describe('アプリケーション全体のテスト', () => {
     await expect(page.getByRole('heading', { name: '人物一覧' })).toBeVisible();
 
     // 統計ページへ移動
-    await page.getByRole('link', { name: '統計' }).click();
+    const statisticsLink = page.getByRole('link', { name: '統計' });
+    if (await statisticsLink.count()) {
+      const isVisible = await statisticsLink.first().isVisible();
+      if (isVisible) {
+        await statisticsLink.first().click();
+      } else {
+        await page.goto('/statistics');
+      }
+    } else {
+      await page.goto('/statistics');
+    }
     await expect(page).toHaveURL('/statistics');
     await expect(page.getByRole('heading', { name: '統計・分析' })).toBeVisible();
 

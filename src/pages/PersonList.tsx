@@ -163,7 +163,11 @@ export const PersonList: React.FC = () => {
             const stats = getPersonGiftStats(person.id);
             
             return (
-              <Card key={person.id} className="p-6 hover:shadow-md transition-shadow">
+              <Card
+                key={person.id}
+                className="p-6 hover:shadow-md transition-shadow"
+                data-testid="person-card"
+              >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
                     <h3 className="font-semibold text-gray-900 mb-1">

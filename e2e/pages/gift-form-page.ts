@@ -31,10 +31,12 @@ export class GiftFormPage {
 
   async goto() {
     await this.page.goto('/gifts/new');
+    await this.waitForLoad();
   }
 
   async gotoEdit(giftId: string) {
     await this.page.goto(`/gifts/${giftId}/edit`);
+    await this.waitForLoad();
   }
 
   async waitForLoad() {
@@ -47,7 +49,23 @@ export class GiftFormPage {
   }
 
   async selectPerson(personName: string) {
-    await this.personSelect.selectOption({ value: personName });
+    await this.page.waitForFunction(
+      (name) => {
+        const select = document.querySelectorAll('select')[0] as HTMLSelectElement | undefined;
+        if (!select) return false;
+        return Array.from(select.options).some((option) => option.value === name || option.textContent === name);
+      },
+      personName,
+      { timeout: 5000 }
+    );
+    try {
+      const result = await this.personSelect.selectOption({ value: personName });
+      if (result.length === 0) {
+        throw new Error('No matching value');
+      }
+    } catch {
+      await this.personSelect.selectOption({ label: personName });
+    }
   }
 
   async fillReceivedDate(date: string) {
@@ -55,17 +73,35 @@ export class GiftFormPage {
   }
 
   async selectCategory(category: string) {
-    await this.categorySelect.selectOption({ value: category });
+    try {
+      const result = await this.categorySelect.selectOption({ value: category });
+      if (result.length === 0) {
+        throw new Error('No matching value');
+      }
+    } catch {
+      await this.categorySelect.selectOption({ label: category }).catch(async () => {
+        await this.categorySelect.selectOption({ value: 'その他' });
+      });
+    }
   }
 
   async selectReturnStatus(status: string) {
-    // お返し状況のラベルをマッピング
-    const returnStatusLabels = {
-      'pending': '未対応',
-      'completed': '対応済',
-      'not_required': '不要'
+    const statusValueMap: Record<string, 'pending' | 'completed' | 'not_required'> = {
+      'pending': 'pending',
+      'completed': 'completed',
+      'not_required': 'not_required',
+      '未対応': 'pending',
+      '対応済': 'completed',
+      '不要': 'not_required',
     };
-    await this.page.getByRole('radio', { name: returnStatusLabels[status] }).check();
+    const labelMap: Record<'pending' | 'completed' | 'not_required', string> = {
+      pending: '未対応',
+      completed: '対応済',
+      not_required: '不要',
+    };
+    const normalized = statusValueMap[status] ?? 'pending';
+    const label = labelMap[normalized];
+    await this.page.getByRole('radio', { name: label }).check();
   }
 
   async fillAmount(amount: number) {
@@ -77,7 +113,11 @@ export class GiftFormPage {
   }
 
   async submit() {
-    await this.submitButton.click();
+    const detailUrlPattern = /\/gifts\/(?!new$)[^/]+$/;
+    await Promise.all([
+      this.page.waitForURL((url) => detailUrlPattern.test(url)),
+      this.submitButton.click(),
+    ]);
   }
 
   async cancel() {

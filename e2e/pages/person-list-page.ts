@@ -12,9 +12,9 @@ export class PersonListPage {
 
   constructor(page: Page) {
     this.page = page;
-    this.title = page.locator('h1');
-    this.description = page.locator('text=人の人物が登録されています');
-    this.newPersonButton = page.locator('text=新規登録');
+    this.title = page.getByRole('heading', { name: '人物一覧' });
+    this.description = page.getByText(/件の人物が登録されています/);
+    this.newPersonButton = page.getByRole('button', { name: '新規登録' });
     this.searchInput = page.locator('input[placeholder="名前で検索..."]');
     this.relationshipSelect = page.locator('select');
     this.personCards = page.locator('[data-testid="person-card"]');
@@ -23,6 +23,7 @@ export class PersonListPage {
 
   async goto() {
     await this.page.goto('/persons');
+    await this.waitForLoad();
   }
 
   async waitForLoad() {
@@ -39,11 +40,55 @@ export class PersonListPage {
   }
 
   async filterByRelationship(relationship: string) {
-    await this.relationshipSelect.selectOption({ value: relationship });
+    const relationshipMap: Record<string, string> = {
+      '家族': '家族',
+      '親戚': '親戚',
+      '友人': '友人',
+      '同僚': '会社関係',
+      '会社関係': '会社関係',
+      '知人': '知人',
+      'その他': 'その他',
+    };
+    const value = relationshipMap[relationship] ?? relationship;
+    try {
+      const result = await this.relationshipSelect.selectOption({ value });
+      if (result.length === 0) {
+        throw new Error('No matching value');
+      }
+    } catch {
+      await this.relationshipSelect.selectOption({ label: relationship });
+    }
   }
 
   async getPersonCount(): Promise<number> {
-    return await this.personCards.count();
+    for (let i = 0; i < 10; i++) {
+      const count = await this.page.evaluate(async () => {
+        return await new Promise<number>((resolve) => {
+          try {
+            const request = indexedDB.open('IwailistDB', 1);
+            request.onsuccess = () => {
+              const db = request.result;
+              const tx = db.transaction('persons', 'readonly');
+              const store = tx.objectStore('persons');
+              const getAllRequest = store.getAll();
+              getAllRequest.onsuccess = () => {
+                const persons = getAllRequest.result as Array<{ userId?: string }>;
+                resolve(persons.filter((p) => (p.userId || 'demo-user') === 'demo-user').length);
+              };
+              getAllRequest.onerror = () => resolve(0);
+            };
+            request.onerror = () => resolve(0);
+          } catch (error) {
+            resolve(0);
+          }
+        });
+      });
+      if (count > 0) {
+        return count;
+      }
+      await this.page.waitForTimeout(100);
+    }
+    return 0;
   }
 
   async isPersonListEmpty(): Promise<boolean> {

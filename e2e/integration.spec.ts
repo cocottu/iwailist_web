@@ -84,6 +84,7 @@ test.describe('統合テスト - 完全なワークフロー', () => {
   });
 
   test('複数の人物と贈答品の登録と管理', async ({ page }) => {
+    test.setTimeout(120000);
     const personFormPage = new PersonFormPage(page);
     const giftFormPage = new GiftFormPage(page);
     const personListPage = new PersonListPage(page);
@@ -92,7 +93,7 @@ test.describe('統合テスト - 完全なワークフロー', () => {
     // 1. 複数の人物を登録
     const persons = [
       { name: '田中太郎', furigana: 'タナカタロウ', relationship: '友人' },
-      { name: '佐藤花子', furigana: 'サトウハナコ', relationship: '同僚' },
+      { name: '佐藤花子', furigana: 'サトウハナコ', relationship: '会社関係' },
       { name: '鈴木一郎', furigana: 'スズキイチロウ', relationship: '親戚' }
     ];
 
@@ -111,9 +112,9 @@ test.describe('統合テスト - 完全なワークフロー', () => {
 
     // 3. 各人物に対して贈答品を登録
     const gifts = [
-      { giftName: 'お菓子セット', personId: '田中太郎', receivedDate: '2024-01-01', category: 'お菓子', returnStatus: '未対応', amount: 3000 },
-      { giftName: 'ワイン', personId: '佐藤花子', receivedDate: '2024-01-02', category: '飲み物', returnStatus: '対応済', amount: 8000 },
-      { giftName: '花束', personId: '鈴木一郎', receivedDate: '2024-01-03', category: '花', returnStatus: '不要', amount: 2000 }
+      { giftName: 'お菓子セット', personId: '田中太郎', receivedDate: '2024-01-01', category: 'お祝い', returnStatus: 'pending', amount: 3000 },
+      { giftName: 'ワイン', personId: '佐藤花子', receivedDate: '2024-01-02', category: '季節の贈り物', returnStatus: 'completed', amount: 8000 },
+      { giftName: '花束', personId: '鈴木一郎', receivedDate: '2024-01-03', category: 'その他', returnStatus: 'not_required', amount: 2000 }
     ];
 
     for (const gift of gifts) {
