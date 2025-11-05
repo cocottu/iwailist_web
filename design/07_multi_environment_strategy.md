@@ -19,51 +19,55 @@
 
 ## 2. 環境分離戦略
 
-### 2.1 推奨アプローチ：複数Firebaseプロジェクト方式
+### 2.1 アプローチの選択
 
-Firebaseの環境分離には、**複数のFirebaseプロジェクトを作成する方式**が最もベストプラクティスとされています。
+Firebaseの環境分離には2つのアプローチがあります。プロジェクト数の上限に達している場合は、**単一プロジェクト方式**を採用します。
 
-#### メリット
+#### アプローチA：複数Firebaseプロジェクト方式（推奨・ただしプロジェクト数上限あり）
 
-✅ **完全な分離**
-- データベース、ストレージ、認証が完全に独立
-- 開発環境の障害が本番に影響しない
-- セキュリティリスクの最小化
+**メリット**:
+- ✅ 完全な分離（データベース、ストレージ、認証が独立）
+- ✅ 柔軟な権限管理
+- ✅ 課金の分離
+- ✅ 独立したスケーリング
 
-✅ **柔軟な権限管理**
-- 環境ごとに異なるアクセス権限を設定可能
-- 開発者には開発環境のみアクセス許可
-- 本番環境は限られたメンバーのみ
+**デメリット**:
+- ❌ プロジェクト数の上限に達する可能性
+- ❌ 管理コストの増加
+- ❌ Security Rulesなどの設定を各環境で同期する必要
 
-✅ **課金の分離**
-- 環境ごとの利用状況を個別に追跡
-- コスト分析が容易
-- 開発環境の無駄な費用発生を検知しやすい
+#### アプローチB：単一Firebaseプロジェクト方式（プロジェクト数上限時の代替案）
 
-✅ **独立したスケーリング**
-- 各環境で異なるリソース設定が可能
-- 本番環境のみスケールアップ
+**状況**: Firebaseアカウントでプロジェクト作成数の上限に達している場合
 
-#### デメリット
+**実装方法**:
+1. **Firebase Hosting Channels（プレビューチャネル）**を使用
+   - 開発環境: プレビューチャネル（自動生成URL）
+   - ステージング環境: プレビューチャネルまたはカスタムチャネル
+   - 本番環境: メインサイト（live）
 
-❌ **管理コストの増加**
-- 複数のプロジェクトを管理する必要がある
-- Security Rulesなどの設定を各環境で同期
+2. **Firestoreコレクション名で分離**
+   - 環境プレフィックスを付ける（例：`dev_users`, `staging_users`, `prod_users`）
+   - またはサブコレクション方式（`environments/dev/users`）
 
-❌ **コストの増加**
-- 環境ごとにFirebaseリソースが必要
-- ただし、開発/ステージングは無料枠内で運用可能
+3. **Storageパスで分離**
+   - 環境ごとにパスを分ける（例：`dev/`, `staging/`, `prod/`）
 
-### 2.2 非推奨アプローチ：単一プロジェクト + コレクション分離
+**メリット**:
+- ✅ プロジェクト数の制約がない
+- ✅ コストが1つ分のみ
+- ✅ 設定の一元管理が可能
 
-単一のFirebaseプロジェクト内でコレクション名やパスで環境を分離する方法は**非推奨**です。
-
-#### 理由
-
+**デメリット**:
 - ❌ データの誤操作リスク（本番データの削除など）
-- ❌ 認証ユーザーが環境間で共有される
-- ❌ Security Rulesが複雑化
+- ❌ 認証ユーザーが環境間で共有される（対策：環境変数でフィルタリング）
+- ❌ Security Rulesが複雑化（環境判定が必要）
 - ❌ 課金が一緒になり、コスト分析が困難
+
+**注意事項**:
+- 本番環境への影響を最小化するため、慎重な実装が必要
+- データアクセス時に環境判定を必ず行う
+- 本番デプロイ前に十分なテストが必要
 
 ## 3. 環境定義
 
@@ -199,7 +203,11 @@ service cloud.firestore {
 
 ## 4. 技術実装
 
-### 4.1 Firebaseプロジェクトの作成
+### 4.1 アプローチ選択の判断
+
+プロジェクト数の上限に達している場合は、**単一Firebaseプロジェクト方式**を採用します。
+
+#### 4.1.1 複数プロジェクト方式の場合
 
 各環境用に3つのFirebaseプロジェクトを作成します。
 
@@ -216,7 +224,30 @@ service cloud.firestore {
 - Cloud Storage
 - Hosting
 
+#### 4.1.2 単一プロジェクト方式の場合（プロジェクト数上限時）
+
+既存のFirebaseプロジェクト（`cocottu-iwailist`）を使用します。
+
+**Firebase Hosting Channelsの活用**:
+```bash
+# 開発環境: プレビューチャネル（自動生成URL）
+firebase hosting:channel:deploy dev --expires 30d
+
+# ステージング環境: カスタムチャネル名
+firebase hosting:channel:deploy staging --expires 90d
+
+# 本番環境: メインサイト
+firebase deploy --only hosting
+```
+
+**環境別URL**:
+- 開発環境: `https://cocottu-iwailist--dev-[HASH].web.app`
+- ステージング環境: `https://cocottu-iwailist--staging-[HASH].web.app`
+- 本番環境: `https://cocottu-iwailist.web.app` またはカスタムドメイン
+
 ### 4.2 .firebasercの設定
+
+#### 4.2.1 複数プロジェクト方式の場合
 
 プロジェクトルートの`.firebaserc`ファイルで複数プロジェクトを管理します。
 
@@ -251,9 +282,37 @@ firebase deploy
 firebase use
 ```
 
+#### 4.2.2 単一プロジェクト方式の場合
+
+単一プロジェクト（`cocottu-iwailist`）のみを使用します。
+
+```json
+{
+  "projects": {
+    "default": "cocottu-iwailist",
+    "production": "cocottu-iwailist"
+  },
+  "targets": {},
+  "etags": {}
+}
+```
+
+**Hosting Channelsを使用したデプロイ**:
+
+```bash
+# 開発環境: プレビューチャネル（30日間有効）
+firebase hosting:channel:deploy dev --expires 30d
+
+# ステージング環境: プレビューチャネル（90日間有効）
+firebase hosting:channel:deploy staging --expires 90d
+
+# 本番環境: メインサイト
+firebase deploy --only hosting
+```
+
 ### 4.3 環境変数の管理
 
-#### 4.3.1 ローカル開発環境
+#### 4.3.1 複数プロジェクト方式の場合
 
 プロジェクトルートに環境ごとの`.env`ファイルを作成します。
 
@@ -285,6 +344,46 @@ VITE_APP_ENV=staging
 ```bash
 # Production環境
 VITE_FIREBASE_API_KEY=AIza...（本番環境のAPIキー）
+VITE_FIREBASE_AUTH_DOMAIN=cocottu-iwailist.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=cocottu-iwailist
+VITE_FIREBASE_STORAGE_BUCKET=cocottu-iwailist.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=111222333
+VITE_FIREBASE_APP_ID=1:111222333:web:zzz
+VITE_APP_ENV=production
+```
+
+#### 4.3.2 単一プロジェクト方式の場合
+
+**重要な違い**: すべての環境で同じFirebaseプロジェクト設定を使用しますが、`VITE_APP_ENV`で環境を区別します。
+
+**`.env.development`** (Git管理外):
+```bash
+# Development環境（同じプロジェクト、環境変数で分離）
+VITE_FIREBASE_API_KEY=AIza...（本番プロジェクトのAPIキー）
+VITE_FIREBASE_AUTH_DOMAIN=cocottu-iwailist.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=cocottu-iwailist
+VITE_FIREBASE_STORAGE_BUCKET=cocottu-iwailist.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=111222333
+VITE_FIREBASE_APP_ID=1:111222333:web:zzz
+VITE_APP_ENV=development
+```
+
+**`.env.staging`** (Git管理外):
+```bash
+# Staging環境（同じプロジェクト、環境変数で分離）
+VITE_FIREBASE_API_KEY=AIza...（本番プロジェクトのAPIキー）
+VITE_FIREBASE_AUTH_DOMAIN=cocottu-iwailist.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=cocottu-iwailist
+VITE_FIREBASE_STORAGE_BUCKET=cocottu-iwailist.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=111222333
+VITE_FIREBASE_APP_ID=1:111222333:web:zzz
+VITE_APP_ENV=staging
+```
+
+**`.env.production`** (Git管理外):
+```bash
+# Production環境
+VITE_FIREBASE_API_KEY=AIza...（本番プロジェクトのAPIキー）
 VITE_FIREBASE_AUTH_DOMAIN=cocottu-iwailist.firebaseapp.com
 VITE_FIREBASE_PROJECT_ID=cocottu-iwailist
 VITE_FIREBASE_STORAGE_BUCKET=cocottu-iwailist.appspot.com
@@ -557,7 +656,72 @@ jobs:
         run: echo "✅ Production deployment successful!"
 ```
 
-### 4.5 Security Rulesの環境別管理
+### 4.5 Firestore/Storageの環境分離（単一プロジェクト方式）
+
+#### 4.5.1 Firestoreコレクション分離
+
+単一プロジェクト方式では、コレクション名に環境プレフィックスを付けます。
+
+**実装方法**:
+
+```typescript
+// src/lib/firebase.ts に環境判定とコレクション名取得関数を追加
+
+export const APP_ENV = import.meta.env.VITE_APP_ENV || 'development';
+
+// 環境に応じたコレクション名を取得
+export const getCollectionName = (baseName: string): string => {
+  const env = APP_ENV;
+  if (env === 'production') {
+    return baseName; // 本番はプレフィックスなし
+  }
+  return `${env}_${baseName}`; // dev_users, staging_users
+};
+
+// 使用例
+import { getCollectionName, collection } from 'firebase/firestore';
+
+const usersRef = collection(db, getCollectionName('users'));
+const personsRef = collection(db, getCollectionName('persons'));
+const giftsRef = collection(db, getCollectionName('gifts'));
+```
+
+**コレクション構造**:
+- 開発環境: `dev_users`, `dev_persons`, `dev_gifts`
+- ステージング環境: `staging_users`, `staging_persons`, `staging_gifts`
+- 本番環境: `users`, `persons`, `gifts`（プレフィックスなし）
+
+#### 4.5.2 Storageパス分離
+
+Storageも環境ごとにパスを分けます。
+
+```typescript
+// src/lib/firebase.ts にStorageパス取得関数を追加
+
+export const getStoragePath = (basePath: string): string => {
+  const env = APP_ENV;
+  if (env === 'production') {
+    return basePath; // 本番はパスプレフィックスなし
+  }
+  return `${env}/${basePath}`; // dev/users/xxx.jpg, staging/users/xxx.jpg
+};
+
+// 使用例
+import { getStoragePath, ref, uploadBytes } from 'firebase/storage';
+
+const imagePath = getStoragePath(`users/${userId}/avatar.jpg`);
+const imageRef = ref(storage, imagePath);
+await uploadBytes(imageRef, file);
+```
+
+**Storageパス構造**:
+- 開発環境: `dev/users/{userId}/avatar.jpg`
+- ステージング環境: `staging/users/{userId}/avatar.jpg`
+- 本番環境: `users/{userId}/avatar.jpg`
+
+### 4.6 Security Rulesの環境別管理
+
+#### 4.6.1 複数プロジェクト方式の場合
 
 環境ごとに異なるSecurity Rulesを適用する場合、ファイルを分離します。
 
@@ -570,29 +734,6 @@ project-root/
 ├── storage.rules.staging
 ├── storage.rules
 └── firebase.json
-```
-
-**firebase.json の更新**:
-```json
-{
-  "hosting": {
-    "public": "dist",
-    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
-    "rewrites": [
-      {
-        "source": "**",
-        "destination": "/index.html"
-      }
-    ]
-  },
-  "firestore": {
-    "rules": "firestore.rules",
-    "indexes": "firestore.indexes.json"
-  },
-  "storage": {
-    "rules": "storage.rules"
-  }
-}
 ```
 
 デプロイ時に環境に応じてファイルを切り替え：
@@ -615,7 +756,151 @@ firebase use production
 firebase deploy
 ```
 
-### 4.6 コード内での環境判定
+#### 4.6.2 単一プロジェクト方式の場合
+
+**重要**: 単一プロジェクトでは、Security Rules内で環境判定が必要です。
+
+**Firestore Rules（環境判定付き）**:
+
+```javascript
+// firestore.rules
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 環境判定関数（リクエストヘッダーまたはカスタムクレームから取得）
+    function getEnvironment() {
+      // 注意: Firestore Rulesはリクエストヘッダーを直接読み取れないため、
+      // データ構造で環境を識別するか、カスタムクレームを使用
+      // ここではコレクション名のプレフィックスで判定
+      return request.resource.data.env || 'production';
+    }
+    
+    // 開発環境用コレクション（緩いルール）
+    match /dev_{document=**} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // ステージング環境用コレクション（本番同等）
+    match /staging_users/{userId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+    match /staging_persons/{personId} {
+      allow read: if request.auth != null && 
+                    request.auth.uid == resource.data.userId;
+      allow write: if request.auth != null && 
+                     request.auth.uid == request.resource.data.userId;
+    }
+    match /staging_gifts/{giftId} {
+      allow read: if request.auth != null && 
+                    request.auth.uid == resource.data.userId;
+      allow write: if request.auth != null && 
+                     request.auth.uid == request.resource.data.userId;
+    }
+    
+    // 本番環境用コレクション（最も厳格）
+    match /users/{userId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null && 
+                      request.auth.uid == userId &&
+                      validateUserData(request.resource.data);
+      allow update: if request.auth != null && 
+                      request.auth.uid == userId &&
+                      validateUserData(request.resource.data);
+      allow delete: if request.auth != null && 
+                      request.auth.uid == userId;
+    }
+    
+    match /persons/{personId} {
+      allow read: if request.auth != null && 
+                    request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null && 
+                      request.auth.uid == request.resource.data.userId &&
+                      validatePersonData(request.resource.data);
+      allow update: if request.auth != null && 
+                      request.auth.uid == request.resource.data.userId &&
+                      validatePersonData(request.resource.data);
+      allow delete: if request.auth != null && 
+                      request.auth.uid == resource.data.userId;
+    }
+    
+    match /gifts/{giftId} {
+      allow read: if request.auth != null && 
+                    request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null && 
+                      request.auth.uid == request.resource.data.userId &&
+                      validateGiftData(request.resource.data);
+      allow update: if request.auth != null && 
+                      request.auth.uid == request.resource.data.userId &&
+                      validateGiftData(request.resource.data);
+      allow delete: if request.auth != null && 
+                      request.auth.uid == resource.data.userId;
+    }
+    
+    // バリデーション関数
+    function validateUserData(data) {
+      return data.keys().hasAll(['displayName', 'email', 'createdAt']) &&
+             data.displayName is string &&
+             data.displayName.size() > 0 &&
+             data.displayName.size() <= 100 &&
+             data.email is string &&
+             data.email.matches('.*@.*\\..*');
+    }
+    
+    function validatePersonData(data) {
+      return data.keys().hasAll(['userId', 'name', 'createdAt']) &&
+             data.userId is string &&
+             data.name is string &&
+             data.name.size() > 0 &&
+             data.name.size() <= 100;
+    }
+    
+    function validateGiftData(data) {
+      return data.keys().hasAll(['userId', 'personId', 'name', 'amount', 'createdAt']) &&
+             data.userId is string &&
+             data.personId is string &&
+             data.name is string &&
+             data.name.size() > 0 &&
+             data.amount is int &&
+             data.amount > 0;
+    }
+  }
+}
+```
+
+**Storage Rules（環境判定付き）**:
+
+```javascript
+// storage.rules
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // 開発環境（緩いルール）
+    match /dev/{allPaths=**} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // ステージング環境（本番同等）
+    match /staging/{allPaths=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && 
+                     request.resource.size < 10 * 1024 * 1024 && // 10MB以下
+                     request.resource.contentType.matches('image/.*');
+    }
+    
+    // 本番環境（最も厳格）
+    match /{allPaths=**} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && 
+                     request.resource.size < 5 * 1024 * 1024 && // 5MB以下
+                     request.resource.contentType.matches('image/.*') &&
+                     request.resource.name.matches('.*\\.(jpg|jpeg|png|webp)$');
+    }
+  }
+}
+```
+
+### 4.7 コード内での環境判定
 
 `src/config/firebase.ts`で環境を判定：
 
@@ -1100,11 +1385,26 @@ gsutil -m rm -r gs://cocottu-iwailist-dev.appspot.com/**
 
 本設計書では、Iwailist WebアプリケーションにおけるFirebaseのマルチ環境戦略を定義しました。
 
-**重要ポイント**:
+### 13.1 アプローチの選択
 
-1. ✅ **複数Firebaseプロジェクト方式を採用**
+**状況に応じたアプローチ選択**:
+
+1. **プロジェクト数に余裕がある場合**: 複数Firebaseプロジェクト方式（推奨）
    - 開発、ステージング、本番で完全に分離
    - セキュリティリスクの最小化
+   - 各環境で独立した設定
+
+2. **プロジェクト数上限に達している場合**: 単一Firebaseプロジェクト方式
+   - Firebase Hosting Channelsを使用
+   - Firestoreコレクション名で環境分離（`dev_*`, `staging_*`, `prod_*`）
+   - Storageパスで環境分離（`dev/`, `staging/`, `prod/`）
+   - Security Rulesで環境判定
+
+### 13.2 重要ポイント
+
+1. ✅ **環境分離の実現**
+   - 複数プロジェクト方式: 完全分離
+   - 単一プロジェクト方式: コレクション/パスで分離
 
 2. ✅ **環境変数とGitHub Actionsで自動化**
    - ブランチ戦略に基づく自動デプロイ
@@ -1116,10 +1416,17 @@ gsutil -m rm -r gs://cocottu-iwailist-dev.appspot.com/**
    - 本番: 最も厳格（セキュリティ優先）
 
 4. ✅ **コストとパフォーマンスの最適化**
-   - 開発/ステージングは無料枠内
-   - 本番環境は適切なスケーリング
+   - 複数プロジェクト方式: 開発/ステージングは無料枠内
+   - 単一プロジェクト方式: コスト1つ分のみ
 
-この戦略により、安全で効率的な開発・デプロイフローを実現できます。
+### 13.3 単一プロジェクト方式の注意事項
+
+- ⚠️ **データの誤操作リスク**: 本番データの削除を防ぐため、環境判定を必ず実装
+- ⚠️ **認証ユーザーの共有**: 環境変数でフィルタリングするか、ユーザーIDで環境を分離
+- ⚠️ **Security Rulesの複雑化**: 環境判定ロジックを追加する必要がある
+- ⚠️ **コスト分析の困難**: 環境別の使用量を追跡する仕組みを検討
+
+この戦略により、プロジェクト数の制約がある場合でも、安全で効率的な開発・デプロイフローを実現できます。
 
 ---
 

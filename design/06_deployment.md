@@ -324,6 +324,8 @@ firebase_app_id = "your-firebase-app-id"
 
 ### 2.2 デプロイコマンド
 
+#### 2.2.1 複数プロジェクト方式の場合
+
 ```bash
 # アプリケーションビルド
 npm run build
@@ -331,27 +333,75 @@ npm run build
 # Firebase初期化 (初回のみ)
 firebase init hosting
 
-# 本番デプロイ
+# 開発環境デプロイ
+firebase use development
 firebase deploy --only hosting
 
-# プレビューデプロイ (テスト用)
-firebase hosting:channel:deploy preview
+# ステージング環境デプロイ
+firebase use staging
+firebase deploy --only hosting
 
-# ステージングデプロイ
-firebase hosting:channel:deploy staging
+# 本番環境デプロイ
+firebase use production
+firebase deploy --only hosting
 ```
 
+#### 2.2.2 単一プロジェクト方式の場合（プロジェクト数上限時）
+
+**Firebase Hosting Channelsを使用**:
+
+```bash
+# アプリケーションビルド
+npm run build
+
+# 開発環境: プレビューチャネル（30日間有効）
+firebase hosting:channel:deploy dev --expires 30d
+
+# ステージング環境: プレビューチャネル（90日間有効）
+firebase hosting:channel:deploy staging --expires 90d
+
+# 本番環境: メインサイト
+firebase deploy --only hosting
+
+# プレビューチャネルの一覧確認
+firebase hosting:channel:list
+
+# プレビューチャネルの削除
+firebase hosting:channel:delete dev
+```
+
+**環境別URL**:
+- 開発環境: `https://cocottu-iwailist--dev-[HASH].web.app`
+- ステージング環境: `https://cocottu-iwailist--staging-[HASH].web.app`
+- 本番環境: `https://cocottu-iwailist.web.app` またはカスタムドメイン
+
 ### 2.3 .firebaserc
+
+#### 2.3.1 複数プロジェクト方式の場合
 
 ```json
 {
   "projects": {
-    "default": "your-project-id-dev",
-    "staging": "your-project-id-staging",
-    "production": "your-project-id-prod"
+    "default": "cocottu-iwailist-dev",
+    "development": "cocottu-iwailist-dev",
+    "staging": "cocottu-iwailist-staging",
+    "production": "cocottu-iwailist"
   }
 }
 ```
+
+#### 2.3.2 単一プロジェクト方式の場合
+
+```json
+{
+  "projects": {
+    "default": "cocottu-iwailist",
+    "production": "cocottu-iwailist"
+  }
+}
+```
+
+**注意**: 単一プロジェクト方式では、環境の切り替えは不要です。Hosting Channelsを使用して環境を分離します。
 
 ### 2.4 環境別設定
 
