@@ -4,16 +4,13 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --mode development",
+    "dev": "vite",
     "dev:e2e": "vite --mode e2e --host 127.0.0.1 --port 3000 --strictPort",
-    "dev:staging": "vite --mode staging",
-    "dev:prod": "vite --mode production",
-    "build": "tsc && vite build --mode production",
-    "build:dev": "tsc && vite build --mode development",
-    "build:staging": "tsc && vite build --mode staging",
-    "build:prod": "tsc && vite build --mode production",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives",
+    "build": "tsc && vite build",
     "preview": "vite preview",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives",
+    "lint:fix": "eslint . --ext ts,tsx --fix",
+    "type-check": "tsc --noEmit",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
@@ -27,9 +24,8 @@
     "security:check": "node scripts/security-check.js",
     "pre-commit": "node scripts/pre-commit.js",
     "build:production": "npm run security:check && npm run lint && npm run test:run && npm run build",
-    "deploy:dev": "npm run build:dev && firebase use development && firebase deploy",
-    "deploy:staging": "npm run build:staging && firebase use staging && firebase deploy",
-    "deploy:prod": "npm run build:prod && firebase use production && firebase deploy"
+    "deploy": "npm run build && firebase deploy --only hosting",
+    "deploy:rules": "firebase deploy --only firestore:rules,firestore:indexes,storage"
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
