@@ -171,7 +171,10 @@ export const GiftForm: React.FC = () => {
       navigate(`/gifts/${giftData.id}`);
     } catch (error) {
       console.error('Failed to save gift:', error);
-      alert('保存に失敗しました');
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : '保存に失敗しました。オフラインモードの場合は、IndexedDBに保存されます。';
+      alert(errorMessage);
     } finally {
       setSaving(false);
     }
