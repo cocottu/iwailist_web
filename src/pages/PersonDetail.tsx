@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
-import { Card, Button, Badge, Loading, EmptyState } from '@/components/ui';
-import { PersonRepository, GiftRepository } from '@/database';
-import { Person, Gift } from '@/types';
-import { format } from 'date-fns';
-import { ja } from 'date-fns/locale';
+import React, { useState, useEffect } from "react";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { Card, Button, Badge, Loading, EmptyState } from "@/components/ui";
+import { PersonRepository, GiftRepository } from "@/database";
+import { Person, Gift } from "@/types";
+import { format } from "date-fns";
+import { ja } from "date-fns/locale";
 
 export const PersonDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -22,57 +22,60 @@ export const PersonDetail: React.FC = () => {
   const loadPersonDetail = async (personId: string) => {
     try {
       setLoading(true);
-      
+
       const personRepo = new PersonRepository();
       const giftRepo = new GiftRepository();
-      
+
       const personData = await personRepo.get(personId);
       if (!personData) {
-        throw new Error('人物が見つかりません');
+        throw new Error("人物が見つかりません");
       }
-      
+
       setPerson(personData);
-      
+
       const giftsData = await giftRepo.getByPersonId(personId);
       setGifts(giftsData);
     } catch (error) {
-      console.error('Failed to load person detail:', error);
+      console.error("Failed to load person detail:", error);
     } finally {
       setLoading(false);
     }
   };
 
   const handleDelete = async () => {
-    if (!person || !window.confirm('この人物を削除しますか？関連する贈答品も削除されます。')) {
+    if (
+      !person ||
+      !window.confirm("この人物を削除しますか？関連する贈答品も削除されます。")
+    ) {
       return;
     }
-    
+
     try {
       const personRepo = new PersonRepository();
       const giftRepo = new GiftRepository();
-      
+
       // 関連する贈答品を削除
       for (const gift of gifts) {
         await giftRepo.delete(gift.id, gift.userId);
       }
-      
+
       // 人物を削除
       await personRepo.delete(person.id, person.userId);
-      
-      navigate('/persons');
+
+      navigate("/persons");
     } catch (error) {
-      console.error('Failed to delete person:', error);
-      alert('削除に失敗しました');
+      console.error("Failed to delete person:", error);
+      alert("削除に失敗しました");
     }
   };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'pending':
+      case "pending":
         return <Badge status="pending">未対応</Badge>;
-      case 'completed':
+      case "completed":
         return <Badge status="completed">対応済</Badge>;
-      case 'not_required':
+      case "not_required":
         return <Badge status="not_required">不要</Badge>;
       default:
         return <Badge status="info">不明</Badge>;
@@ -81,14 +84,18 @@ export const PersonDetail: React.FC = () => {
 
   const getGiftStats = () => {
     const totalAmount = gifts.reduce((sum, g) => sum + (g.amount || 0), 0);
-    const pendingCount = gifts.filter(g => g.returnStatus === 'pending').length;
-    const completedCount = gifts.filter(g => g.returnStatus === 'completed').length;
-    
+    const pendingCount = gifts.filter(
+      (g) => g.returnStatus === "pending",
+    ).length;
+    const completedCount = gifts.filter(
+      (g) => g.returnStatus === "completed",
+    ).length;
+
     return {
       totalAmount,
       pendingCount,
       completedCount,
-      totalCount: gifts.length
+      totalCount: gifts.length,
     };
   };
 
@@ -106,8 +113,8 @@ export const PersonDetail: React.FC = () => {
         <EmptyState
           message="人物が見つかりません"
           action={{
-            label: '一覧に戻る',
-            onClick: () => navigate('/persons')
+            label: "一覧に戻る",
+            onClick: () => navigate("/persons"),
           }}
         />
       </div>
@@ -121,7 +128,10 @@ export const PersonDetail: React.FC = () => {
       {/* ヘッダー */}
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center">
-          <Link to="/persons" className="text-gray-500 hover:text-gray-700 mr-4">
+          <Link
+            to="/persons"
+            className="text-gray-500 hover:text-gray-700 mr-4"
+          >
             ← 一覧に戻る
           </Link>
           <h1 className="text-2xl font-bold text-gray-900">{person.name}</h1>
@@ -141,26 +151,28 @@ export const PersonDetail: React.FC = () => {
         <div className="lg:col-span-2">
           {/* 基本情報 */}
           <Card className="p-6 mb-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">基本情報</h2>
-            
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              基本情報
+            </h2>
+
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-gray-500">氏名:</span>
                 <span className="text-gray-900 font-medium">{person.name}</span>
               </div>
-              
+
               {person.furigana && (
                 <div className="flex items-center justify-between">
                   <span className="text-gray-500">フリガナ:</span>
                   <span className="text-gray-900">{person.furigana}</span>
                 </div>
               )}
-              
+
               <div className="flex items-center justify-between">
                 <span className="text-gray-500">関係性:</span>
                 <span className="text-gray-900">{person.relationship}</span>
               </div>
-              
+
               {person.contact && (
                 <div className="flex items-center justify-between">
                   <span className="text-gray-500">連絡先:</span>
@@ -181,32 +193,43 @@ export const PersonDetail: React.FC = () => {
           {/* 贈答品履歴 */}
           <Card className="p-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900">贈答品履歴</h2>
+              <h2 className="text-lg font-semibold text-gray-900">
+                贈答品履歴
+              </h2>
               <Link to="/gifts/new">
                 <Button size="sm">新しい贈答品を登録</Button>
               </Link>
             </div>
-            
+
             {gifts.length === 0 ? (
               <EmptyState
                 message="まだ贈答品が登録されていません"
                 action={{
-                  label: '最初の贈答品を登録',
-                  onClick: () => window.location.href = '/gifts/new'
+                  label: "最初の贈答品を登録",
+                  onClick: () => navigate("/gifts/new"),
                 }}
                 icon={<span className="text-2xl">🎁</span>}
               />
             ) : (
               <div className="space-y-4">
                 {gifts.map((gift) => (
-                  <div key={gift.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
+                  <div
+                    key={gift.id}
+                    className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50"
+                  >
                     <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-medium text-gray-900">{gift.giftName}</h3>
+                      <h3 className="font-medium text-gray-900">
+                        {gift.giftName}
+                      </h3>
                       {getStatusBadge(gift.returnStatus)}
                     </div>
                     <div className="flex items-center justify-between text-sm text-gray-600">
                       <span>{gift.category}</span>
-                      <span>{format(gift.receivedDate, 'yyyy年M月d日', { locale: ja })}</span>
+                      <span>
+                        {format(gift.receivedDate, "yyyy年M月d日", {
+                          locale: ja,
+                        })}
+                      </span>
                     </div>
                     {gift.amount && (
                       <div className="text-sm text-gray-700 mt-1">
@@ -231,7 +254,9 @@ export const PersonDetail: React.FC = () => {
         <div className="space-y-6">
           {/* 統計情報 */}
           <Card className="p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">統計情報</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              統計情報
+            </h3>
             <div className="space-y-3">
               <div className="flex justify-between">
                 <span className="text-sm text-gray-500">贈答品数:</span>
@@ -262,7 +287,9 @@ export const PersonDetail: React.FC = () => {
 
           {/* アクション */}
           <Card className="p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">アクション</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              アクション
+            </h3>
             <div className="space-y-3">
               <Link to={`/persons/${person.id}/edit`} className="block">
                 <Button className="w-full">編集する</Button>
@@ -277,10 +304,18 @@ export const PersonDetail: React.FC = () => {
 
           {/* メタ情報 */}
           <Card className="p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">メタ情報</h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              メタ情報
+            </h3>
             <div className="space-y-2 text-sm text-gray-500">
-              <p>作成日: {format(person.createdAt, 'yyyy年M月d日 HH:mm', { locale: ja })}</p>
-              <p>更新日: {format(person.updatedAt, 'yyyy年M月d日 HH:mm', { locale: ja })}</p>
+              <p>
+                作成日:{" "}
+                {format(person.createdAt, "yyyy年M月d日 HH:mm", { locale: ja })}
+              </p>
+              <p>
+                更新日:{" "}
+                {format(person.updatedAt, "yyyy年M月d日 HH:mm", { locale: ja })}
+              </p>
             </div>
           </Card>
         </div>
