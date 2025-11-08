@@ -10,6 +10,7 @@ import { firestorePersonRepository } from '../repositories/firebase/personReposi
 import { isFirebaseEnabled, db } from '../lib/firebase';
 import { SyncOperation, SyncResult, SyncStatus } from '../types/firebase';
 import { firestoreService } from './firestoreService';
+import { Gift, Person } from '@/types';
 
 const giftRepository = new GiftRepository();
 const personRepository = new PersonRepository();
@@ -272,30 +273,30 @@ class SyncManager {
       throw new Error('贈答品の同期にユーザーIDが必要です');
     }
 
-    switch (type) {
-      case 'create': {
-        if (!data) {
-          throw new Error('作成操作にはデータが必要です');
+      switch (type) {
+        case 'create': {
+          if (!data) {
+            throw new Error('作成操作にはデータが必要です');
+          }
+          // IDを保持して作成
+          const giftPayload = this.normalizeGiftPayload(data);
+          const { id: giftId, userId: _userId, ...giftData } = giftPayload;
+          if (giftId) {
+            await firestoreGiftRepository.createWithId(userId, String(giftId), giftData);
+          } else {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            await firestoreGiftRepository.create(userId, giftData as any);
+          }
+          break;
         }
-        // IDを保持して作成
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
-        const { id: giftId, userId: _userId, ...giftData } = data as any;
-        if (giftId) {
-          await firestoreGiftRepository.createWithId(userId, String(giftId), giftData);
-        } else {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          await firestoreGiftRepository.create(userId, giftData as any);
+        case 'update': {
+          if (!data) {
+            throw new Error('更新操作にはデータが必要です');
+          }
+          const giftPayload = this.normalizeGiftPayload(data);
+          await firestoreGiftRepository.update(userId, documentId, giftPayload);
+          break;
         }
-        break;
-      }
-      case 'update': {
-        if (!data) {
-          throw new Error('更新操作にはデータが必要です');
-        }
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        await firestoreGiftRepository.update(userId, documentId, data as any);
-        break;
-      }
       case 'delete':
         await firestoreGiftRepository.delete(userId, documentId);
         break;
@@ -318,42 +319,84 @@ class SyncManager {
       throw new Error('人物の同期にユーザーIDが必要です');
     }
 
-    switch (type) {
-      case 'create': {
-        if (!data) {
-          throw new Error('作成操作にはデータが必要です');
+      switch (type) {
+        case 'create': {
+          if (!data) {
+            throw new Error('作成操作にはデータが必要です');
+          }
+          // IDを保持して作成
+          const personPayload = this.normalizePersonPayload(data);
+          const { id: personId, userId: _userId, ...personData } = personPayload;
+          if (personId) {
+            await firestorePersonRepository.createWithId(userId, String(personId), personData);
+          } else {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            await firestorePersonRepository.create(userId, personData as any);
+          }
+          break;
         }
-        // IDを保持して作成
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
-        const { id: personId, userId: _userId, ...personData } = data as any;
-        if (personId) {
-          await firestorePersonRepository.createWithId(userId, String(personId), personData);
-        } else {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          await firestorePersonRepository.create(userId, personData as any);
+        case 'update': {
+          if (!data) {
+            throw new Error('更新操作にはデータが必要です');
+          }
+          const personPayload = this.normalizePersonPayload(data);
+          await firestorePersonRepository.update(userId, documentId, personPayload);
+          break;
         }
-        break;
+        case 'delete':
+          await firestorePersonRepository.delete(userId, documentId);
+          break;
+        default:
+          throw new Error(`不明な操作タイプ: ${type}`);
       }
-      case 'update': {
-        if (!data) {
-          throw new Error('更新操作にはデータが必要です');
-        }
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        await firestorePersonRepository.update(userId, documentId, data as any);
-        break;
-      }
-      case 'delete':
-        await firestorePersonRepository.delete(userId, documentId);
-        break;
-      default:
-        throw new Error(`不明な操作タイプ: ${type}`);
     }
-  }
 
-  /**
-   * 現在のユーザーIDを取得
-   */
-  private getCurrentUserId(): string | null {
+    private normalizeGiftPayload(data: unknown): Gift {
+      const payload = data as Gift & {
+        receivedDate?: Date | string;
+        createdAt?: Date | string;
+        updatedAt?: Date | string;
+      };
+
+      return {
+        ...payload,
+        receivedDate: this.ensureDate(payload.receivedDate) ?? new Date(),
+        createdAt: this.ensureDate(payload.createdAt) ?? new Date(),
+        updatedAt: this.ensureDate(payload.updatedAt) ?? new Date(),
+      };
+    }
+
+    private normalizePersonPayload(data: unknown): Person {
+      const payload = data as Person & {
+        createdAt?: Date | string;
+        updatedAt?: Date | string;
+      };
+
+      return {
+        ...payload,
+        createdAt: this.ensureDate(payload.createdAt) ?? new Date(),
+        updatedAt: this.ensureDate(payload.updatedAt) ?? new Date(),
+      };
+    }
+
+    private ensureDate(value: Date | string | null | undefined): Date | undefined {
+      if (value === null || value === undefined) {
+        return undefined;
+      }
+      if (value instanceof Date) {
+        return value;
+      }
+      const parsed = new Date(value);
+      if (Number.isNaN(parsed.getTime())) {
+        return undefined;
+      }
+      return parsed;
+    }
+
+    /**
+     * 現在のユーザーIDを取得
+     */
+    private getCurrentUserId(): string | null {
     // AuthContextから取得するのが理想だが、ここではlocalStorageから取得
     const userStr = localStorage.getItem('user');
     if (userStr) {
@@ -376,58 +419,58 @@ class SyncManager {
       return;
     }
 
-    try {
-      // Firestoreから最新データ取得
-      const remoteGifts = await firestoreGiftRepository.getAll(userId);
+      try {
+        // Firestoreから最新データ取得
+        const remoteGifts = await firestoreGiftRepository.getAll(userId);
 
-      // IndexedDBから現在のデータ取得
-      const localGifts = await giftRepository.getAll(userId);
+        // IndexedDBから現在のデータ取得
+        const localGifts = await giftRepository.getAll(userId);
 
-      // リモートとローカルを比較して同期
-      for (const remoteGift of remoteGifts) {
-        const localGift = localGifts.find((g) => g.id === remoteGift.id);
+        // リモートとローカルを比較して同期
+        for (const remoteGift of remoteGifts) {
+          const localGift = localGifts.find((g) => g.id === remoteGift.id);
 
-        if (!localGift) {
-          // ローカルに存在しない → 追加
-          await giftRepository.create(remoteGift);
-        } else {
-          // 競合解決（Last-Write-Wins）
-          if (remoteGift.updatedAt > localGift.updatedAt) {
-            await giftRepository.update(remoteGift);
-          }
-        }
-      }
-
-      // ローカルにあってリモートにない → アップロード
-      // 既にFirestoreに同じIDで存在する可能性があるので、まず確認
-      for (const localGift of localGifts) {
-        const remoteGift = remoteGifts.find((g) => g.id === localGift.id);
-        if (!remoteGift) {
-          try {
-            // 既存のドキュメントがあるかチェック
-            const existing = await firestoreGiftRepository.get(userId, localGift.id);
-            if (!existing) {
-              // 存在しない場合のみ作成（IDを保持）
-              // eslint-disable-next-line @typescript-eslint/no-unused-vars
-              const { id, userId: _userId, ...giftData } = localGift;
-              await firestoreGiftRepository.createWithId(userId, id, giftData);
-            } else if (localGift.updatedAt > existing.updatedAt) {
-              // 既に存在するがローカルの方が新しい場合は更新
-              await firestoreGiftRepository.update(userId, localGift.id, localGift);
+          if (!localGift) {
+            // ローカルに存在しない → 追加
+            await giftRepository.create(remoteGift, { skipRemote: true });
+          } else {
+            // 競合解決（Last-Write-Wins）
+            if (remoteGift.updatedAt > localGift.updatedAt) {
+              await giftRepository.update(remoteGift, { skipRemote: true });
             }
-          } catch (error) {
-            console.error('Failed to sync local gift to Firestore:', error);
-            // 個別のエラーは記録するが、全体の同期は続行
           }
-        } else if (localGift.updatedAt > remoteGift.updatedAt) {
-          // ローカルの方が新しい場合は更新
-          await firestoreGiftRepository.update(userId, localGift.id, localGift);
         }
+
+        // ローカルにあってリモートにない → アップロード
+        // 既にFirestoreに同じIDで存在する可能性があるので、まず確認
+        for (const localGift of localGifts) {
+          const remoteGift = remoteGifts.find((g) => g.id === localGift.id);
+          if (!remoteGift) {
+            try {
+              // 既存のドキュメントがあるかチェック
+              const existing = await firestoreGiftRepository.get(userId, localGift.id);
+              if (!existing) {
+                // 存在しない場合のみ作成（IDを保持）
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                const { id, userId: _userId, ...giftData } = localGift;
+                await firestoreGiftRepository.createWithId(userId, id, giftData);
+              } else if (localGift.updatedAt > existing.updatedAt) {
+                // 既に存在するがローカルの方が新しい場合は更新
+                await firestoreGiftRepository.update(userId, localGift.id, localGift);
+              }
+            } catch (error) {
+              console.error('Failed to sync local gift to Firestore:', error);
+              // 個別のエラーは記録するが、全体の同期は続行
+            }
+          } else if (localGift.updatedAt > remoteGift.updatedAt) {
+            // ローカルの方が新しい場合は更新
+            await firestoreGiftRepository.update(userId, localGift.id, localGift);
+          }
+        }
+      } catch (error) {
+        console.error('Gift sync error:', error);
+        throw error;
       }
-    } catch (error) {
-      console.error('Gift sync error:', error);
-      throw error;
-    }
   }
 
   /**
@@ -439,27 +482,27 @@ class SyncManager {
       return;
     }
 
-    try {
-      // Firestoreから最新データ取得
-      const remotePersons = await firestorePersonRepository.getAll(userId);
+      try {
+        // Firestoreから最新データ取得
+        const remotePersons = await firestorePersonRepository.getAll(userId);
 
-      // IndexedDBから現在のデータ取得
-      const localPersons = await personRepository.getAll(userId);
+        // IndexedDBから現在のデータ取得
+        const localPersons = await personRepository.getAll(userId);
 
-      // リモートとローカルを比較して同期
-      for (const remotePerson of remotePersons) {
-        const localPerson = localPersons.find((p) => p.id === remotePerson.id);
+        // リモートとローカルを比較して同期
+        for (const remotePerson of remotePersons) {
+          const localPerson = localPersons.find((p) => p.id === remotePerson.id);
 
-        if (!localPerson) {
-          // ローカルに存在しない → 追加
-          await personRepository.create(remotePerson);
-        } else {
-          // 競合解決（Last-Write-Wins）
-          if (remotePerson.updatedAt > localPerson.updatedAt) {
-            await personRepository.update(remotePerson);
+          if (!localPerson) {
+            // ローカルに存在しない → 追加
+            await personRepository.create(remotePerson, { skipRemote: true });
+          } else {
+            // 競合解決（Last-Write-Wins）
+            if (remotePerson.updatedAt > localPerson.updatedAt) {
+              await personRepository.update(remotePerson, { skipRemote: true });
+            }
           }
         }
-      }
 
       // ローカルにあってリモートにない → アップロード
       // 既にFirestoreに同じIDで存在する可能性があるので、まず確認
@@ -595,15 +638,15 @@ class SyncManager {
                     console.log('[SyncManager] Local gift is newer, skipping update:', giftId);
                     continue;
                   }
-                  await giftRepository.update(gift);
+                  await giftRepository.update(gift, { skipRemote: true });
                   console.log('[SyncManager] Gift updated in IndexedDB:', giftId);
                 } else {
-                  await giftRepository.create(gift);
+                  await giftRepository.create(gift, { skipRemote: true });
                   console.log('[SyncManager] Gift added to IndexedDB:', giftId);
                 }
               } else if (change.type === 'removed') {
                 // 削除された場合
-                await giftRepository.delete(giftId, userId);
+                await giftRepository.delete(giftId, userId, { skipRemote: true });
                 console.log('[SyncManager] Gift deleted from IndexedDB:', giftId);
               }
             }
@@ -672,15 +715,15 @@ class SyncManager {
                     console.log('[SyncManager] Local person is newer, skipping update:', personId);
                     continue;
                   }
-                  await personRepository.update(person);
+                  await personRepository.update(person, { skipRemote: true });
                   console.log('[SyncManager] Person updated in IndexedDB:', personId);
                 } else {
-                  await personRepository.create(person);
+                  await personRepository.create(person, { skipRemote: true });
                   console.log('[SyncManager] Person added to IndexedDB:', personId);
                 }
               } else if (change.type === 'removed') {
                 // 削除された場合
-                await personRepository.delete(personId, userId);
+                await personRepository.delete(personId, userId, { skipRemote: true });
                 console.log('[SyncManager] Person deleted from IndexedDB:', personId);
               }
             }
