@@ -2,11 +2,9 @@ name: Run Tests
 
 on:
   push:
-    branches:
-      - '**'
+    branches: ['**']
   pull_request:
-    branches:
-      - '**'
+    branches: ['**']
 
 jobs:
   test:
@@ -20,20 +18,31 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version-file: '.nvmrc'
           cache: 'npm'
       
       - name: Install dependencies
         run: npm ci
       
       - name: Type check
-        run: npx tsc --noEmit
+        run: npm run type-check
       
       - name: Lint
         run: npm run lint
       
       - name: Run unit tests
-        run: npm run test:run
+        run: npm run test:coverage
+      
+      - name: Build application
+        env:
+          VITE_FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
+          VITE_FIREBASE_AUTH_DOMAIN: ${{ secrets.FIREBASE_AUTH_DOMAIN }}
+          VITE_FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          VITE_FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
+          VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
+          VITE_FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
+          VITE_APP_ENV: production
+        run: npm run build
       
       - name: Upload coverage
         uses: codecov/codecov-action@v4

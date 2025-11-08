@@ -4,15 +4,34 @@
 
 詳細な設計については [design/07_multi_environment_strategy.md](../design/07_multi_environment_strategy.md) を参照してください。
 
+## 重要: プロジェクト数上限時の対応
+
+Firebaseアカウントでプロジェクト作成数の上限に達している場合は、**単一Firebaseプロジェクト方式**を採用します。
+
+### 単一プロジェクト方式の特徴
+
+- ✅ **Firebase Hosting Channels**: プレビューチャネルで環境を分離
+- ✅ **Firestoreコレクション分離**: 環境プレフィックス（`dev_*`, `staging_*`, `prod_*`）で分離
+- ✅ **Storageパス分離**: 環境ごとにパスを分ける（`dev/`, `staging/`, `prod/`）
+- ⚠️ **注意**: データの誤操作リスクを最小化するため、環境判定を必ず実装
+
+詳細な実装方法は [design/07_multi_environment_strategy.md](../design/07_multi_environment_strategy.md) の「アプローチB：単一Firebaseプロジェクト方式」を参照してください。
+
 ## 1. 前提条件
 
 - Firebase CLI がインストール済み
 - 適切な権限を持つGoogleアカウント
 - Node.js 22+ がインストール済み
 
-## 2. Firebaseプロジェクトの作成
+## 2. Firebaseプロジェクトの設定
 
-### 2.1 開発環境プロジェクト
+### 2.1 アプローチの選択
+
+Firebaseアカウントでプロジェクト作成数の上限に達している場合は、**単一プロジェクト方式**を採用します。
+
+### 2.2 複数プロジェクト方式の場合
+
+#### 2.2.1 開発環境プロジェクト
 
 1. [Firebase Console](https://console.firebase.google.com/) にアクセス
 2. 「プロジェクトを追加」をクリック
@@ -24,14 +43,25 @@
    - Cloud Storage
    - Hosting
 
-### 2.2 ステージング環境プロジェクト
+#### 2.2.2 ステージング環境プロジェクト
 
 1. 同様の手順で `cocottu-iwailist-staging` を作成
 2. 同じサービスを有効化
 
-### 2.3 本番環境プロジェクト
+#### 2.2.3 本番環境プロジェクト
 
 既存の `cocottu-iwailist` プロジェクトを使用
+
+### 2.3 単一プロジェクト方式の場合（プロジェクト数上限時）
+
+既存の `cocottu-iwailist` プロジェクトのみを使用します。
+
+**Firebase Hosting Channelsを使用**:
+- 開発環境: プレビューチャネル（自動生成URL）
+- ステージング環境: プレビューチャネルまたはカスタムチャネル
+- 本番環境: メインサイト（live）
+
+詳細は [design/07_multi_environment_strategy.md](../design/07_multi_environment_strategy.md) を参照してください。
 
 ## 3. 環境変数の設定
 
@@ -125,7 +155,7 @@ npm run build:prod
 
 ## 6. デプロイ
 
-### 6.1 手動デプロイ
+### 6.1 複数プロジェクト方式の場合
 
 ```bash
 # 開発環境にデプロイ
@@ -137,6 +167,32 @@ npm run deploy:staging
 # 本番環境にデプロイ
 npm run deploy:prod
 ```
+
+### 6.2 単一プロジェクト方式の場合（プロジェクト数上限時）
+
+**Firebase Hosting Channelsを使用**:
+
+```bash
+# 開発環境: プレビューチャネル（30日間有効）
+firebase hosting:channel:deploy dev --expires 30d
+
+# ステージング環境: プレビューチャネル（90日間有効）
+firebase hosting:channel:deploy staging --expires 90d
+
+# 本番環境: メインサイト
+firebase deploy --only hosting
+
+# プレビューチャネルの一覧確認
+firebase hosting:channel:list
+
+# プレビューチャネルの削除
+firebase hosting:channel:delete dev
+```
+
+**環境別URL**:
+- 開発環境: `https://cocottu-iwailist--dev-[HASH].web.app`
+- ステージング環境: `https://cocottu-iwailist--staging-[HASH].web.app`
+- 本番環境: `https://cocottu-iwailist.web.app` またはカスタムドメイン
 
 ### 6.2 GitHub Actions経由のデプロイ
 

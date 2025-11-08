@@ -209,34 +209,24 @@ asdf plugin add firebase
 asdf install
 ```
 
-### 1.5 デプロイ戦略
-
-**インフラ管理 (Terraform)**:
-- **目的**: Firebaseリソースの初期設定・管理
-- **管理対象**: Firebase Project, Firestore, Storage, Authentication設定
-- **実行タイミング**: 初回セットアップ時、インフラ変更時のみ
+### 1.5 デプロイ戦略（単一環境運用）
 
 **アプリケーションデプロイ (Firebase CLI)**:
 - **目的**: アプリケーションのビルド・デプロイ
-- **管理対象**: Webアプリケーション、Hosting設定
+- **管理対象**: Webアプリケーション、Hosting設定、Security Rules
 - **実行タイミング**: コード変更のたびに
 
 **デプロイフロー**:
-1. **初回**: TerraformでFirebaseリソース作成
-2. **継続**: Firebase CLIでアプリケーションデプロイ
-3. **インフラ変更時**: Terraformでリソース更新
+1. **初回**: Firebase Consoleでプロジェクト作成・設定
+2. **継続**: Firebase CLIでアプリケーションデプロイ（GitHub Actions自動化）
 
 **設定ファイル構成**:
 ```
-terraform/              # インフラ管理 (初回のみ)
-├── main.tf
-├── variables.tf
-├── firebase.tf
-└── outputs.tf
-
 firebase.json           # アプリデプロイ設定
-.firebaserc            # Firebase プロジェクト設定
+.firebaserc            # Firebase プロジェクト設定（単一プロジェクトのみ）
 ```
+
+**注意**: 単一環境運用では、Terraformは使用しません。Firebase CLIで直接管理します。
 
 ### 1.6 環境変数
 
@@ -322,71 +312,58 @@ firebase_app_id = "your-firebase-app-id"
 }
 ```
 
-### 2.2 デプロイコマンド
+### 2.2 デプロイコマンド（単一環境運用）
 
 ```bash
-# アプリケーションビルド
+# アプリケーションビルドとデプロイ
+npm run deploy
+
+# または個別に実行
 npm run build
-
-# Firebase初期化 (初回のみ)
-firebase init hosting
-
-# 本番デプロイ
 firebase deploy --only hosting
 
-# プレビューデプロイ (テスト用)
-firebase hosting:channel:deploy preview
+# Security Rulesのデプロイ
+npm run deploy:rules
+# または
+firebase deploy --only firestore:rules,firestore:indexes,storage
 
-# ステージングデプロイ
-firebase hosting:channel:deploy staging
+# すべてをデプロイ
+firebase deploy
 ```
 
-### 2.3 .firebaserc
+**URL**:
+- 本番環境: `https://cocottu-iwailist.web.app` またはカスタムドメイン
+
+**注意**: 単一環境運用では、環境の切り替えは不要です。常に本番環境にデプロイします。
+
+### 2.3 .firebaserc（単一環境運用）
 
 ```json
 {
   "projects": {
-    "default": "your-project-id-dev",
-    "staging": "your-project-id-staging",
-    "production": "your-project-id-prod"
+    "default": "cocottu-iwailist"
   }
 }
 ```
 
-### 2.4 環境別設定
+**注意**: 単一環境運用では、プロジェクトは1つだけです。環境の切り替えは不要です。
 
-**開発環境 (.env.development)**:
-```bash
-VITE_FIREBASE_API_KEY=dev_api_key
-VITE_FIREBASE_AUTH_DOMAIN=your-project-dev.firebaseapp.com
-VITE_FIREBASE_PROJECT_ID=your-project-id-dev
-VITE_FIREBASE_STORAGE_BUCKET=your-project-dev.appspot.com
-VITE_FIREBASE_MESSAGING_SENDER_ID=dev_sender_id
-VITE_FIREBASE_APP_ID=dev_app_id
-VITE_APP_ENV=development
-```
+### 2.4 環境変数設定（単一環境運用）
 
-**ステージング環境 (.env.staging)**:
-```bash
-VITE_FIREBASE_API_KEY=staging_api_key
-VITE_FIREBASE_AUTH_DOMAIN=your-project-staging.firebaseapp.com
-VITE_FIREBASE_PROJECT_ID=your-project-id-staging
-VITE_FIREBASE_STORAGE_BUCKET=your-project-staging.appspot.com
-VITE_FIREBASE_MESSAGING_SENDER_ID=staging_sender_id
-VITE_FIREBASE_APP_ID=staging_app_id
-VITE_APP_ENV=staging
-```
+**`.env.local`** (Git管理外、ローカル開発用):
 
-**本番環境 (.env.production)**:
 ```bash
-VITE_FIREBASE_API_KEY=prod_api_key
-VITE_FIREBASE_AUTH_DOMAIN=your-project-prod.firebaseapp.com
-VITE_FIREBASE_PROJECT_ID=your-project-id-prod
-VITE_FIREBASE_STORAGE_BUCKET=your-project-prod.appspot.com
-VITE_FIREBASE_MESSAGING_SENDER_ID=prod_sender_id
-VITE_FIREBASE_APP_ID=prod_app_id
+# Firebase Configuration（本番プロジェクト）
+VITE_FIREBASE_API_KEY=your_api_key_here
+VITE_FIREBASE_AUTH_DOMAIN=cocottu-iwailist.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=cocottu-iwailist
+VITE_FIREBASE_STORAGE_BUCKET=cocottu-iwailist.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+VITE_FIREBASE_APP_ID=your_app_id
 VITE_APP_ENV=production
 ```
+
+**注意**: 単一環境運用では、環境変数は1セットのみです。すべての環境で本番プロジェクトの設定を使用します。
 
 ## 3. テスト戦略
 
@@ -855,7 +832,63 @@ npm install
 npm run dev
 ```
 
-## 12. Phase別デプロイ計画
+## 12. デプロイ戦略
+
+### 12.1 単一環境運用
+
+本プロジェクトは**単一環境（本番環境のみ）**での運用を採用しています。
+
+詳細は [design/08_single_environment_strategy.md](./08_single_environment_strategy.md) を参照してください。
+
+**特徴**:
+- 単一Firebaseプロジェクト（`cocottu-iwailist`）のみ使用
+- 環境分離なし（開発・ステージング・本番の区別なし）
+- 直接本番デプロイ（ローカルテスト → 本番デプロイ）
+- シンプルなCI/CD構成
+
+### 12.2 デプロイフロー
+
+```mermaid
+graph TD
+    A[コード変更] --> B[ローカルテスト]
+    B --> C{テスト通過?}
+    C -->|No| A
+    C -->|Yes| D[Gitコミット・プッシュ]
+    D --> E[GitHub Actions: テスト実行]
+    E --> F{テスト通過?}
+    F -->|No| A
+    F -->|Yes| G[本番デプロイ]
+    G --> H[本番環境で動作確認]
+```
+
+### 12.3 デプロイ手順
+
+**通常のデプロイ**:
+```bash
+# 1. コード変更
+git add .
+git commit -m "Update feature"
+git push origin main
+
+# 2. GitHub Actionsが自動でテストとデプロイを実行
+# または手動でデプロイする場合:
+npm run deploy
+```
+
+**Security Rulesのデプロイ**:
+```bash
+npm run deploy:rules
+```
+
+### 12.4 リスク管理
+
+- ✅ **十分なテスト**: ローカルで十分なテストを実施
+- ✅ **コードレビュー**: プルリクエストでレビュー
+- ✅ **段階的デプロイ**: 小さな変更を頻繁にデプロイ
+- ✅ **バックアップ**: 定期的なデータバックアップ
+- ✅ **監視**: デプロイ後の動作確認
+
+## 13. Phase別実装状況
 
 ### Phase 1: ローカル開発 (✅ 完了)
 - ✅ ローカルホストで動作確認
@@ -872,19 +905,18 @@ npm run dev
 - ✅ オフラインインジケーター
 - ✅ E2Eテストの拡充
 - ✅ カメラ撮影機能（写真撮影、画像圧縮、IndexedDB保存）
-- 🔄 バージョン管理の自動化（次回実装予定）
 
-### Phase 3: Firebase統合
-- Firebase Hosting初回デプロイ
-- 認証・データ同期テスト
-- 本番環境公開
+### Phase 3: Firebase統合 (✅ 完了)
+- ✅ Firebase Hosting初回デプロイ
+- ✅ 認証・データ同期実装
+- ✅ 本番環境公開
+- ✅ GitHub Actions CI/CD構築
 
-### Phase 4: 正式リリース
-- GitHub Actions CI/CD構築
-- パフォーマンス監視開始
-- ユーザーフィードバック収集
+### Phase 4: 機能拡張
 - お返し管理機能
 - リマインダー機能
+- パフォーマンス監視
+- ユーザーフィードバック収集
 
 ### Phase 5: 拡張機能
 - 広告統合
