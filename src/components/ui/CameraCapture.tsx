@@ -1,11 +1,13 @@
 /**
  * カメラキャプチャコンポーネント
  * Phase 2: カメラ撮影機能
+ * react-webcamを使用した実装
  */
 
-import React, { useRef, useEffect, useState } from 'react';
-import { useCamera } from '@/hooks/useCamera';
+import React, { useRef, useState, useCallback } from 'react';
+import Webcam from 'react-webcam';
 import { Button } from './Button';
+import { compressImage } from '@/utils/imageProcessing';
 
 /**
  * カメラキャプチャのプロパティ
@@ -35,53 +37,60 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
   defaultFacingMode = 'environment',
   compressOptions
 }) => {
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const webcamRef = useRef<Webcam>(null);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
-
-  const {
-    stream,
-    devices,
-    isActive,
-    isProcessing,
-    error,
-    startCamera,
-    stopCamera,
-    switchCamera,
-    capturePhotoAsDataURL
-  } = useCamera({
-    defaultFacingMode,
-    autoStart: true,
-    compress: true,
-    compressOptions
-  });
-
-  // ストリームをビデオ要素に設定
-  useEffect(() => {
-    if (videoRef.current && stream) {
-      videoRef.current.srcObject = stream;
-    }
-  }, [stream]);
-
-  // コンポーネントのアンマウント時にカメラを停止
-  useEffect(() => {
-    return () => {
-      stopCamera();
-    };
-  }, [stopCamera]);
+  const [facingMode, setFacingMode] = useState<'user' | 'environment'>(defaultFacingMode);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   /**
    * 写真を撮影する
    */
-  const handleCapture = async () => {
-    if (!videoRef.current) return;
+  const handleCapture = useCallback(async () => {
+    if (!webcamRef.current) {
+      setError('カメラが準備できていません');
+      return;
+    }
 
     try {
-      const dataURL = await capturePhotoAsDataURL(videoRef.current);
-      setCapturedImage(dataURL);
+      setIsProcessing(true);
+      setError(null);
+
+      // react-webcamのgetScreenshotメソッドで撮影
+      const imageSrc = webcamRef.current.getScreenshot();
+      
+      if (!imageSrc) {
+        throw new Error('写真の撮影に失敗しました');
+      }
+
+      // 圧縮処理
+      if (compressOptions) {
+        // Data URLをBlobに変換
+        const response = await fetch(imageSrc);
+        const blob = await response.blob();
+        
+        // 圧縮
+        const compressedBlob = await compressImage(blob, compressOptions);
+        
+        // BlobをData URLに変換
+        const reader = new FileReader();
+        const compressedDataURL = await new Promise<string>((resolve, reject) => {
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(compressedBlob);
+        });
+        
+        setCapturedImage(compressedDataURL);
+      } else {
+        setCapturedImage(imageSrc);
+      }
     } catch (err) {
       console.error('Failed to capture photo:', err);
+      setError(err instanceof Error ? err.message : '写真の撮影に失敗しました');
+    } finally {
+      setIsProcessing(false);
     }
-  };
+  }, [compressOptions]);
 
   /**
    * 撮影した写真を確定する
@@ -89,7 +98,6 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
   const handleConfirm = () => {
     if (capturedImage) {
       onCapture(capturedImage);
-      stopCamera();
     }
   };
 
@@ -98,14 +106,32 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
    */
   const handleRetake = () => {
     setCapturedImage(null);
+    setError(null);
   };
 
   /**
-   * キャンセルする
+   * カメラを切り替える
    */
-  const handleCancel = () => {
-    stopCamera();
-    onCancel();
+  const handleSwitchCamera = () => {
+    setFacingMode(prev => prev === 'user' ? 'environment' : 'user');
+  };
+
+  /**
+   * カメラエラーハンドリング
+   */
+  const handleUserMediaError = (error: string | DOMException) => {
+    console.error('Camera error:', error);
+    if (error instanceof DOMException) {
+      if (error.name === 'NotAllowedError') {
+        setError('カメラへのアクセスが拒否されました。ブラウザの設定を確認してください。');
+      } else if (error.name === 'NotFoundError') {
+        setError('カメラが見つかりませんでした。');
+      } else {
+        setError(`カメラエラー: ${error.message}`);
+      }
+    } else {
+      setError(`カメラエラー: ${error}`);
+    }
   };
 
   return (
@@ -115,7 +141,7 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
         <div className="flex items-center justify-between p-4 bg-gray-900 text-white">
           <h2 className="text-lg font-semibold">写真を撮影</h2>
           <button
-            onClick={handleCancel}
+            onClick={onCancel}
             className="text-white hover:text-gray-300"
             aria-label="閉じる"
           >
@@ -145,24 +171,29 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
               className="w-full h-full object-contain"
             />
           ) : (
-            // カメラプレビュー
-            <>
-              <video
-                ref={videoRef}
-                autoPlay
-                playsInline
-                muted
+            // カメラプレビュー（react-webcamを使用）
+            <div className="w-full h-full relative">
+              <Webcam
+                ref={webcamRef}
+                audio={false}
+                screenshotFormat="image/jpeg"
+                videoConstraints={{
+                  facingMode: facingMode,
+                  width: { ideal: 1920 },
+                  height: { ideal: 1080 }
+                }}
+                onUserMediaError={handleUserMediaError}
                 className="w-full h-full object-cover"
               />
-              {!isActive && !error && (
-                <div className="absolute inset-0 flex items-center justify-center">
+              {isProcessing && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
                   <div className="text-white text-center">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-                    <p>カメラを起動中...</p>
+                    <p>処理中...</p>
                   </div>
                 </div>
               )}
-            </>
+            </div>
           )}
 
           {/* エラー表示 */}
@@ -183,10 +214,13 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
                   />
                 </svg>
                 <p className="text-lg font-semibold mb-2">カメラエラー</p>
-                <p className="text-sm">{error.message}</p>
+                <p className="text-sm mb-4">{error}</p>
                 <Button
                   variant="outline"
-                  onClick={() => startCamera()}
+                  onClick={() => {
+                    setError(null);
+                    setFacingMode(defaultFacingMode);
+                  }}
                   className="mt-4"
                 >
                   再試行
@@ -205,6 +239,7 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
                 variant="outline"
                 onClick={handleRetake}
                 disabled={isProcessing}
+                className="text-white border-white hover:bg-gray-700"
               >
                 再撮影
               </Button>
@@ -218,44 +253,44 @@ export const CameraCapture: React.FC<CameraCaptureProps> = ({
           ) : (
             // 撮影前のコントロール
             <div className="flex items-center justify-around">
-              {/* カメラ切り替えボタン（複数デバイスがある場合のみ） */}
-              {devices.length > 1 && (
-                <button
-                  onClick={switchCamera}
-                  disabled={!isActive || isProcessing}
-                  className="text-white p-3 rounded-full hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                  aria-label="カメラを切り替え"
+              {/* カメラ切り替えボタン */}
+              <button
+                onClick={handleSwitchCamera}
+                disabled={isProcessing}
+                className="text-white p-3 rounded-full hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                aria-label="カメラを切り替え"
+              >
+                <svg
+                  className="w-8 h-8"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
                 >
-                  <svg
-                    className="w-8 h-8"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                    />
-                  </svg>
-                </button>
-              )}
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                  />
+                </svg>
+              </button>
 
-              {/* 撮影ボタン */}
+              {/* 撮影ボタン - 常に表示 */}
               <button
                 onClick={handleCapture}
-                disabled={!isActive || isProcessing}
-                className="w-16 h-16 rounded-full bg-white border-4 border-gray-300 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95"
+                disabled={isProcessing || !!error}
+                className="w-20 h-20 rounded-full bg-white border-4 border-gray-300 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95 flex items-center justify-center"
                 aria-label="撮影"
               >
-                {isProcessing && (
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600 mx-auto"></div>
+                {isProcessing ? (
+                  <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-gray-600"></div>
+                ) : (
+                  <div className="w-12 h-12 rounded-full bg-white border-2 border-gray-400"></div>
                 )}
               </button>
 
-              {/* スペーサー（デバイスが1つの場合、レイアウトのバランスをとるため） */}
-              {devices.length <= 1 && <div className="w-8 h-8" />}
+              {/* スペーサー（レイアウトのバランスをとるため） */}
+              <div className="w-8 h-8" />
             </div>
           )}
         </div>
