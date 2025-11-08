@@ -1,36 +1,45 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
-import { Card, Button, Input, Select, Badge, Loading, EmptyState } from '@/components/ui';
-import { GiftRepository, PersonRepository } from '@/database';
-import { Gift, Person, GiftFilters, GiftCategory, ReturnStatus } from '@/types';
-import { format } from 'date-fns';
-import { ja } from 'date-fns/locale/ja';
-import { useAuth } from '@/contexts/AuthContext';
-import { syncManager } from '@/services/syncManager';
-import { isFirebaseEnabled } from '@/lib/firebase';
+import React, { useState, useEffect, useCallback } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  Card,
+  Button,
+  Input,
+  Select,
+  Badge,
+  Loading,
+  EmptyState,
+} from "@/components/ui";
+import { GiftRepository, PersonRepository } from "@/database";
+import { Gift, Person, GiftFilters, GiftCategory, ReturnStatus } from "@/types";
+import { format } from "date-fns";
+import { ja } from "date-fns/locale/ja";
+import { useAuth } from "@/contexts/AuthContext";
+import { syncManager } from "@/services/syncManager";
+import { isFirebaseEnabled } from "@/lib/firebase";
 
 export const GiftList: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [gifts, setGifts] = useState<Gift[]>([]);
   const [persons, setPersons] = useState<Person[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<GiftFilters>({});
-  const [searchText, setSearchText] = useState('');
+  const [searchText, setSearchText] = useState("");
 
   const loadGifts = useCallback(async () => {
     try {
-      const userId = user?.uid || 'demo-user';
+      const userId = user?.uid || "demo-user";
       const giftRepo = new GiftRepository();
-      
+
       const giftFilters: GiftFilters = {
         ...filters,
-        searchText: searchText || undefined
+        searchText: searchText || undefined,
       };
-      
+
       const giftsData = await giftRepo.query(userId, giftFilters);
       setGifts(giftsData);
     } catch (error) {
-      console.error('Failed to load gifts:', error);
+      console.error("Failed to load gifts:", error);
     }
   }, [filters, searchText, user?.uid]);
 
@@ -38,25 +47,25 @@ export const GiftList: React.FC = () => {
     const loadData = async () => {
       try {
         setLoading(true);
-        const userId = user?.uid || 'demo-user';
-        
+        const userId = user?.uid || "demo-user";
+
         // Firebaseが有効な場合、最初に同期を実行
         if (isFirebaseEnabled() && user?.uid && navigator.onLine) {
-          console.log('[GiftList] Syncing data before load...');
+          console.log("[GiftList] Syncing data before load...");
           try {
             await syncManager.triggerSync(user.uid);
-            console.log('[GiftList] Sync completed');
+            console.log("[GiftList] Sync completed");
           } catch (error) {
-            console.error('[GiftList] Sync failed:', error);
+            console.error("[GiftList] Sync failed:", error);
             // 同期に失敗してもローカルデータは表示する
           }
         }
-        
+
         const personRepo = new PersonRepository();
         const personsData = await personRepo.getAll(userId);
         setPersons(personsData);
       } catch (error) {
-        console.error('Failed to load data:', error);
+        console.error("Failed to load data:", error);
       } finally {
         setLoading(false);
       }
@@ -68,25 +77,28 @@ export const GiftList: React.FC = () => {
     loadGifts();
   }, [loadGifts]);
 
-  const handleFilterChange = (key: keyof GiftFilters, value: string | ReturnStatus | GiftCategory | undefined) => {
-    setFilters(prev => ({
+  const handleFilterChange = (
+    key: keyof GiftFilters,
+    value: string | ReturnStatus | GiftCategory | undefined,
+  ) => {
+    setFilters((prev) => ({
       ...prev,
-      [key]: value || undefined
+      [key]: value || undefined,
     }));
   };
 
   const getPersonName = (personId: string) => {
-    const person = persons.find(p => p.id === personId);
-    return person?.name || '不明な人物';
+    const person = persons.find((p) => p.id === personId);
+    return person?.name || "不明な人物";
   };
 
   const getStatusBadge = (status: ReturnStatus) => {
     switch (status) {
-      case 'pending':
+      case "pending":
         return <Badge status="pending">未対応</Badge>;
-      case 'completed':
+      case "completed":
         return <Badge status="completed">対応済</Badge>;
-      case 'not_required':
+      case "not_required":
         return <Badge status="not_required">不要</Badge>;
       default:
         return <Badge status="info">不明</Badge>;
@@ -94,18 +106,18 @@ export const GiftList: React.FC = () => {
   };
 
   const categoryOptions = [
-    { value: '', label: 'すべてのカテゴリ' },
-    ...Object.values(GiftCategory).map(category => ({
+    { value: "", label: "すべてのカテゴリ" },
+    ...Object.values(GiftCategory).map((category) => ({
       value: category,
-      label: category
-    }))
+      label: category,
+    })),
   ];
 
   const statusOptions = [
-    { value: '', label: 'すべての状況' },
-    { value: 'pending', label: '未対応' },
-    { value: 'completed', label: '対応済' },
-    { value: 'not_required', label: '不要' }
+    { value: "", label: "すべての状況" },
+    { value: "pending", label: "未対応" },
+    { value: "completed", label: "対応済" },
+    { value: "not_required", label: "不要" },
   ];
 
   if (loading) {
@@ -148,16 +160,18 @@ export const GiftList: React.FC = () => {
             <Select
               label="カテゴリ"
               options={categoryOptions}
-              value={filters.category || ''}
-              onChange={(e) => handleFilterChange('category', e.target.value)}
+              value={filters.category || ""}
+              onChange={(e) => handleFilterChange("category", e.target.value)}
             />
           </div>
           <div>
             <Select
               label="お返し状況"
               options={statusOptions}
-              value={filters.returnStatus || ''}
-              onChange={(e) => handleFilterChange('returnStatus', e.target.value)}
+              value={filters.returnStatus || ""}
+              onChange={(e) =>
+                handleFilterChange("returnStatus", e.target.value)
+              }
             />
           </div>
           <div className="flex items-end">
@@ -165,7 +179,7 @@ export const GiftList: React.FC = () => {
               variant="outline"
               onClick={() => {
                 setFilters({});
-                setSearchText('');
+                setSearchText("");
               }}
               className="w-full"
             >
@@ -181,8 +195,8 @@ export const GiftList: React.FC = () => {
           <EmptyState
             message="贈答品が見つかりません"
             action={{
-              label: '最初の贈答品を登録',
-              onClick: () => window.location.href = '/gifts/new'
+              label: "最初の贈答品を登録",
+              onClick: () => navigate("/gifts/new"),
             }}
             icon={<span className="text-4xl">🎁</span>}
           />
@@ -204,12 +218,12 @@ export const GiftList: React.FC = () => {
                     {getPersonName(gift.personId)}
                   </p>
                   <p className="text-sm text-gray-500 mb-3">
-                    {format(gift.receivedDate, 'yyyy年M月d日', { locale: ja })}
+                    {format(gift.receivedDate, "yyyy年M月d日", { locale: ja })}
                   </p>
                 </div>
                 {getStatusBadge(gift.returnStatus)}
               </div>
-              
+
               <div className="space-y-2 mb-4">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">カテゴリ:</span>
@@ -224,13 +238,13 @@ export const GiftList: React.FC = () => {
                   </div>
                 )}
               </div>
-              
+
               {gift.memo && (
                 <p className="text-sm text-gray-600 mb-4 line-clamp-2">
                   {gift.memo}
                 </p>
               )}
-              
+
               <div className="flex justify-end">
                 <Link to={`/gifts/${gift.id}`}>
                   <Button variant="outline" size="sm">

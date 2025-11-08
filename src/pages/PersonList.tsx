@@ -1,42 +1,52 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
-import { Card, Button, Input, Select, Loading, EmptyState } from '@/components/ui';
-import { PersonRepository, GiftRepository } from '@/database';
-import { Person, Gift, Relationship } from '@/types';
-import { useAuth } from '@/contexts/AuthContext';
-import { syncManager } from '@/services/syncManager';
-import { isFirebaseEnabled } from '@/lib/firebase';
+import React, { useState, useEffect, useCallback } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  Card,
+  Button,
+  Input,
+  Select,
+  Loading,
+  EmptyState,
+} from "@/components/ui";
+import { PersonRepository, GiftRepository } from "@/database";
+import { Person, Gift, Relationship } from "@/types";
+import { useAuth } from "@/contexts/AuthContext";
+import { syncManager } from "@/services/syncManager";
+import { isFirebaseEnabled } from "@/lib/firebase";
 // import { format } from 'date-fns';
 // import { ja } from 'date-fns/locale';
 
 export const PersonList: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [persons, setPersons] = useState<Person[]>([]);
   const [gifts, setGifts] = useState<Gift[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchText, setSearchText] = useState('');
-  const [relationshipFilter, setRelationshipFilter] = useState('');
+  const [searchText, setSearchText] = useState("");
+  const [relationshipFilter, setRelationshipFilter] = useState("");
 
   const loadPersons = useCallback(async () => {
     try {
-      const userId = user?.uid || 'demo-user';
+      const userId = user?.uid || "demo-user";
       const personRepo = new PersonRepository();
-      
+
       let personsData: Person[];
       if (searchText) {
         personsData = await personRepo.search(userId, searchText);
       } else {
         personsData = await personRepo.getAll(userId);
       }
-      
+
       // 関係性でフィルタリング
       if (relationshipFilter) {
-        personsData = personsData.filter(p => p.relationship === relationshipFilter);
+        personsData = personsData.filter(
+          (p) => p.relationship === relationshipFilter,
+        );
       }
-      
+
       setPersons(personsData);
     } catch (error) {
-      console.error('Failed to load persons:', error);
+      console.error("Failed to load persons:", error);
     }
   }, [searchText, relationshipFilter, user?.uid]);
 
@@ -44,25 +54,25 @@ export const PersonList: React.FC = () => {
     const loadData = async () => {
       try {
         setLoading(true);
-        const userId = user?.uid || 'demo-user';
-        
+        const userId = user?.uid || "demo-user";
+
         // Firebaseが有効な場合、最初に同期を実行
         if (isFirebaseEnabled() && user?.uid && navigator.onLine) {
-          console.log('[PersonList] Syncing data before load...');
+          console.log("[PersonList] Syncing data before load...");
           try {
             await syncManager.triggerSync(user.uid);
-            console.log('[PersonList] Sync completed');
+            console.log("[PersonList] Sync completed");
           } catch (error) {
-            console.error('[PersonList] Sync failed:', error);
+            console.error("[PersonList] Sync failed:", error);
             // 同期に失敗してもローカルデータは表示する
           }
         }
-        
+
         const giftRepo = new GiftRepository();
         const giftsData = await giftRepo.getAll(userId);
         setGifts(giftsData);
       } catch (error) {
-        console.error('Failed to load data:', error);
+        console.error("Failed to load data:", error);
       } finally {
         setLoading(false);
       }
@@ -75,27 +85,32 @@ export const PersonList: React.FC = () => {
   }, [loadPersons]);
 
   const getPersonGifts = (personId: string) => {
-    return gifts.filter(g => g.personId === personId);
+    return gifts.filter((g) => g.personId === personId);
   };
 
   const getPersonGiftStats = (personId: string) => {
     const personGifts = getPersonGifts(personId);
-    const totalAmount = personGifts.reduce((sum, g) => sum + (g.amount || 0), 0);
-    const pendingCount = personGifts.filter(g => g.returnStatus === 'pending').length;
-    
+    const totalAmount = personGifts.reduce(
+      (sum, g) => sum + (g.amount || 0),
+      0,
+    );
+    const pendingCount = personGifts.filter(
+      (g) => g.returnStatus === "pending",
+    ).length;
+
     return {
       count: personGifts.length,
       totalAmount,
-      pendingCount
+      pendingCount,
     };
   };
 
   const relationshipOptions = [
-    { value: '', label: 'すべての関係性' },
-    ...Object.values(Relationship).map(rel => ({
+    { value: "", label: "すべての関係性" },
+    ...Object.values(Relationship).map((rel) => ({
       value: rel,
-      label: rel
-    }))
+      label: rel,
+    })),
   ];
 
   if (loading) {
@@ -151,8 +166,8 @@ export const PersonList: React.FC = () => {
           <EmptyState
             message="人物が見つかりません"
             action={{
-              label: '最初の人物を登録',
-              onClick: () => window.location.href = '/persons/new'
+              label: "最初の人物を登録",
+              onClick: () => navigate("/persons/new"),
             }}
             icon={<span className="text-4xl">👤</span>}
           />
@@ -161,7 +176,7 @@ export const PersonList: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {persons.map((person) => {
             const stats = getPersonGiftStats(person.id);
-            
+
             return (
               <Card
                 key={person.id}
@@ -183,7 +198,7 @@ export const PersonList: React.FC = () => {
                     </p>
                   </div>
                 </div>
-                
+
                 <div className="space-y-2 mb-4">
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-500">贈答品数:</span>
@@ -208,13 +223,13 @@ export const PersonList: React.FC = () => {
                     </div>
                   )}
                 </div>
-                
+
                 {person.memo && (
                   <p className="text-sm text-gray-600 mb-4 line-clamp-2">
                     {person.memo}
                   </p>
                 )}
-                
+
                 <div className="flex justify-end">
                   <Link to={`/persons/${person.id}`}>
                     <Button variant="outline" size="sm">
