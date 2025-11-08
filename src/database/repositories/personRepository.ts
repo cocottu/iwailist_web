@@ -7,14 +7,19 @@ export class PersonRepository {
   async create(person: Person): Promise<void> {
     const db = await getDB();
     await db.add('persons', person);
-    
+
     console.log('[PersonRepository] Person added to IndexedDB:', person.id);
     console.log('[PersonRepository] Firebase enabled:', isFirebaseEnabled());
     console.log('[PersonRepository] Person userId:', person.userId);
     console.log('[PersonRepository] Person id:', person.id);
-    
+
+    const canUseNavigator = typeof navigator !== 'undefined';
+    const isOnline = canUseNavigator ? navigator.onLine : true;
+    const shouldSyncWithFirestore =
+      isFirebaseEnabled() && isOnline && person.userId && person.id;
+
     // Firestoreに同期（同じIDを使用）
-    if (isFirebaseEnabled() && person.userId && person.id) {
+    if (shouldSyncWithFirestore) {
       try {
         console.log('[PersonRepository] Syncing person to Firestore...');
         // IDを含む完全なオブジェクトをFirestoreに保存
@@ -26,7 +31,16 @@ export class PersonRepository {
         // IndexedDBには保存されているので、エラーは無視（後で同期マネージャーが再試行）
       }
     } else {
-      console.warn('[PersonRepository] Skipping Firestore sync - Firebase enabled:', isFirebaseEnabled(), ', userId:', person.userId, ', id:', person.id);
+      console.warn(
+        '[PersonRepository] Skipping Firestore sync - Firebase enabled:',
+        isFirebaseEnabled(),
+        ', isOnline:',
+        isOnline,
+        ', userId:',
+        person.userId,
+        ', id:',
+        person.id
+      );
     }
   }
   
@@ -43,30 +57,60 @@ export class PersonRepository {
   async update(person: Person): Promise<void> {
     const db = await getDB();
     await db.put('persons', person);
-    
+
+    const canUseNavigator = typeof navigator !== 'undefined';
+    const isOnline = canUseNavigator ? navigator.onLine : true;
+    const shouldSyncWithFirestore = isFirebaseEnabled() && isOnline && person.userId;
+
     // Firestoreに同期
-    if (isFirebaseEnabled() && person.userId) {
+    if (shouldSyncWithFirestore && person.userId) {
       try {
         await firestorePersonRepository.update(person.userId, person.id, person);
       } catch (error) {
         console.error('Failed to sync person update to Firestore:', error);
         // IndexedDBには保存されているので、エラーは無視（後で同期マネージャーが再試行）
       }
+    } else {
+      console.warn(
+        '[PersonRepository] Skipping Firestore update sync - Firebase enabled:',
+        isFirebaseEnabled(),
+        ', isOnline:',
+        isOnline,
+        ', userId:',
+        person.userId,
+        ', id:',
+        person.id
+      );
     }
   }
-  
+
   async delete(id: string, userId?: string): Promise<void> {
     const db = await getDB();
     await db.delete('persons', id);
-    
+
+    const canUseNavigator = typeof navigator !== 'undefined';
+    const isOnline = canUseNavigator ? navigator.onLine : true;
+    const shouldSyncWithFirestore = isFirebaseEnabled() && isOnline && userId;
+
     // Firestoreに同期
-    if (isFirebaseEnabled() && userId) {
+    if (shouldSyncWithFirestore && userId) {
       try {
         await firestorePersonRepository.delete(userId, id);
       } catch (error) {
         console.error('Failed to sync person deletion to Firestore:', error);
         // IndexedDBからは削除されているので、エラーは無視
       }
+    } else {
+      console.warn(
+        '[PersonRepository] Skipping Firestore delete sync - Firebase enabled:',
+        isFirebaseEnabled(),
+        ', isOnline:',
+        isOnline,
+        ', userId:',
+        userId,
+        ', id:',
+        id
+      );
     }
   }
   
