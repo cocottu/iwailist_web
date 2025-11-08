@@ -10,37 +10,48 @@ type SyncOptions = {
 
 export class GiftRepository {
   async create(gift: Gift, options: SyncOptions = {}): Promise<void> {
-    const db = await getDB();
-    await db.add('gifts', gift);
-    
-    console.log('[GiftRepository] Gift added to IndexedDB:', gift.id);
-    console.log('[GiftRepository] Firebase enabled:', isFirebaseEnabled());
-    console.log('[GiftRepository] Gift userId:', gift.userId);
-    console.log('[GiftRepository] Gift id:', gift.id);
-    
-    // Firestoreに同期（同じIDを使用）
-    const isOnline = this.getOnlineStatus();
-    if (this.shouldSyncWithFirestore(gift.userId, options, isOnline)) {
-      try {
-        console.log('[GiftRepository] Syncing gift to Firestore...');
-        // IDを含む完全なオブジェクトをFirestoreに保存
-        const { id, userId, ...giftData } = gift;
-        await firestoreGiftRepository.createWithId(userId, id, giftData);
-        console.log('[GiftRepository] Gift successfully synced to Firestore:', id);
-      } catch (error) {
-        console.error('[GiftRepository] Failed to sync gift to Firestore:', error);
-        // IndexedDBには保存されているので、エラーは無視（後で同期マネージャーが再試行）
-        await this.queueSyncOperationIfNeeded('create', gift, options);
+    try {
+      const db = await getDB();
+      await db.add('gifts', gift);
+      
+      console.log('[GiftRepository] Gift added to IndexedDB:', gift.id);
+      console.log('[GiftRepository] Firebase enabled:', isFirebaseEnabled());
+      console.log('[GiftRepository] Gift userId:', gift.userId);
+      console.log('[GiftRepository] Gift id:', gift.id);
+      
+      // Firestoreに同期（同じIDを使用）
+      const isOnline = this.getOnlineStatus();
+      console.log('[GiftRepository] Online status:', isOnline);
+      
+      if (this.shouldSyncWithFirestore(gift.userId, options, isOnline)) {
+        try {
+          console.log('[GiftRepository] Syncing gift to Firestore...');
+          // IDを含む完全なオブジェクトをFirestoreに保存
+          const { id, userId, ...giftData } = gift;
+          await firestoreGiftRepository.createWithId(gift.userId, gift.id, giftData);
+          console.log('[GiftRepository] Gift successfully synced to Firestore:', gift.id);
+        } catch (error) {
+          console.error('[GiftRepository] Failed to sync gift to Firestore:', error);
+          // IndexedDBには保存されているので、エラーは無視（後で同期マネージャーが再試行）
+          await this.queueSyncOperationIfNeeded('create', gift, options);
+        }
+      } else if (this.shouldQueueOfflineSync(options, gift.userId, isOnline)) {
+        console.log('[GiftRepository] Queueing offline sync for gift:', gift.id);
+        await this.queueSyncOperation({
+          type: 'create',
+          collection: 'gifts',
+          documentId: gift.id,
+          data: gift,
+        });
+        console.log('[GiftRepository] Offline sync queued successfully');
+      } else {
+        // オフラインモードでFirebaseが無効な場合、IndexedDBのみに保存（正常な動作）
+        console.log('[GiftRepository] Gift saved to IndexedDB only (offline mode or Firebase disabled)');
       }
-    } else if (this.shouldQueueOfflineSync(options, gift.userId, isOnline)) {
-      await this.queueSyncOperation({
-        type: 'create',
-        collection: 'gifts',
-        documentId: gift.id,
-        data: gift,
-      });
-    } else {
-      console.warn('[GiftRepository] Skipping Firestore sync - Firebase enabled:', isFirebaseEnabled(), ', userId:', gift.userId, ', id:', gift.id);
+    } catch (error) {
+      console.error('[GiftRepository] Failed to create gift:', error);
+      // IndexedDBへの保存が失敗した場合はエラーを再スロー
+      throw new Error(`贈答品の登録に失敗しました: ${error instanceof Error ? error.message : '不明なエラー'}`);
     }
   }
   
