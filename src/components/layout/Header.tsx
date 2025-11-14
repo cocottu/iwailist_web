@@ -7,13 +7,16 @@ import { formatDistanceToNow } from 'date-fns';
 import { ja } from 'date-fns/locale';
 import { isFirebaseEnabled } from '../../lib/firebase';
 
-const navigationItems = [
+const primaryNavigationItems = [
   { path: '/', label: 'ホーム', icon: '🏠' },
   { path: '/gifts', label: '贈答品', icon: '🎁' },
   { path: '/persons', label: '人物', icon: '👤' },
   { path: '/returns', label: 'お返し', icon: '↩️' },
   { path: '/reminders', label: 'リマインダー', icon: '⏰' },
   { path: '/statistics', label: '統計', icon: '📊' },
+];
+
+const managementNavigationItems = [
   { path: '/data-management', label: 'データ管理', icon: '💾' },
   { path: '/settings', label: '設定', icon: '⚙️' },
 ];
@@ -161,26 +164,6 @@ export const Header: React.FC = () => {
             >
               統計
             </Link>
-            <Link
-              to="/data-management"
-              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                location.pathname.startsWith('/data-management')
-                  ? 'bg-blue-100 text-blue-700'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              データ管理
-            </Link>
-            <Link
-              to="/settings"
-              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                location.pathname.startsWith('/settings')
-                  ? 'bg-blue-100 text-blue-700'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              設定
-            </Link>
           </nav>
 
           <div className="flex items-center gap-3">
@@ -287,6 +270,43 @@ export const Header: React.FC = () => {
                     <p className="text-sm font-medium text-gray-900">{user.displayName || 'ユーザー'}</p>
                     <p className="text-sm text-gray-500 truncate">{user.email}</p>
                   </div>
+                    <div className="py-1">
+                      {managementNavigationItems.map((item) => {
+                        const isActive =
+                          location.pathname === item.path ||
+                          (item.path !== '/' && location.pathname.startsWith(item.path));
+                        return (
+                          <Link
+                            key={item.path}
+                            to={item.path}
+                            onClick={() => setIsDropdownOpen(false)}
+                            className={`flex items-center space-x-3 px-4 py-2 text-sm font-medium transition-colors ${
+                              isActive
+                                ? 'bg-blue-50 text-blue-700'
+                                : 'text-gray-700 hover:bg-gray-100'
+                            }`}
+                          >
+                            <span className="text-lg">{item.icon}</span>
+                            <span className="flex-1 text-left">{item.label}</span>
+                            {isActive && (
+                              <svg
+                                className="w-4 h-4 text-blue-600"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M5 13l4 4L19 7"
+                                />
+                              </svg>
+                            )}
+                          </Link>
+                        );
+                      })}
+                    </div>
                   
                   <button
                     onClick={async () => {
@@ -360,7 +380,7 @@ export const Header: React.FC = () => {
       >
         <nav className="px-4 py-6">
           <div className="space-y-1">
-            {navigationItems.map((item) => {
+              {primaryNavigationItems.map((item) => {
               const isActive =
                 location.pathname === item.path ||
                 (item.path !== '/' && location.pathname.startsWith(item.path));
@@ -396,7 +416,6 @@ export const Header: React.FC = () => {
               );
             })}
           </div>
-
           {/* 同期ステータス（モバイルメニュー内） */}
           <div className="mt-8 pt-8 border-t border-gray-200">
             <div className="px-4 mb-4 space-y-3">
@@ -462,41 +481,78 @@ export const Header: React.FC = () => {
             </div>
 
             {/* ユーザー情報とログアウト（モバイルメニュー内） */}
-            {isAuthenticated && user && (
-              <>
-                <div className="px-4 mb-4">
-                  <p className="text-sm font-medium text-gray-900">{user.displayName || 'ユーザー'}</p>
-                  <p className="text-sm text-gray-500 truncate">{user.email}</p>
-                </div>
-                <button
-                  onClick={async () => {
-                    try {
-                      await signOut();
-                      setIsMobileMenuOpen(false);
-                    } catch (error) {
-                      console.error('ログアウトエラー:', error);
-                      alert('ログアウトに失敗しました');
-                    }
-                  }}
-                  className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-base font-medium text-gray-700 hover:bg-gray-100 transition-colors"
-                >
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+              {isAuthenticated && user && (
+                <>
+                  <div className="px-4 mb-4">
+                    <p className="text-xs font-semibold text-gray-500 tracking-wide">アカウントメニュー</p>
+                    <div className="mt-3 space-y-1">
+                      {managementNavigationItems.map((item) => {
+                        const isActive =
+                          location.pathname === item.path ||
+                          (item.path !== '/' && location.pathname.startsWith(item.path));
+                        return (
+                          <button
+                            key={item.path}
+                            onClick={() => handleMobileMenuClick(item.path)}
+                            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-base font-medium transition-colors ${
+                              isActive ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:bg-gray-100'
+                            }`}
+                          >
+                            <span className="text-xl">{item.icon}</span>
+                            <span>{item.label}</span>
+                            {isActive && (
+                              <svg
+                                className="w-5 h-5 ml-auto text-blue-600"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M5 13l4 4L19 7"
+                                />
+                              </svg>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  <div className="px-4 mb-4">
+                    <p className="text-sm font-medium text-gray-900">{user.displayName || 'ユーザー'}</p>
+                    <p className="text-sm text-gray-500 truncate">{user.email}</p>
+                  </div>
+                  <button
+                    onClick={async () => {
+                      try {
+                        await signOut();
+                        setIsMobileMenuOpen(false);
+                      } catch (error) {
+                        console.error('ログアウトエラー:', error);
+                        alert('ログアウトに失敗しました');
+                      }
+                    }}
+                    className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-base font-medium text-gray-700 hover:bg-gray-100 transition-colors"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                    />
-                  </svg>
-                  <span>ログアウト</span>
-                </button>
-              </>
-            )}
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                      />
+                    </svg>
+                    <span>ログアウト</span>
+                  </button>
+                </>
+              )}
           </div>
         </nav>
       </div>
