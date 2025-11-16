@@ -4,6 +4,7 @@
  */
 
 import { useEffect, useRef } from 'react';
+import { getAdSenseConfig } from '@/lib/env';
 
 interface AdBannerProps {
   slot?: string;
@@ -31,8 +32,8 @@ export default function AdBanner({
   className = '',
 }: AdBannerProps) {
   const adRef = useRef<HTMLDivElement>(null);
-  const adSenseClientId = import.meta.env.VITE_ADSENSE_CLIENT_ID;
-  const adSenseSlot = slot || import.meta.env.VITE_ADSENSE_SLOT;
+  const { clientId: adSenseClientId, slot: envSlot, isDev } = getAdSenseConfig();
+  const adSenseSlot = slot || envSlot;
 
   useEffect(() => {
     // AdSenseが設定されていない場合は何もしない
@@ -54,7 +55,7 @@ export default function AdBanner({
 
   // AdSenseが設定されていない場合は開発用プレースホルダーを表示
   if (!adSenseClientId || !adSenseSlot) {
-    if (import.meta.env.DEV) {
+    if (isDev) {
       return (
         <div className={`bg-gray-100 dark:bg-gray-800 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 ${className}`}>
           <div className="text-center">
