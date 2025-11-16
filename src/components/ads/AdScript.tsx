@@ -4,9 +4,10 @@
  */
 
 import { useEffect } from 'react';
+import { getAdSenseConfig } from '@/lib/env';
 
 export default function AdScript() {
-  const adSenseClientId = import.meta.env.VITE_ADSENSE_CLIENT_ID;
+  const { clientId: adSenseClientId } = getAdSenseConfig();
 
   useEffect(() => {
     if (!adSenseClientId || typeof window === 'undefined') {
