@@ -10,8 +10,12 @@ class FirestoreReturnRepository {
   /**
    * お返しを作成
    */
-  async create(userId: string, giftId: string, returnData: Omit<Return, 'id' | 'giftId' | 'createdAt'>): Promise<string> {
-    const collectionPath = `users/${userId}/gifts/${giftId}/returns`;
+  async create(
+    userId: string,
+    giftId: string,
+    returnData: Omit<Return, 'id' | 'giftId' | 'createdAt'>
+  ): Promise<string> {
+    const collectionPath = firestoreService.getUserCollectionPath(userId, `gifts/${giftId}/returns`);
     const returnId = crypto.randomUUID();
 
     const firestoreReturn: Omit<FirestoreReturn, 'createdAt'> = {
@@ -29,7 +33,7 @@ class FirestoreReturnRepository {
    * お返しを取得
    */
   async get(userId: string, giftId: string, returnId: string): Promise<Return | null> {
-    const collectionPath = `users/${userId}/gifts/${giftId}/returns`;
+    const collectionPath = firestoreService.getUserCollectionPath(userId, `gifts/${giftId}/returns`);
     const firestoreReturn = await firestoreService.getDocument<FirestoreReturn & { id: string }>(
       collectionPath,
       returnId
@@ -46,7 +50,7 @@ class FirestoreReturnRepository {
    * 贈答品のお返し一覧を取得
    */
   async getByGiftId(userId: string, giftId: string): Promise<Return[]> {
-    const collectionPath = `users/${userId}/gifts/${giftId}/returns`;
+    const collectionPath = firestoreService.getUserCollectionPath(userId, `gifts/${giftId}/returns`);
     const firestoreReturns = await firestoreService.queryDocuments<FirestoreReturn & { id: string }>(
       collectionPath,
       [orderBy('returnDate', 'desc')]
@@ -58,8 +62,13 @@ class FirestoreReturnRepository {
   /**
    * お返しを更新
    */
-  async update(userId: string, giftId: string, returnId: string, updates: Partial<Return>): Promise<void> {
-    const collectionPath = `users/${userId}/gifts/${giftId}/returns`;
+  async update(
+    userId: string,
+    giftId: string,
+    returnId: string,
+    updates: Partial<Return>
+  ): Promise<void> {
+    const collectionPath = firestoreService.getUserCollectionPath(userId, `gifts/${giftId}/returns`);
 
     const firestoreUpdates: Partial<FirestoreReturn> = {};
 
@@ -77,7 +86,7 @@ class FirestoreReturnRepository {
    * お返しを削除
    */
   async delete(userId: string, giftId: string, returnId: string): Promise<void> {
-    const collectionPath = `users/${userId}/gifts/${giftId}/returns`;
+    const collectionPath = firestoreService.getUserCollectionPath(userId, `gifts/${giftId}/returns`);
     await firestoreService.deleteDocument(collectionPath, returnId);
   }
 

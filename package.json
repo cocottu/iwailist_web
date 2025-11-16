@@ -5,10 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:staging": "vite --mode staging",
+    "dev:prod": "vite --mode production",
     "dev:e2e": "vite --mode e2e --host 127.0.0.1 --port 3000 --strictPort",
     "build": "tsc && vite build",
     "build:dev": "tsc && vite build --mode development",
     "build:staging": "tsc && vite build --mode staging",
+    "build:prod": "tsc && vite build --mode production",
     "preview": "vite preview",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives",
     "lint:fix": "eslint . --ext ts,tsx --fix",
@@ -25,8 +28,11 @@
     "pwa:icons": "node scripts/generate-pwa-icons.js",
     "security:check": "node scripts/security-check.js",
     "pre-commit": "node scripts/pre-commit.js",
-    "build:production": "npm run security:check && npm run lint && npm run test:run && npm run build",
-    "deploy": "npm run build && firebase deploy --only hosting",
+    "build:production": "npm run security:check && npm run lint && npm run test:run && npm run build:prod",
+    "deploy:dev": "npm run build:dev && firebase hosting:channel:deploy dev --expires 30d",
+    "deploy:staging": "npm run build:staging && firebase hosting:channel:deploy staging --expires 90d",
+    "deploy:prod": "npm run build:prod && firebase deploy --only hosting",
+    "deploy": "npm run deploy:prod",
     "deploy:rules": "firebase deploy --only firestore:rules,firestore:indexes,storage"
   },
   "dependencies": {

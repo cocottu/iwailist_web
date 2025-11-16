@@ -8,7 +8,7 @@ import {
   deleteObject,
   listAll,
 } from 'firebase/storage';
-import { storage, isFirebaseEnabled } from '../lib/firebase';
+import { storage, isFirebaseEnabled, getEnvironmentStoragePath } from '../lib/firebase';
 import { compressImage } from '../utils/imageProcessing';
 
 interface UploadOptions {
@@ -40,7 +40,7 @@ class StorageService {
       });
 
       // ストレージパス生成
-      const storagePath = `users/${userId}/${path}`;
+      const storagePath = getEnvironmentStoragePath(`users/${userId}/${path}`);
       const storageRef = ref(storage, storagePath);
 
       // アップロード
@@ -121,7 +121,7 @@ class StorageService {
     }
 
     try {
-      const storagePath = `users/${userId}/${dirPath}`;
+      const storagePath = getEnvironmentStoragePath(`users/${userId}/${dirPath}`);
       const storageRef = ref(storage, storagePath);
       const listResult = await listAll(storageRef);
 
@@ -163,7 +163,7 @@ class StorageService {
     }
 
     try {
-      const storagePath = `users/${userId}`;
+      const storagePath = getEnvironmentStoragePath(`users/${userId}`);
       const storageRef = ref(storage, storagePath);
       const listResult = await listAll(storageRef);
 
