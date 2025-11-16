@@ -2,6 +2,8 @@
 
 本ガイドでは、Iwailist Webアプリケーションにおける複数環境（開発、ステージング、本番）のセットアップ手順を説明します。
 
+> **現状:** Firebase プロジェクト数の制約により、`cocottu-iwailist` 単一プロジェクト方式（Hosting Channel: `dev` / `staging` / `live`）で運用しています。以下の手順もこの前提で整備済みです。
+
 詳細な設計については [design/07_multi_environment_strategy.md](../design/07_multi_environment_strategy.md) を参照してください。
 
 ## 重要: プロジェクト数上限時の対応
@@ -106,8 +108,8 @@ firebase login
 {
   "projects": {
     "default": "cocottu-iwailist",
-    "development": "cocottu-iwailist-dev",
-    "staging": "cocottu-iwailist-staging",
+    "development": "cocottu-iwailist",
+    "staging": "cocottu-iwailist",
     "production": "cocottu-iwailist"
   }
 }
@@ -128,6 +130,8 @@ firebase use production
 # 現在使用中のプロジェクトを確認
 firebase use
 ```
+
+> 単一プロジェクト方式では、`development` / `staging` / `production` すべてが同じ `cocottu-iwailist` を指します。実際の分離は `VITE_APP_ENV`・Firestore/Storage のプレフィックス・Hosting Channel で行われます。
 
 ## 5. ローカル開発
 
@@ -170,23 +174,23 @@ npm run deploy:prod
 
 ### 6.2 単一プロジェクト方式の場合（プロジェクト数上限時）
 
-**Firebase Hosting Channelsを使用**:
+**Firebase Hosting Channelsを使用**（`npm run deploy:*` がラップ済み）:
 
 ```bash
-# 開発環境: プレビューチャネル（30日間有効）
-firebase hosting:channel:deploy dev --expires 30d
+# 開発環境: dev チャネル（30日間有効）
+npm run deploy:dev
 
-# ステージング環境: プレビューチャネル（90日間有効）
-firebase hosting:channel:deploy staging --expires 90d
+# ステージング環境: staging チャネル（90日間有効）
+npm run deploy:staging
 
-# 本番環境: メインサイト
-firebase deploy --only hosting
+# 本番環境: live チャネル
+npm run deploy:prod
 
 # プレビューチャネルの一覧確認
 firebase hosting:channel:list
 
-# プレビューチャネルの削除
-firebase hosting:channel:delete dev
+# 不要になったチャネルの削除
+firebase hosting:channel:delete <channelName>
 ```
 
 **環境別URL**:
@@ -196,49 +200,24 @@ firebase hosting:channel:delete dev
 
 ### 6.2 GitHub Actions経由のデプロイ
 
-GitHub Secrets に以下を登録:
+単一プロジェクト方式では、すべてのワークフローで同じ Firebase 資格情報を共有します。GitHub Secrets には以下のみ登録すれば OK です（`VITE_APP_ENV` は Workflow 側で切り替え）。
 
-#### 開発環境用
-- `DEV_FIREBASE_API_KEY`
-- `DEV_FIREBASE_AUTH_DOMAIN`
-- `DEV_FIREBASE_PROJECT_ID`
-- `DEV_FIREBASE_STORAGE_BUCKET`
-- `DEV_FIREBASE_MESSAGING_SENDER_ID`
-- `DEV_FIREBASE_APP_ID`
-- `DEV_FIREBASE_SERVICE_ACCOUNT`
-
-#### ステージング環境用
-- `STAGING_FIREBASE_API_KEY`
-- `STAGING_FIREBASE_AUTH_DOMAIN`
-- `STAGING_FIREBASE_PROJECT_ID`
-- `STAGING_FIREBASE_STORAGE_BUCKET`
-- `STAGING_FIREBASE_MESSAGING_SENDER_ID`
-- `STAGING_FIREBASE_APP_ID`
-- `STAGING_FIREBASE_SERVICE_ACCOUNT`
-
-#### 本番環境用（既存）
 - `FIREBASE_API_KEY`
 - `FIREBASE_AUTH_DOMAIN`
 - `FIREBASE_PROJECT_ID`
 - `FIREBASE_STORAGE_BUCKET`
 - `FIREBASE_MESSAGING_SENDER_ID`
 - `FIREBASE_APP_ID`
-- `FIREBASE_SERVICE_ACCOUNT`
+- `FIREBASE_SERVICE_ACCOUNT`（JSON）
+- `FIREBASE_TOKEN`（CLIでのルールデプロイ用・任意）
 
 ## 7. Security Rulesのデプロイ
 
+単一プロジェクトでは Rules / Index / Storage 設定も共有されるため、**本番（live）に対してのみデプロイ**します。事前に `firebase use production` を実行してから以下を行ってください。
+
 ```bash
-# 開発環境
-firebase use development
-firebase deploy --only firestore:rules,storage
-
-# ステージング環境
-firebase use staging
-firebase deploy --only firestore:rules,storage
-
-# 本番環境
 firebase use production
-firebase deploy --only firestore:rules,storage
+firebase deploy --only firestore:rules,firestore:indexes,storage
 ```
 
 ## 8. 動作確認

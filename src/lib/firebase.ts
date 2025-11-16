@@ -17,6 +17,42 @@ export const isDevelopment = (): boolean => APP_ENV === 'development';
 export const isStaging = (): boolean => APP_ENV === 'staging';
 export const isProduction = (): boolean => APP_ENV === 'production';
 
+const sanitizeSegment = (value: string): string =>
+  value
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-zA-Z0-9_-]/g, '')
+    .toLowerCase();
+
+const getEnvLabel = (): string => sanitizeSegment(APP_ENV || 'development');
+
+/**
+ * 環境に応じてコレクション名を返す
+ * - 本番: `users`
+ * - 開発: `development_users`
+ */
+export const getEnvironmentCollectionName = (baseName: string): string => {
+  const normalizedBase = baseName.trim();
+  if (!normalizedBase) {
+    throw new Error('Collection name must not be empty.');
+  }
+
+  return isProduction() ? normalizedBase : `${getEnvLabel()}_${normalizedBase}`;
+};
+
+const normalizePath = (relativePath: string): string =>
+  relativePath.replace(/^\/+/, '').replace(/\/+$/, '');
+
+/**
+ * 環境に応じてストレージパスを返す
+ * - 本番: `users/{userId}/...`
+ * - 開発: `development/users/{userId}/...`
+ */
+export const getEnvironmentStoragePath = (relativePath: string): string => {
+  const normalized = normalizePath(relativePath);
+  return isProduction() ? normalized : `${getEnvLabel()}/${normalized}`;
+};
+
 // 環境に応じた機能フラグ
 export const FEATURE_FLAGS = {
   enableDebugMode: isDevelopment(),

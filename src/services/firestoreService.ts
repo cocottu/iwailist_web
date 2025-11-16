@@ -18,7 +18,7 @@ import {
   DocumentData,
   QueryConstraint,
 } from 'firebase/firestore';
-import { db, isFirebaseEnabled } from '../lib/firebase';
+import { db, isFirebaseEnabled, getEnvironmentCollectionName } from '../lib/firebase';
 
 class FirestoreService {
   /**
@@ -156,7 +156,9 @@ class FirestoreService {
    * ユーザー専用のコレクションパスを生成
    */
   getUserCollectionPath(userId: string, collectionName: string): string {
-    return `users/${userId}/${collectionName}`;
+    const usersCollection = getEnvironmentCollectionName('users');
+    const normalizedCollectionName = collectionName.replace(/^\/+/, '');
+    return `${usersCollection}/${userId}/${normalizedCollectionName}`;
   }
 
   /**
