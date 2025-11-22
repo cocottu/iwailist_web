@@ -279,7 +279,7 @@ describe('SyncManager', () => {
   
   it('should handle realtime sync updates', async () => {
     const callbacks: any[] = [];
-    (onSnapshot as any).mockImplementation((query: any, onNext: any, onError: any) => {
+    (onSnapshot as any).mockImplementation((_query: any, onNext: any, _onError: any) => {
       callbacks.push(onNext);
       return vi.fn(); // unsubscribe function
     });

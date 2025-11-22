@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { importData, importFromFile, validateExportData, ImportOptions, ImportResult } from '../../services/importService';
+import { importData, importFromFile, validateExportData } from '../../services/importService';
 import { getDB } from '../../database';
 import { ExportData } from '../../services/exportService';
 

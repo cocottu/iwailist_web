@@ -68,7 +68,10 @@ describe('useSWUpdate', () => {
 
     expect(mockReload).toHaveBeenCalled();
     
-    window.location = originalLocation;
+    Object.defineProperty(window, 'location', {
+        value: originalLocation,
+        writable: true
+    });
   });
 
   it('Service Workerがサポートされていない場合、何もしない', () => {

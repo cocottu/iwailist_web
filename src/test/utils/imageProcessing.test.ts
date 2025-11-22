@@ -6,9 +6,7 @@ import {
   isImageFile,
   isSupportedImageFormat,
   generateThumbnail,
-  CompressOptions
 } from '../../utils/imageProcessing';
-import { AppError } from '../../types';
 
 describe('imageProcessing', () => {
   describe('formatFileSize', () => {
@@ -86,7 +84,7 @@ describe('imageProcessing', () => {
       onerror: ((e: any) => void) | null = null;
       error: any = null;
       
-      readAsDataURL(file: Blob) {
+      readAsDataURL(_file: Blob) {
         setTimeout(() => {
           if (this.onload) {
             this.onload({ target: { result: 'data:image/jpeg;base64,mock' } });
@@ -139,7 +137,7 @@ describe('imageProcessing', () => {
             const file = new File([''], 'test.jpg', { type: 'image/jpeg' });
             
             // HTMLCanvasElement.prototype.toBlob のモック
-            const mockToBlob = vi.fn((callback, type, quality) => {
+            const mockToBlob = vi.fn((callback, _type, _quality) => {
                 callback(new Blob(['mock-compressed-data'], { type: 'image/jpeg' }));
             });
 
