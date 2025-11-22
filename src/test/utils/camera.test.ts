@@ -8,7 +8,7 @@ import {
   dataURLToBlob,
   CameraConstraints
 } from '../../utils/camera';
-import { AppError, ErrorType } from '../../types';
+import { AppError } from '../../types';
 
 describe('camera utils', () => {
   beforeEach(() => {
@@ -144,7 +144,7 @@ describe('camera utils', () => {
       Object.defineProperty(mockVideo, 'videoWidth', { value: 640 });
       Object.defineProperty(mockVideo, 'videoHeight', { value: 480 });
 
-      const mockToBlob = vi.fn((callback, type, quality) => {
+      const mockToBlob = vi.fn((callback, _type, _quality) => {
         callback(new Blob(['mock-photo'], { type: 'image/jpeg' }));
       });
 
@@ -186,7 +186,7 @@ describe('camera utils', () => {
         result: string | null = null;
         onload: (() => void) | null = null;
         
-        readAsDataURL(blob: Blob) {
+        readAsDataURL(_blob: Blob) {
             this.result = 'data:image/jpeg;base64,mock';
           setTimeout(() => {
             if (this.onloadend) {
@@ -195,7 +195,7 @@ describe('camera utils', () => {
           }, 0);
         }
 
-        readAsText(blob: Blob) {
+        readAsText(_blob: Blob) {
             this.result = 'Hello World';
             setTimeout(() => {
                 if (this.onload) {
@@ -223,7 +223,7 @@ describe('camera utils', () => {
         onload: (() => void) | null = null;
         result: string | null = null;
         
-        readAsText(blob: Blob) {
+        readAsText(_blob: Blob) {
             this.result = 'Hello World';
             setTimeout(() => {
                 if (this.onload) {

@@ -63,7 +63,7 @@ describe('exportService', () => {
       result: string | null = null;
       onloadend: (() => void) | null = null;
       onerror: ((error: any) => void) | null = null;
-      readAsDataURL(blob: Blob) {
+      readAsDataURL(_blob: Blob) {
         this.result = 'data:image/png;base64,fakebase64';
         if (this.onloadend) this.onloadend();
       }
@@ -97,7 +97,7 @@ describe('exportService', () => {
     vi.stubGlobal('Blob', class MockBlob {
       content: any[];
       size: number;
-      constructor(content: any[], options?: any) {
+      constructor(content: any[], _options?: any) {
         this.content = content;
         this.size = 100; // Mock size
       }
@@ -151,7 +151,7 @@ describe('exportService', () => {
   it('should export specific gift entity', async () => {
     const giftId = 'g1';
     mockDB.get.mockResolvedValue(mockGifts[0]);
-    mockDB.getAllFromIndex.mockImplementation((store, index, value) => {
+    mockDB.getAllFromIndex.mockImplementation((store, _index, value) => {
         if (store === 'returns' && value === giftId) return Promise.resolve([mockReturns[0]]);
         if (store === 'images' && value === giftId) return Promise.resolve([mockImages[0]]);
         return Promise.resolve([]);

@@ -1,5 +1,5 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import SignUp from '../../pages/SignUp';
 import { useAuth } from '../../contexts/AuthContext';
 import { isFirebaseEnabled } from '../../lib/firebase';

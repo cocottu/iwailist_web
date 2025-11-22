@@ -184,7 +184,7 @@ describe('firestoreService', () => {
   describe('timestamp変換', () => {
     it('dateToTimestamp', () => {
       const date = new Date('2023-01-01');
-      const timestamp = firestoreService.dateToTimestamp(date);
+      firestoreService.dateToTimestamp(date);
       
       expect(firebaseFirestore.Timestamp.fromDate).toHaveBeenCalledWith(date);
     });

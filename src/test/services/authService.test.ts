@@ -1,9 +1,8 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { authService } from '../../services/authService';
 import * as firebaseAuth from 'firebase/auth';
 import * as firebaseFirestore from 'firebase/firestore';
 import * as firebaseLib from '../../lib/firebase';
-import { AuthErrorCode } from '../../types/firebase';
 
 // Firebase関連のモック
 vi.mock('firebase/auth', () => {
