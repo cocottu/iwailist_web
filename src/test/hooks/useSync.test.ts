@@ -1,4 +1,4 @@
-import { renderHook, act, waitFor } from '@testing-library/react';
+import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { useSync } from '../../hooks/useSync';
 import { syncManager } from '../../services/syncManager';
@@ -38,14 +38,17 @@ describe('useSync', () => {
   const mockUser = { uid: 'test-uid' };
 
   beforeEach(() => {
+    vi.useFakeTimers();
     vi.resetAllMocks();
     (syncManager.getSyncStatus as any).mockReturnValue(mockSyncStatus);
     (useAuth as any).mockReturnValue({ user: mockUser });
-    (useOnlineStatus as any).mockReturnValue(true);
+    (useOnlineStatus as any).mockReturnValue(false);
     (isFirebaseEnabled as any).mockReturnValue(true);
   });
 
   afterEach(() => {
+    vi.clearAllTimers();
+    vi.useRealTimers();
     vi.clearAllMocks();
   });
 
@@ -59,7 +62,6 @@ describe('useSync', () => {
   });
 
   it('should update sync status periodically', async () => {
-    vi.useFakeTimers();
     const { result } = renderHook(() => useSync());
 
     const updatedStatus = { ...mockSyncStatus, pendingOperations: 5 };
@@ -70,7 +72,6 @@ describe('useSync', () => {
     });
 
     expect(result.current.pendingOperations).toBe(5);
-    vi.useRealTimers();
   });
 
   it('should perform sync successfully', async () => {
@@ -170,10 +171,11 @@ describe('useSync', () => {
     (useOnlineStatus as any).mockReturnValue(true);
     rerender();
 
-    // Wait for useEffect
-    await waitFor(() => {
-       expect(syncManager.triggerSync).toHaveBeenCalledWith(mockUser.uid);
+    await act(async () => {
+      await vi.runOnlyPendingTimersAsync();
     });
+
+    expect(syncManager.triggerSync).toHaveBeenCalledWith(mockUser.uid);
   });
 
   it('should retry sync', async () => {

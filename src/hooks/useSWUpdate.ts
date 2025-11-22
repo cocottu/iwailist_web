@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 interface UseSWUpdateReturn {
   needRefresh: boolean;
@@ -14,42 +14,85 @@ interface UseSWUpdateReturn {
 export function useSWUpdate(): UseSWUpdateReturn {
   const [needRefresh, setNeedRefresh] = useState<boolean>(false);
   const [offlineReady, setOfflineReady] = useState<boolean>(false);
+  const isMountedRef = useRef(true);
 
   useEffect(() => {
-    // Service Worker登録の監視
-    if ('serviceWorker' in navigator) {
-      // Service Workerの更新を検知
-      navigator.serviceWorker.ready.then((registration) => {
-        console.log('✅ Service Worker が登録されました');
-        
-        // 更新をチェック
-        registration.addEventListener('updatefound', () => {
-          const newWorker = registration.installing;
-          if (newWorker) {
-            newWorker.addEventListener('statechange', () => {
-              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                // 新しいバージョンが利用可能
-                console.log('🔄 新しいバージョンが利用可能です');
-                setNeedRefresh(true);
-              }
-            });
-          }
-        });
+    let intervalId: ReturnType<typeof setInterval> | null = null;
+    let cleanupRegistration: (() => void) | null = null;
+    let cleanupStateChange: (() => void) | null = null;
 
-        // オフライン対応完了
+    const setupServiceWorker = async (): Promise<void> => {
+      if (!('serviceWorker' in navigator)) {
+        return;
+      }
+
+      try {
+        const registration = await navigator.serviceWorker.ready;
+        if (!isMountedRef.current) {
+          return;
+        }
+
+        console.log('✅ Service Worker が登録されました');
+
+        const handleUpdateFound = (): void => {
+          const newWorker = registration.installing;
+          if (!newWorker) {
+            return;
+          }
+
+          cleanupStateChange?.();
+
+          const handleStateChange = (): void => {
+            if (!isMountedRef.current) {
+              return;
+            }
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              console.log('🔄 新しいバージョンが利用可能です');
+              setNeedRefresh(true);
+            }
+          };
+
+          newWorker.addEventListener('statechange', handleStateChange);
+          cleanupStateChange = () => {
+            if (typeof newWorker.removeEventListener === 'function') {
+              newWorker.removeEventListener('statechange', handleStateChange);
+            }
+          };
+        };
+
+        registration.addEventListener('updatefound', handleUpdateFound);
+        cleanupRegistration = () => {
+          if (typeof registration.removeEventListener === 'function') {
+            registration.removeEventListener('updatefound', handleUpdateFound);
+          }
+        };
+
         if (registration.active) {
           console.log('📴 オフラインで利用可能になりました');
           setOfflineReady(true);
         }
 
-        // 定期的に更新をチェック（1時間ごと）
-        setInterval(() => {
-          registration.update();
+        intervalId = window.setInterval(() => {
+          void registration.update();
         }, 60 * 60 * 1000);
-      }).catch((error: Error) => {
-        console.error('❌ Service Worker の登録に失敗しました:', error);
-      });
-    }
+      } catch (error) {
+        if (isMountedRef.current) {
+          console.error('❌ Service Worker の登録に失敗しました:', error);
+        }
+      }
+    };
+
+    void setupServiceWorker();
+
+    // Service Worker登録の監視
+    return () => {
+      isMountedRef.current = false;
+      cleanupStateChange?.();
+      cleanupRegistration?.();
+      if (intervalId !== null) {
+        clearInterval(intervalId);
+      }
+    };
   }, []);
 
   const updateServiceWorker = async (reloadPage = false): Promise<void> => {
@@ -61,7 +104,9 @@ export function useSWUpdate(): UseSWUpdateReturn {
         window.location.reload();
       }
       
-      setNeedRefresh(false);
+      if (isMountedRef.current) {
+        setNeedRefresh(false);
+      }
     }
   };
 

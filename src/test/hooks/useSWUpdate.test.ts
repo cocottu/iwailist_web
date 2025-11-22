@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act, waitFor } from '@testing-library/react';
 import { useSWUpdate } from '../../hooks/useSWUpdate';
 
 describe('useSWUpdate', () => {
@@ -34,15 +34,20 @@ describe('useSWUpdate', () => {
     });
   });
 
-  it('初期状態が正しいこと', () => {
+  it('初期状態が正しいこと', async () => {
     const { result } = renderHook(() => useSWUpdate());
 
     expect(result.current.needRefresh).toBe(false);
     expect(result.current.offlineReady).toBe(false);
+
+    await waitFor(() => {
+      expect(result.current.offlineReady).toBe(true);
+    });
   });
 
   it('updateServiceWorkerが呼ばれるとregistration.updateが実行される', async () => {
     const { result } = renderHook(() => useSWUpdate());
+    await waitFor(() => expect(mockAddEventListener).toHaveBeenCalled());
 
     await act(async () => {
       await result.current.updateServiceWorker(false);
@@ -56,11 +61,12 @@ describe('useSWUpdate', () => {
     const originalLocation = window.location;
     
     Object.defineProperty(window, 'location', {
-        value: { reload: mockReload },
-        writable: true
+      value: { reload: mockReload },
+      writable: true,
     });
 
     const { result } = renderHook(() => useSWUpdate());
+    await waitFor(() => expect(mockAddEventListener).toHaveBeenCalled());
 
     await act(async () => {
       await result.current.updateServiceWorker(true);
@@ -69,8 +75,8 @@ describe('useSWUpdate', () => {
     expect(mockReload).toHaveBeenCalled();
     
     Object.defineProperty(window, 'location', {
-        value: originalLocation,
-        writable: true
+      value: originalLocation,
+      writable: true,
     });
   });
 
