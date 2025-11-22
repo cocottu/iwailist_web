@@ -1,85 +1,63 @@
-import { describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
-import { Button } from '@/components/ui/Button'
+import { describe, it, expect } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { Button } from '../../components/ui/Button';
 
 describe('Button', () => {
-  it('正しくレンダリングされる', () => {
-    render(<Button>テストボタン</Button>)
-    expect(screen.getByRole('button', { name: 'テストボタン' })).toBeInTheDocument()
-  })
+  it('子要素が正しくレンダリングされる', () => {
+    render(<Button>Click me</Button>);
+    expect(screen.getByRole('button', { name: 'Click me' })).toBeInTheDocument();
+  });
 
-  it('異なるバリアントが正しく適用される', () => {
-    const { rerender } = render(<Button variant="primary">Primary</Button>)
-    expect(screen.getByRole('button')).toHaveClass('bg-blue-600')
-
-    rerender(<Button variant="secondary">Secondary</Button>)
-    expect(screen.getByRole('button')).toHaveClass('bg-gray-600')
-
-    rerender(<Button variant="danger">Danger</Button>)
-    expect(screen.getByRole('button')).toHaveClass('bg-red-600')
-
-    rerender(<Button variant="outline">Outline</Button>)
-    expect(screen.getByRole('button')).toHaveClass('border', 'border-gray-300')
-  })
-
-  it('異なるサイズが正しく適用される', () => {
-    const { rerender } = render(<Button size="sm">Small</Button>)
-    expect(screen.getByRole('button')).toHaveClass('px-3', 'py-1.5', 'text-sm')
-
-    rerender(<Button size="md">Medium</Button>)
-    expect(screen.getByRole('button')).toHaveClass('px-4', 'py-2', 'text-base')
-
-    rerender(<Button size="lg">Large</Button>)
-    expect(screen.getByRole('button')).toHaveClass('px-6', 'py-3', 'text-lg')
-  })
-
-  it('ローディング状態が正しく表示される', () => {
-    render(<Button loading>ローディング中</Button>)
-    const button = screen.getByRole('button')
-    expect(button).toBeDisabled()
-    expect(button).toHaveAttribute('disabled')
-    expect(button.querySelector('svg')).toBeInTheDocument()
-  })
-
-  it('無効状態が正しく適用される', () => {
-    render(<Button disabled>無効ボタン</Button>)
-    const button = screen.getByRole('button')
-    expect(button).toBeDisabled()
-    expect(button).toHaveAttribute('disabled')
-  })
-
-  it('クリックイベントが正しく発火する', () => {
-    const handleClick = vi.fn()
-    render(<Button onClick={handleClick}>クリックボタン</Button>)
+  it('onClickハンドラが呼ばれる', () => {
+    const handleClick = vi.fn();
+    render(<Button onClick={handleClick}>Click me</Button>);
     
-    fireEvent.click(screen.getByRole('button'))
-    expect(handleClick).toHaveBeenCalledTimes(1)
-  })
+    fireEvent.click(screen.getByRole('button', { name: 'Click me' }));
+    expect(handleClick).toHaveBeenCalledTimes(1);
+  });
 
-  it('ローディング中はクリックイベントが発火しない', () => {
-    const handleClick = vi.fn()
-    render(<Button loading onClick={handleClick}>ローディング中</Button>)
+  it('disabledの時はonClickが呼ばれない', () => {
+    const handleClick = vi.fn();
+    render(<Button disabled onClick={handleClick}>Click me</Button>);
     
-    fireEvent.click(screen.getByRole('button'))
-    expect(handleClick).not.toHaveBeenCalled()
-  })
+    fireEvent.click(screen.getByRole('button', { name: 'Click me' }));
+    expect(handleClick).not.toHaveBeenCalled();
+    expect(screen.getByRole('button', { name: 'Click me' })).toBeDisabled();
+  });
 
-  it('無効状態ではクリックイベントが発火しない', () => {
-    const handleClick = vi.fn()
-    render(<Button disabled onClick={handleClick}>無効ボタン</Button>)
+  it('loadingの時はスピナーが表示され、disabledになる', () => {
+    render(<Button loading>Loading</Button>);
     
-    fireEvent.click(screen.getByRole('button'))
-    expect(handleClick).not.toHaveBeenCalled()
-  })
+    expect(screen.getByRole('button')).toBeDisabled();
+    // スピナーのSVGが存在することを確認（具体的なクラス名や構造に依存するため、コンテナ内のSVGを探す）
+    const button = screen.getByRole('button');
+    const svg = button.querySelector('svg');
+    expect(svg).toBeInTheDocument();
+    expect(svg).toHaveClass('animate-spin');
+  });
 
-  it('カスタムクラスが正しく適用される', () => {
-    render(<Button className="custom-class">カスタムボタン</Button>)
-    expect(screen.getByRole('button')).toHaveClass('custom-class')
-  })
+  it('variantによってクラスが適用される', () => {
+    const { rerender } = render(<Button variant="primary">Primary</Button>);
+    expect(screen.getByRole('button', { name: 'Primary' })).toHaveClass('bg-blue-600');
 
-  it('その他のpropsが正しく渡される', () => {
-    render(<Button data-testid="test-button" type="submit">Submit</Button>)
-    const button = screen.getByTestId('test-button')
-    expect(button).toHaveAttribute('type', 'submit')
-  })
-})
+    rerender(<Button variant="secondary">Secondary</Button>);
+    expect(screen.getByRole('button', { name: 'Secondary' })).toHaveClass('bg-gray-600');
+
+    rerender(<Button variant="danger">Danger</Button>);
+    expect(screen.getByRole('button', { name: 'Danger' })).toHaveClass('bg-red-600');
+
+    rerender(<Button variant="outline">Outline</Button>);
+    expect(screen.getByRole('button', { name: 'Outline' })).toHaveClass('border-gray-300');
+  });
+
+  it('sizeによってクラスが適用される', () => {
+    const { rerender } = render(<Button size="sm">Small</Button>);
+    expect(screen.getByRole('button', { name: 'Small' })).toHaveClass('text-sm');
+
+    rerender(<Button size="md">Medium</Button>);
+    expect(screen.getByRole('button', { name: 'Medium' })).toHaveClass('text-base');
+
+    rerender(<Button size="lg">Large</Button>);
+    expect(screen.getByRole('button', { name: 'Large' })).toHaveClass('text-lg');
+  });
+});

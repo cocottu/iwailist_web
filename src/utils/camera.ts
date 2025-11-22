@@ -52,6 +52,9 @@ export async function getCameraStream(
     const stream = await navigator.mediaDevices.getUserMedia(defaultConstraints);
     return stream;
   } catch (error) {
+    if (error instanceof AppError) {
+      throw error;
+    }
     if (error instanceof DOMException) {
       if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
         throw new AppError(
@@ -97,6 +100,9 @@ export async function getCameraDevices(): Promise<CameraDevice[]> {
       facingMode: inferFacingMode(device.label)
     }));
   } catch (error) {
+    if (error instanceof AppError) {
+      throw error;
+    }
     throw new AppError(
       ErrorType.PERMISSION,
       'カメラデバイスの取得に失敗しました',
@@ -164,6 +170,9 @@ export async function capturePhoto(
       );
     });
   } catch (error) {
+    if (error instanceof AppError) {
+      throw error;
+    }
     throw new AppError(
       ErrorType.STORAGE,
       '写真の撮影に失敗しました',
