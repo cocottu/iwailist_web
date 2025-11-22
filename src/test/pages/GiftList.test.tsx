@@ -195,7 +195,9 @@ describe('GiftList', () => {
     fireEvent.click(resetButton)
 
     // フィルターがリセットされることを確認
-    expect(searchInput).toHaveValue('')
+      await waitFor(() => {
+        expect(searchInput).toHaveValue('')
+      })
   })
 
   it('贈答品がない場合のEmptyStateが表示される', async () => {
