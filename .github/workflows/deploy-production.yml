@@ -39,6 +39,7 @@ jobs:
     name: Deploy to Production Environment
     needs: test
     runs-on: ubuntu-latest
+    environment: main
     if: github.event_name == 'push'
 
     steps:
@@ -91,6 +92,7 @@ jobs:
     name: Preview Production Deployment
     needs: test
     runs-on: ubuntu-latest
+    environment: main
     if: github.event_name == 'pull_request'
 
     steps:
