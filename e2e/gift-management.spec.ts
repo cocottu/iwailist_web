@@ -1,8 +1,10 @@
 import { test, expect } from '@playwright/test';
+import { loginWithBasicAuth } from './helpers/test-helpers';
 
 test.describe('贈答品管理のテスト', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/gifts');
+    await loginWithBasicAuth(page);
   });
 
   test('贈答品一覧ページが正常に表示される', async ({ page }) => {
@@ -60,6 +62,7 @@ test.describe('贈答品管理のテスト', () => {
 test.describe('贈答品登録フォームのテスト', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/gifts/new');
+    await loginWithBasicAuth(page);
   });
 
   test('贈答品登録フォームが正常に表示される', async ({ page }) => {

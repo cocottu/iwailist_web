@@ -1,8 +1,10 @@
 import { test, expect } from '@playwright/test';
+import { loginWithBasicAuth } from './helpers/test-helpers';
 
 test.describe('統計ページのテスト', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/statistics');
+    await loginWithBasicAuth(page);
   });
 
   test('統計ページが正常に表示される', async ({ page }) => {

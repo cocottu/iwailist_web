@@ -4,10 +4,14 @@ import { GiftListPage } from './pages/gift-list-page';
 import { GiftFormPage } from './pages/gift-form-page';
 import { PersonListPage } from './pages/person-list-page';
 import { PersonFormPage } from './pages/person-form-page';
-import { clearDatabase, clearTestData, createTestPerson, createTestGift } from './helpers/test-helpers';
+import { clearDatabase, clearTestData, createTestPerson, createTestGift, loginWithBasicAuth } from './helpers/test-helpers';
 
 test.describe('統合テスト - 完全なワークフロー', () => {
   test.beforeEach(async ({ page }) => {
+    // 各テストの前にアプリケーションにアクセスしてBasic Authログイン
+    await page.goto('/');
+    await loginWithBasicAuth(page);
+    
     // 各テストの前にデータベースをクリア
     await clearDatabase(page);
     // 代替手段として個別データもクリア
