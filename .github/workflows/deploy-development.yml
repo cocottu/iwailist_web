@@ -10,7 +10,7 @@ jobs:
   deploy-dev:
     name: Deploy to Development Environment
     runs-on: ubuntu-latest
-    environment: development
+    environment: develop
     
     steps:
       - name: Checkout code
