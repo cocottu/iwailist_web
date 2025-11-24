@@ -36,6 +36,10 @@ jobs:
           VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
           VITE_FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
           VITE_APP_ENV: development
+          VITE_BASIC_AUTH_ENABLED: ${{ secrets.DEV_BASIC_AUTH_ENABLED }}
+          VITE_BASIC_AUTH_USERNAME: ${{ secrets.DEV_BASIC_AUTH_USERNAME }}
+          VITE_BASIC_AUTH_PASSWORD: ${{ secrets.DEV_BASIC_AUTH_PASSWORD }}
+          VITE_BASIC_AUTH_REALM: ${{ secrets.DEV_BASIC_AUTH_REALM }}
         run: npm run build:dev
 
       - name: Deploy to Firebase Hosting (dev channel)

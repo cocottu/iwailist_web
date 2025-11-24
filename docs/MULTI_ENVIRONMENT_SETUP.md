@@ -232,6 +232,14 @@ firebase hosting:channel:delete <channelName>
 - `FIREBASE_SERVICE_ACCOUNT`（JSON）
 - `FIREBASE_TOKEN`（CLIでのルールデプロイ用・任意）
 
+Basic Auth を有効にする場合は、開発・ステージング環境用に以下も登録してください。
+- `DEV_BASIC_AUTH_ENABLED` / `STAGING_BASIC_AUTH_ENABLED`
+- `DEV_BASIC_AUTH_USERNAME` / `STAGING_BASIC_AUTH_USERNAME`
+- `DEV_BASIC_AUTH_PASSWORD` / `STAGING_BASIC_AUTH_PASSWORD`
+- `DEV_BASIC_AUTH_REALM` / `STAGING_BASIC_AUTH_REALM`
+
+詳細は [GitHub Secrets セットアップガイド](./GITHUB_SECRETS_SETUP.md) を参照してください。
+
 ## 7. Security Rulesのデプロイ
 
 単一プロジェクトでは Rules / Index / Storage 設定も共有されるため、**本番（live）に対してのみデプロイ**します。事前に `firebase use production` を実行してから以下を行ってください。

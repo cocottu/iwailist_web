@@ -63,6 +63,10 @@ jobs:
           VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
           VITE_FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
           VITE_APP_ENV: staging
+          VITE_BASIC_AUTH_ENABLED: ${{ secrets.STAGING_BASIC_AUTH_ENABLED }}
+          VITE_BASIC_AUTH_USERNAME: ${{ secrets.STAGING_BASIC_AUTH_USERNAME }}
+          VITE_BASIC_AUTH_PASSWORD: ${{ secrets.STAGING_BASIC_AUTH_PASSWORD }}
+          VITE_BASIC_AUTH_REALM: ${{ secrets.STAGING_BASIC_AUTH_REALM }}
         run: npm run build:staging
       
       - name: Deploy to Firebase Hosting (staging channel)
@@ -108,6 +112,10 @@ jobs:
           VITE_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
           VITE_FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
           VITE_APP_ENV: staging
+          VITE_BASIC_AUTH_ENABLED: ${{ secrets.STAGING_BASIC_AUTH_ENABLED }}
+          VITE_BASIC_AUTH_USERNAME: ${{ secrets.STAGING_BASIC_AUTH_USERNAME }}
+          VITE_BASIC_AUTH_PASSWORD: ${{ secrets.STAGING_BASIC_AUTH_PASSWORD }}
+          VITE_BASIC_AUTH_REALM: ${{ secrets.STAGING_BASIC_AUTH_REALM }}
         run: npm run build:staging
       
       - name: Deploy to Firebase Staging Preview
