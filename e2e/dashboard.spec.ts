@@ -1,8 +1,10 @@
 import { test, expect } from '@playwright/test';
+import { loginWithBasicAuth } from './helpers/test-helpers';
 
 test.describe('ダッシュボードページのテスト', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
+    await loginWithBasicAuth(page);
   });
 
   test('ダッシュボードの基本要素が表示される', async ({ page }) => {

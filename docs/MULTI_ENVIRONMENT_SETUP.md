@@ -92,6 +92,27 @@ cp .env.production.example .env.production
 # .env.production を編集して実際の値を入力
 ```
 
+### 3.4 ステージング / 開発環境のベーシック認証
+
+プレビューURL（`dev` / `staging` チャネル）へのアクセスを制限したい場合は、`.env.development` と `.env.staging` に以下の変数を追加してください。  
+※ `.env.*.example` にはサンプル値が含まれています。
+
+| 変数名 | 推奨値 | 説明 |
+| --- | --- | --- |
+| `VITE_BASIC_AUTH_ENABLED` | `true` | ベーシック認証ゲートのON/OFF。 |
+| `VITE_BASIC_AUTH_USERNAME` / `VITE_BASIC_AUTH_PASSWORD` | 任意 | ブラウザに入力してもらう資格情報。ASCII文字のみ推奨。 |
+| `VITE_BASIC_AUTH_REALM` | 例: `Iwailist Staging` | 画面に表示する保護領域名。 |
+| `VITE_BASIC_AUTH_ALLOWED_ENVS` | `development,staging` | 認証を有効にする `VITE_APP_ENV` のリスト。未設定時は `development` と `staging` が対象。 |
+| `VITE_BASIC_AUTH_FORCE` | `false` | ローカル `vite dev` でも挙動を確認したい場合のみ `true`。 |
+
+#### 挙動のポイント
+
+- 本番ビルド（`import.meta.env.PROD`）か `VITE_BASIC_AUTH_FORCE=true` のときだけゲートが作動します。  
+  → ローカル開発中は邪魔になりません。
+- 認証に成功すると `sessionStorage` にトークンを保存し、タブを閉じると自動で破棄されます。
+- SPA 上で実装した簡易的なゲートです。ソースコード上に資格情報が含まれるため、本番環境での利用は推奨しません。
+- より強固な制御が必要な場合は Firebase Hosting の前段にプロキシ（Cloud Run / Cloudflare Access など）を設置してください。
+
 ## 4. Firebase CLI の設定
 
 ### 4.1 ログイン
@@ -210,6 +231,14 @@ firebase hosting:channel:delete <channelName>
 - `FIREBASE_APP_ID`
 - `FIREBASE_SERVICE_ACCOUNT`（JSON）
 - `FIREBASE_TOKEN`（CLIでのルールデプロイ用・任意）
+
+Basic Auth を有効にする場合は、GitHub Environments の `development` および `staging` に対して以下も登録してください。
+- `BASIC_AUTH_ENABLED`
+- `BASIC_AUTH_USERNAME`
+- `BASIC_AUTH_PASSWORD`
+- `BASIC_AUTH_REALM`
+
+詳細は [GitHub Secrets セットアップガイド](./GITHUB_SECRETS_SETUP.md) を参照してください。
 
 ## 7. Security Rulesのデプロイ
 

@@ -1,8 +1,10 @@
 import { test, expect } from '@playwright/test';
+import { loginWithBasicAuth } from './helpers/test-helpers';
 
 test.describe('PWA機能のテスト', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
+    await loginWithBasicAuth(page);
     await page.waitForLoadState('networkidle');
   });
 

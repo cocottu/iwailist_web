@@ -1,8 +1,10 @@
 import { test, expect } from '@playwright/test';
+import { loginWithBasicAuth } from './helpers/test-helpers';
 
 test.describe('人物管理のテスト', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/persons');
+    await loginWithBasicAuth(page);
   });
 
   test('人物一覧ページが正常に表示される', async ({ page }) => {
@@ -52,6 +54,7 @@ test.describe('人物管理のテスト', () => {
 test.describe('人物登録フォームのテスト', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/persons/new');
+    await loginWithBasicAuth(page);
   });
 
   test('人物登録フォームが正常に表示される', async ({ page }) => {

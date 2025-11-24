@@ -91,6 +91,7 @@ export default [
         document: 'readonly',
         navigator: 'readonly',
         window: 'readonly',
+        process: 'readonly',
       },
     },
     plugins: {
@@ -140,8 +141,10 @@ export default [
         HTMLSelectElement: 'readonly',
         HTMLTextAreaElement: 'readonly',
         HTMLVideoElement: 'readonly',
+        HTMLFormElement: 'readonly',
         HTMLScriptElement: 'readonly',
         HTMLDivElement: 'readonly',
+        HTMLCanvasElement: 'readonly',
         Event: 'readonly',
         CustomEvent: 'readonly',
         MouseEvent: 'readonly',
@@ -169,6 +172,7 @@ export default [
         beforeAll: 'readonly',
         afterAll: 'readonly',
         vi: 'readonly',
+        global: 'readonly',
       },
     },
     plugins: {

@@ -14,7 +14,7 @@ export default defineConfig({
   /* Run tests sequentially to ensure dev server stability */
   workers: 1,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: [['html'], ['list']],
+  reporter: [['html', { open: 'never' }], ['list']],
   /* Global timeout for each test */
   timeout: 60000,
   /* Expect timeout */

@@ -23,6 +23,18 @@
 | `DEV_FIREBASE_SERVICE_ACCOUNT` | 開発環境のサービスアカウントJSON | 後述 |
 | `DEV_FIREBASE_TOKEN` | 開発環境のCIトークン（オプション） | `firebase login:ci` で取得 |
 
+### Basic Auth 設定 (GitHub Environments)
+
+`development` Environment に以下の Secrets を設定します：
+
+| シークレット名 | 説明 | 例 |
+|---|---|---|
+| `BASIC_AUTH_ENABLED` | Basic Authを有効にするか | `true` |
+| `BASIC_AUTH_USERNAME` | Basic Auth ユーザー名 | 任意のユーザー名 |
+| `BASIC_AUTH_PASSWORD` | Basic Auth パスワード | 任意のパスワード |
+| `BASIC_AUTH_REALM` | Basic Auth 領域名 | `Iwailist Dev` |
+
+
 ### サービスアカウントJSONの取得方法
 
 1. [Firebase Console](https://console.firebase.google.com/) で開発環境プロジェクトを開く
@@ -63,6 +75,17 @@
 | `STAGING_FIREBASE_SERVICE_ACCOUNT` | ステージング環境のサービスアカウントJSON |
 | `STAGING_FIREBASE_TOKEN` | ステージング環境のCIトークン（オプション） |
 
+### Basic Auth 設定 (GitHub Environments)
+
+`staging` Environment に以下の Secrets を設定します：
+
+| シークレット名 | 説明 | 例 |
+|---|---|---|
+| `BASIC_AUTH_ENABLED` | Basic Authを有効にするか | `true` |
+| `BASIC_AUTH_USERNAME` | Basic Auth ユーザー名 | 任意のユーザー名 |
+| `BASIC_AUTH_PASSWORD` | Basic Auth パスワード | 任意のパスワード |
+| `BASIC_AUTH_REALM` | Basic Auth 領域名 | `Iwailist Staging` |
+
 ## 4. 本番環境用シークレット
 
 既存のシークレットを確認・更新します。
@@ -82,7 +105,7 @@
 
 すべてのシークレットを追加したら、GitHubの **Settings → Secrets and variables → Actions** で以下が表示されることを確認してください：
 
-### 開発環境用（8個）
+### 開発環境用（8個 + Environment Secrets）
 - DEV_FIREBASE_API_KEY
 - DEV_FIREBASE_AUTH_DOMAIN
 - DEV_FIREBASE_PROJECT_ID
@@ -92,7 +115,13 @@
 - DEV_FIREBASE_SERVICE_ACCOUNT
 - DEV_FIREBASE_TOKEN（オプション）
 
-### ステージング環境用（8個）
+#### `development` Environment Secrets (4個)
+- BASIC_AUTH_ENABLED
+- BASIC_AUTH_USERNAME
+- BASIC_AUTH_PASSWORD
+- BASIC_AUTH_REALM
+
+### ステージング環境用（8個 + Environment Secrets）
 - STAGING_FIREBASE_API_KEY
 - STAGING_FIREBASE_AUTH_DOMAIN
 - STAGING_FIREBASE_PROJECT_ID
@@ -101,6 +130,12 @@
 - STAGING_FIREBASE_APP_ID
 - STAGING_FIREBASE_SERVICE_ACCOUNT
 - STAGING_FIREBASE_TOKEN（オプション）
+
+#### `staging` Environment Secrets (4個)
+- BASIC_AUTH_ENABLED
+- BASIC_AUTH_USERNAME
+- BASIC_AUTH_PASSWORD
+- BASIC_AUTH_REALM
 
 ### 本番環境用（8個）
 - FIREBASE_API_KEY
@@ -112,7 +147,7 @@
 - FIREBASE_SERVICE_ACCOUNT
 - FIREBASE_TOKEN
 
-**合計: 24個のシークレット**
+**合計: 32個のシークレット**
 
 ## 6. テスト
 
