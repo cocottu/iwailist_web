@@ -142,6 +142,7 @@ export default [
         HTMLVideoElement: 'readonly',
         HTMLScriptElement: 'readonly',
         HTMLDivElement: 'readonly',
+        HTMLCanvasElement: 'readonly',
         Event: 'readonly',
         CustomEvent: 'readonly',
         MouseEvent: 'readonly',
@@ -169,6 +170,7 @@ export default [
         beforeAll: 'readonly',
         afterAll: 'readonly',
         vi: 'readonly',
+        global: 'readonly',
       },
     },
     plugins: {

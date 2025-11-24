@@ -17,7 +17,7 @@ export function useSWUpdate(): UseSWUpdateReturn {
   const isMountedRef = useRef(true);
 
   useEffect(() => {
-    let intervalId: ReturnType<typeof setInterval> | null = null;
+    let intervalId: number | null = null;
     let cleanupRegistration: (() => void) | null = null;
     let cleanupStateChange: (() => void) | null = null;
 
