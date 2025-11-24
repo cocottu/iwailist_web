@@ -116,6 +116,21 @@ VITE_DEBUG=false
 
 **重要**: `.env.local` ファイルは絶対にコミットしないでください。
 
+#### ステージング / 開発向けベーシック認証
+
+- `.env.development` と `.env.staging` に以下を設定すると、ビルド済みサイト（Firebase Hosting の `dev` / `staging` チャネルなど）へアクセスする前にベーシック認証フォームが表示されます。
+  ```bash
+  VITE_BASIC_AUTH_ENABLED=true
+  VITE_BASIC_AUTH_USERNAME=staging_user
+  VITE_BASIC_AUTH_PASSWORD=change_me
+  VITE_BASIC_AUTH_REALM=Iwailist Staging
+  # 任意: ローカル `npm run dev` でも挙動を確認したいときだけ
+  VITE_BASIC_AUTH_FORCE=true
+  ```
+- 認証は `sessionStorage` 単位で保持され、タブを閉じるとリセットされます。
+- SPA 上での簡易ゲートのため、本番環境での利用や強固なセキュリティ用途にはプロキシ/Firewall の導入を検討してください。
+- 詳細は [docs/MULTI_ENVIRONMENT_SETUP.md](docs/MULTI_ENVIRONMENT_SETUP.md#34-ステージング--開発環境のベーシック認証) を参照。
+
 ## PWA機能
 
 このアプリは**Progressive Web App (PWA)**として動作します：
