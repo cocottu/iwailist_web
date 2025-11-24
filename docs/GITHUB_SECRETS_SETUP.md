@@ -22,10 +22,18 @@
 | `DEV_FIREBASE_APP_ID` | 開発環境のApp ID | 同上 |
 | `DEV_FIREBASE_SERVICE_ACCOUNT` | 開発環境のサービスアカウントJSON | 後述 |
 | `DEV_FIREBASE_TOKEN` | 開発環境のCIトークン（オプション） | `firebase login:ci` で取得 |
-| `DEV_BASIC_AUTH_ENABLED` | Basic Authを有効にするか | `true` または `false` |
-| `DEV_BASIC_AUTH_USERNAME` | Basic Auth ユーザー名 | 任意のユーザー名 |
-| `DEV_BASIC_AUTH_PASSWORD` | Basic Auth パスワード | 任意のパスワード |
-| `DEV_BASIC_AUTH_REALM` | Basic Auth 領域名 | 例: `Iwailist Dev` |
+
+### Basic Auth 設定 (GitHub Environments)
+
+`development` Environment に以下の Secrets を設定します：
+
+| シークレット名 | 説明 | 例 |
+|---|---|---|
+| `BASIC_AUTH_ENABLED` | Basic Authを有効にするか | `true` |
+| `BASIC_AUTH_USERNAME` | Basic Auth ユーザー名 | 任意のユーザー名 |
+| `BASIC_AUTH_PASSWORD` | Basic Auth パスワード | 任意のパスワード |
+| `BASIC_AUTH_REALM` | Basic Auth 領域名 | `Iwailist Dev` |
+
 
 ### サービスアカウントJSONの取得方法
 
@@ -66,10 +74,17 @@
 | `STAGING_FIREBASE_APP_ID` | ステージング環境のApp ID |
 | `STAGING_FIREBASE_SERVICE_ACCOUNT` | ステージング環境のサービスアカウントJSON |
 | `STAGING_FIREBASE_TOKEN` | ステージング環境のCIトークン（オプション） |
-| `STAGING_BASIC_AUTH_ENABLED` | Basic Authを有効にするか |
-| `STAGING_BASIC_AUTH_USERNAME` | Basic Auth ユーザー名 |
-| `STAGING_BASIC_AUTH_PASSWORD` | Basic Auth パスワード |
-| `STAGING_BASIC_AUTH_REALM` | Basic Auth 領域名 |
+
+### Basic Auth 設定 (GitHub Environments)
+
+`staging` Environment に以下の Secrets を設定します：
+
+| シークレット名 | 説明 | 例 |
+|---|---|---|
+| `BASIC_AUTH_ENABLED` | Basic Authを有効にするか | `true` |
+| `BASIC_AUTH_USERNAME` | Basic Auth ユーザー名 | 任意のユーザー名 |
+| `BASIC_AUTH_PASSWORD` | Basic Auth パスワード | 任意のパスワード |
+| `BASIC_AUTH_REALM` | Basic Auth 領域名 | `Iwailist Staging` |
 
 ## 4. 本番環境用シークレット
 
@@ -90,7 +105,7 @@
 
 すべてのシークレットを追加したら、GitHubの **Settings → Secrets and variables → Actions** で以下が表示されることを確認してください：
 
-### 開発環境用（12個）
+### 開発環境用（8個 + Environment Secrets）
 - DEV_FIREBASE_API_KEY
 - DEV_FIREBASE_AUTH_DOMAIN
 - DEV_FIREBASE_PROJECT_ID
@@ -99,12 +114,14 @@
 - DEV_FIREBASE_APP_ID
 - DEV_FIREBASE_SERVICE_ACCOUNT
 - DEV_FIREBASE_TOKEN（オプション）
-- DEV_BASIC_AUTH_ENABLED
-- DEV_BASIC_AUTH_USERNAME
-- DEV_BASIC_AUTH_PASSWORD
-- DEV_BASIC_AUTH_REALM
 
-### ステージング環境用（12個）
+#### `development` Environment Secrets (4個)
+- BASIC_AUTH_ENABLED
+- BASIC_AUTH_USERNAME
+- BASIC_AUTH_PASSWORD
+- BASIC_AUTH_REALM
+
+### ステージング環境用（8個 + Environment Secrets）
 - STAGING_FIREBASE_API_KEY
 - STAGING_FIREBASE_AUTH_DOMAIN
 - STAGING_FIREBASE_PROJECT_ID
@@ -113,10 +130,12 @@
 - STAGING_FIREBASE_APP_ID
 - STAGING_FIREBASE_SERVICE_ACCOUNT
 - STAGING_FIREBASE_TOKEN（オプション）
-- STAGING_BASIC_AUTH_ENABLED
-- STAGING_BASIC_AUTH_USERNAME
-- STAGING_BASIC_AUTH_PASSWORD
-- STAGING_BASIC_AUTH_REALM
+
+#### `staging` Environment Secrets (4個)
+- BASIC_AUTH_ENABLED
+- BASIC_AUTH_USERNAME
+- BASIC_AUTH_PASSWORD
+- BASIC_AUTH_REALM
 
 ### 本番環境用（8個）
 - FIREBASE_API_KEY

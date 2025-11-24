@@ -232,11 +232,11 @@ firebase hosting:channel:delete <channelName>
 - `FIREBASE_SERVICE_ACCOUNT`（JSON）
 - `FIREBASE_TOKEN`（CLIでのルールデプロイ用・任意）
 
-Basic Auth を有効にする場合は、開発・ステージング環境用に以下も登録してください。
-- `DEV_BASIC_AUTH_ENABLED` / `STAGING_BASIC_AUTH_ENABLED`
-- `DEV_BASIC_AUTH_USERNAME` / `STAGING_BASIC_AUTH_USERNAME`
-- `DEV_BASIC_AUTH_PASSWORD` / `STAGING_BASIC_AUTH_PASSWORD`
-- `DEV_BASIC_AUTH_REALM` / `STAGING_BASIC_AUTH_REALM`
+Basic Auth を有効にする場合は、GitHub Environments の `development` および `staging` に対して以下も登録してください。
+- `BASIC_AUTH_ENABLED`
+- `BASIC_AUTH_USERNAME`
+- `BASIC_AUTH_PASSWORD`
+- `BASIC_AUTH_REALM`
 
 詳細は [GitHub Secrets セットアップガイド](./GITHUB_SECRETS_SETUP.md) を参照してください。
 
