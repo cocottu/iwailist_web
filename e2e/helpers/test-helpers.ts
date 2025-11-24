@@ -157,3 +157,38 @@ export async function setTabletViewport(page: Page) {
 export async function setDesktopViewport(page: Page) {
   await page.setViewportSize({ width: 1200, height: 800 });
 }
+
+/**
+ * Basic Authのログイン処理を行うヘルパー関数
+ */
+export async function loginWithBasicAuth(page: Page) {
+  try {
+    // Basic Authの入力フィールドが表示されるか短時間チェック
+    // 表示されない場合はタイムアウトしてcatchブロックへ進む
+    // timeoutは短めに設定して、認証不要な環境での待ち時間を減らす
+    const usernameInput = page.locator('input[name="username"]');
+    
+    // すでに認証済みか、認証不要な場合は入力フィールドが表示されない
+    if (await usernameInput.isVisible({ timeout: 2000 })) {
+      console.log('Basic Auth detected. Attempting to login...');
+      
+      // 環境変数から認証情報を取得（デフォルト値は開発環境用）
+      // 注意: Playwrightの設定や実行環境によっては process.env が空の場合があるため、
+      // 必要に応じてハードコードされたフォールバック値を使用
+      // e2eテスト用のアカウント
+      const username = process.env.VITE_BASIC_AUTH_USERNAME || process.env.BASIC_AUTH_USERNAME || 'e2e_user';
+      const password = process.env.VITE_BASIC_AUTH_PASSWORD || process.env.BASIC_AUTH_PASSWORD || 'e2e_password';
+
+      await page.fill('input[name="username"]', username);
+      await page.fill('input[name="password"]', password);
+      await page.click('button[type="submit"]');
+      
+      // 認証後の遷移を待機
+      await page.waitForLoadState('networkidle');
+      console.log('Basic Auth login submitted.');
+    }
+  } catch (error) {
+    // エラーは無視（Basic Authが不要な環境であるとみなす）
+    // console.log('Basic Auth not required or login skipped.');
+  }
+}

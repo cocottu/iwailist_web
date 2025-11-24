@@ -1,9 +1,12 @@
 import { test, expect } from '@playwright/test';
+import { loginWithBasicAuth } from './helpers/test-helpers';
 
 test.describe('アプリケーション全体のテスト', () => {
   test.beforeEach(async ({ page }) => {
     // 各テストの前にアプリケーションにアクセス
     await page.goto('/');
+    // Basic Authが必要な場合はログイン
+    await loginWithBasicAuth(page);
   });
 
   test('アプリケーションが正常に読み込まれる', async ({ page }) => {

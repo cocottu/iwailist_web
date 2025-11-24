@@ -140,6 +140,7 @@ export default [
         HTMLSelectElement: 'readonly',
         HTMLTextAreaElement: 'readonly',
         HTMLVideoElement: 'readonly',
+        HTMLFormElement: 'readonly',
         HTMLScriptElement: 'readonly',
         HTMLDivElement: 'readonly',
         HTMLCanvasElement: 'readonly',
