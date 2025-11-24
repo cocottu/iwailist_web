@@ -91,6 +91,7 @@ export default [
         document: 'readonly',
         navigator: 'readonly',
         window: 'readonly',
+        process: 'readonly',
       },
     },
     plugins: {
