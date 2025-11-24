@@ -12,6 +12,9 @@ jobs:
   test:
     name: Run Tests
     runs-on: ubuntu-latest
+    if: |
+      (github.event_name == 'push' && github.ref == 'refs/heads/staging') ||
+      (github.event_name == 'pull_request' && github.base_ref == 'staging')
     
     steps:
       - name: Checkout code
@@ -40,7 +43,7 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     environment: staging
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/staging'
     
     steps:
       - name: Checkout code
@@ -83,14 +86,14 @@ jobs:
       
       - name: Notify Success
         if: success()
-        run: echo "✅ Staging deployment successful! URL: https://${{ secrets.FIREBASE_PROJECT_ID }}.web.app"
+        run: 'echo "✅ Staging deployment successful! URL: https://${{ secrets.FIREBASE_PROJECT_ID }}.web.app"'
   
   preview-staging:
     name: Preview Staging Deployment
     needs: test
     runs-on: ubuntu-latest
     environment: staging
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' && github.base_ref == 'staging'
     
     steps:
       - name: Checkout code
