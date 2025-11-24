@@ -48,7 +48,7 @@ jobs:
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: '20'
+        node-version-file: '.nvmrc'
         cache: 'npm'
 
     # Install dependencies for proper analysis
@@ -64,10 +64,10 @@ jobs:
         # Enable security and quality queries for comprehensive analysis
         queries: security-extended,security-and-quality
 
-    # Build the project for analysis (TypeScript compilation)
-    - name: Build project
-      run: |
-        npm run build
+    # Note: build-mode is set to 'none', so explicit build is not required
+    # CodeQL will automatically analyze the source code without building
+    # - name: Build project
+    #   run: npm run build
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v4

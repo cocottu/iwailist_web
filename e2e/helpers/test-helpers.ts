@@ -1,3 +1,4 @@
+/* eslint-env node */
 import { Page, expect } from '@playwright/test';
 
 /**
@@ -187,7 +188,7 @@ export async function loginWithBasicAuth(page: Page) {
       await page.waitForLoadState('networkidle');
       console.log('Basic Auth login submitted.');
     }
-  } catch (error) {
+  } catch {
     // エラーは無視（Basic Authが不要な環境であるとみなす）
     // console.log('Basic Auth not required or login skipped.');
   }

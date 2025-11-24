@@ -80,7 +80,7 @@ const expectedToken =
     ? encodeCredentials(`${BASIC_AUTH_USERNAME}:${BASIC_AUTH_PASSWORD}`)
     : null;
 
-export const BasicAuthGate = ({ children }: PropsWithChildren): JSX.Element => {
+export const BasicAuthGate = ({ children }: PropsWithChildren) => {
   const [formState, setFormState] = useState({ username: '', password: '' });
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
