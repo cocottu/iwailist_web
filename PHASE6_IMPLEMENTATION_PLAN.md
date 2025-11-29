@@ -128,7 +128,7 @@ Phase 6 では、アプリの信頼性と法令順守を高めるために、以
 
 **アクセス制御**:
 - 運営者のみアクセス可能
-- 運営者判定は環境変数 `VITE_ADMIN_UID` で管理（ハードコーディング禁止）
+- 運営者判定は Firestore のユーザードキュメントの `isAdmin` フィールドで管理
 
 **UI/UX 方針**:
 - 一覧表示はテーブル形式（モバイル対応）
@@ -184,15 +184,29 @@ Phase 6 では、アプリの信頼性と法令順守を高めるために、以
   - `src/components/admin/AdminRoute.tsx` — 運営者専用ルート保護コンポーネント
 
 ### 運営者判定の実装
-- 環境変数 `VITE_ADMIN_UID` に運営者の Firebase UID を設定（ハードコーディング禁止）
+- **Firestore のユーザードキュメントに `isAdmin: boolean` フィールドを追加**
+  - パス: `users/{userId}`
+  - 運営者のみ `isAdmin: true` を設定（手動でFirestoreコンソールから設定、または初期化スクリプトで設定）
+  - 一般ユーザーは `isAdmin: false` またはフィールドなし（デフォルトで `false` として扱う）
 - ユーティリティ関数 `src/utils/admin.ts` を作成:
   ```typescript
-  export const isAdmin = (userId: string): boolean => {
-    const adminUid = import.meta.env.VITE_ADMIN_UID;
-    return adminUid && userId === adminUid;
+  import { doc, getDoc } from 'firebase/firestore';
+  import { db } from '@/config/firebase';
+  
+  export const isAdmin = async (userId: string): Promise<boolean> => {
+    const userDoc = await getDoc(doc(db, 'users', userId));
+    if (!userDoc.exists()) return false;
+    return userDoc.data()?.isAdmin === true;
+  };
+  
+  // キャッシュ付きの同期版（AuthContext等で使用）
+  export const checkAdminStatus = async (userId: string): Promise<boolean> => {
+    // 必要に応じてキャッシュ機構を実装
+    return isAdmin(userId);
   };
   ```
-- `AuthContext` または各ページで運営者判定を行い、運営者専用UIを表示
+- `AuthContext` でユーザー情報取得時に `isAdmin` を取得し、コンテキストに保存
+- 各ページで運営者判定を行い、運営者専用UIを表示
 
 ### Firestore コレクション設計
 - `contacts` コレクション（ルートコレクション）:
@@ -200,17 +214,29 @@ Phase 6 では、アプリの信頼性と法令順守を高めるために、以
   - 運営者は全件閲覧可能、ユーザーは自分のお問い合わせのみ閲覧可能
   - セキュリティルールで適切にアクセス制御
 
+### Firestore ユーザードキュメント拡張
+- `users/{userId}` ドキュメントに `isAdmin: boolean` フィールドを追加
+  - 運営者のみ `true` を設定
+  - 一般ユーザーは `false` またはフィールドなし
+  - セキュリティルールで、ユーザー自身のみ `isAdmin` フィールドを読み取り可能（更新は不可）
+
 ### Firestore セキュリティルール追加
 - `contacts` コレクション用のルールを追加:
   - ユーザー: 自分のお問い合わせの作成・閲覧・返信が可能
   - 運営者: 全お問い合わせの閲覧・返信・ステータス更新が可能
+- `users/{userId}` ドキュメントのルールを拡張:
+  - `isAdmin` フィールドの読み取り: ユーザー自身のみ可能
+  - `isAdmin` フィールドの更新: 不可（手動でFirestoreコンソールから設定、または管理者権限を持つスクリプトから設定）
 
 ### セキュリティ / プライバシー上の注意
-- 運営者UIDは **環境変数 `VITE_ADMIN_UID` で管理**（ハードコーディング禁止）
+- **運営者判定は Firestore のユーザードキュメントの `isAdmin` フィールドで管理**（環境変数やハードコーディング禁止）
+  - クライアント側に運営者UIDが露出しないため、セキュリティ上安全
+  - 運営者の追加・削除は Firestore コンソールから手動で行う
 - 画面上には **APIキーや内部IDなどの機密情報を一切表示しない**
 - Firestore セキュリティルールで適切にアクセス制御:
   - ユーザーは自分のお問い合わせのみ閲覧・返信可能
   - 運営者のみ全お問い合わせを閲覧・返信可能
+  - `isAdmin` フィールドはユーザー自身のみ読み取り可能（更新は不可）
 - お問い合わせフォームのスパム対策:
   - 将来的に reCAPTCHA 相当の仕組み or 簡易な人間確認を検討
   - 送信頻度制限（同一ユーザーからの連続送信を制限）
@@ -244,7 +270,9 @@ Phase 6 では、アプリの信頼性と法令順守を高めるために、以
 ### Day 1
 - 運営者情報ページの実装（最低限の表示）
 - プライバシーポリシーページの骨組み作成（セクション構造のみ）
+- Firestore ユーザードキュメントに `isAdmin` フィールドを追加（手動設定）
 - 運営者判定ユーティリティの実装
+- Firestore セキュリティルールの更新（`isAdmin` 判定関数の追加）
 
 ### Day 2
 - プライバシーポリシー文面の反映
@@ -302,11 +330,44 @@ export interface ContactReply {
 }
 ```
 
+### Firestore ユーザードキュメント型定義の拡張
+```typescript
+// src/types/firebase.ts に追加
+export interface FirestoreUser {
+  email?: string;
+  displayName?: string;
+  photoURL?: string;
+  isAdmin?: boolean; // 運営者フラグ
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+```
+
 ### Firestore セキュリティルール追加案
 ```javascript
+// ヘルパー関数: 運営者判定
+function isAdmin() {
+  return isAuthenticated() && 
+    get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+}
+
+// users コレクションのルール拡張
+match /users/{userId} {
+  // isAdmin フィールドの読み取りはユーザー自身のみ可能
+  allow read: if isOwner(userId);
+  allow create: if isOwner(userId) && hasValidTimestamp();
+  allow update: if isOwner(userId) && 
+    hasValidTimestamp() && 
+    !('isAdmin' in request.resource.data.diff(resource.data).affectedKeys()); // isAdmin フィールドの更新は不可
+  allow delete: if false;
+  
+  // ... 既存のサブコレクションルール ...
+}
+
 // contacts コレクション
 match /contacts/{contactId} {
   // ユーザー: 自分のお問い合わせのみ閲覧・作成可能
+  // 運営者: 全お問い合わせを閲覧可能
   allow read: if isAuthenticated() && 
     (resource.data.userId == request.auth.uid || isAdmin());
   allow create: if isAuthenticated() && 
@@ -316,17 +377,13 @@ match /contacts/{contactId} {
   allow delete: if false; // 削除は不可（履歴保持のため）
   
   // 返信の追加（replies 配列への追加）
+  // お問い合わせ作成者または運営者のみ返信可能
   function canAddReply() {
     return isAuthenticated() && (
       resource.data.userId == request.auth.uid || // お問い合わせ作成者
       isAdmin() // 運営者
     );
   }
-}
-
-function isAdmin() {
-  return request.auth.uid == get(/databases/$(database)/documents/config/admin).data.uid;
-  // または環境変数から取得したUIDと比較（クライアント側で判定）
 }
 ```
 
