@@ -3,6 +3,7 @@
  */
 
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import NotificationSettings from '@/components/settings/NotificationSettings';
 import { Cog6ToothIcon } from '@heroicons/react/24/outline';
 
@@ -55,13 +56,59 @@ export default function Settings() {
         {activeTab === 'notifications' && <NotificationSettings />}
         
         {activeTab === 'general' && (
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-              一般設定
-            </h2>
-            <p className="text-gray-600 dark:text-gray-400">
-              一般設定は今後追加予定です。
-            </p>
+          <div className="space-y-4">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+                一般設定
+              </h2>
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+                    法的事項
+                  </h3>
+                  <div className="space-y-2">
+                    <Link
+                      to="/legal/operator"
+                      className="block px-4 py-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                    >
+                      <div className="font-medium text-gray-900 dark:text-white">
+                        運営者情報
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                        本サービスの運営者に関する情報
+                      </div>
+                    </Link>
+                    <Link
+                      to="/legal/privacy"
+                      className="block px-4 py-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                    >
+                      <div className="font-medium text-gray-900 dark:text-white">
+                        プライバシーポリシー
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                        個人情報の取り扱いについて
+                      </div>
+                    </Link>
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
+                    サポート
+                  </h3>
+                  <Link
+                    to="/contact"
+                    className="block px-4 py-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                  >
+                    <div className="font-medium text-gray-900 dark:text-white">
+                      お問い合わせ
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                      ご質問・お問い合わせ・不具合報告
+                    </div>
+                  </Link>
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </div>

@@ -19,6 +19,9 @@ import { Statistics } from '@/pages/Statistics';
 import DataManagement from '@/pages/DataManagement';
 import Settings from '@/pages/Settings';
 import { DiagnosticsPage } from '@/pages/DiagnosticsPage';
+import LegalOperator from '@/pages/LegalOperator';
+import LegalPrivacy from '@/pages/LegalPrivacy';
+import Contact from '@/pages/Contact';
 import Login from '@/pages/Login';
 import SignUp from '@/pages/SignUp';
 import ForgotPassword from '@/pages/ForgotPassword';
@@ -162,6 +165,27 @@ function App() {
             <ProtectedRoute>
               <Layout>
                 <DiagnosticsPage />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          <Route path="/legal/operator" element={
+            <ProtectedRoute>
+              <Layout>
+                <LegalOperator />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          <Route path="/legal/privacy" element={
+            <ProtectedRoute>
+              <Layout>
+                <LegalPrivacy />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          <Route path="/contact" element={
+            <ProtectedRoute>
+              <Layout>
+                <Contact />
               </Layout>
             </ProtectedRoute>
           } />
