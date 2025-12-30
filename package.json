@@ -39,7 +39,7 @@
     "@heroicons/react": "^2.2.0",
     "chart.js": "^4.5.1",
     "date-fns": "^4.1.0",
-    "firebase": "^12.6.0",
+    "firebase": "^12.7.0",
     "idb": "^8.0.3",
     "react": "^19.2.0",
     "react-chartjs-2": "^5.3.1",
