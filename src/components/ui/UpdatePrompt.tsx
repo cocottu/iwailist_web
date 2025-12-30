@@ -7,7 +7,7 @@ import { toast } from 'sonner';
  * Sonnerのカスタムトーストとして実装
  */
 export function UpdatePrompt() {
-  const { needRefresh, offlineReady, updateServiceWorker } = useSWUpdate();
+  const { needRefresh, updateServiceWorker } = useSWUpdate();
 
   // 新しいバージョンが利用可能な場合
   useEffect(() => {
@@ -88,33 +88,6 @@ export function UpdatePrompt() {
       toast.dismiss(toastId);
     };
   }, [needRefresh, updateServiceWorker]);
-
-  // オフライン対応完了の通知
-  useEffect(() => {
-    if (!offlineReady) {
-      return;
-    }
-
-    toast.success('オフライン対応完了', {
-      description: 'アプリをオフラインで利用できるようになりました',
-      icon: (
-        <svg 
-          className="w-5 h-5" 
-          fill="none" 
-          stroke="currentColor" 
-          viewBox="0 0 24 24"
-        >
-          <path 
-            strokeLinecap="round" 
-            strokeLinejoin="round" 
-            strokeWidth={2} 
-            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" 
-          />
-        </svg>
-      ),
-      duration: 5000,
-    });
-  }, [offlineReady]);
 
   return null;
 }
