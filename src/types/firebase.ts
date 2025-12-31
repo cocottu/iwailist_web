@@ -63,6 +63,35 @@ export interface FirestoreReminder {
   createdAt: Timestamp;
 }
 
+export interface FirestoreContactReply {
+  id: string;
+  userId: string;
+  isAdmin: boolean;
+  message: string;
+  createdAt: Timestamp;
+}
+
+export interface FirestoreContact {
+  userId: string;
+  name?: string;
+  email?: string;
+  category: 'bug' | 'feature' | 'other';
+  message: string;
+  status: 'open' | 'in_progress' | 'closed';
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+  replies: FirestoreContactReply[];
+}
+
+export interface FirestoreUser {
+  email?: string;
+  displayName?: string;
+  photoURL?: string;
+  isAdmin?: boolean;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
 // 同期関連の型
 export interface SyncOperation {
   id: string;

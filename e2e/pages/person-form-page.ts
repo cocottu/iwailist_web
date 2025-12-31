@@ -72,11 +72,37 @@ export class PersonFormPage {
   }
 
   async submit() {
+    // 現在のURLを取得
+    const currentUrl = this.page.url();
+    
+    // 登録ボタンをクリック
+    await this.submitButton.click();
+    
+    // URLが変わるか、ナビゲーションを待機
+    // 詳細ページまたは一覧ページへのリダイレクトを待機
     const detailUrlPattern = /\/persons\/(?!new$)[^/]+$/;
-    await Promise.all([
-      this.page.waitForURL((url) => detailUrlPattern.test(url)),
-      this.submitButton.click(),
-    ]);
+    
+    try {
+      await this.page.waitForURL((url) => {
+        // URLが変更されたか確認
+        if (url.href === currentUrl) return false;
+        // 詳細ページまたは一覧ページにリダイレクトされたか確認
+        return detailUrlPattern.test(url.pathname) || url.pathname === '/persons';
+      }, { timeout: 30000 });
+    } catch {
+      // タイムアウトした場合、エラーダイアログが表示されていないか確認
+      const dialogText = await this.page.evaluate(() => {
+        return (window as unknown as { __lastAlertMessage?: string }).__lastAlertMessage;
+      }).catch(() => undefined);
+      
+      if (dialogText) {
+        throw new Error(`Form submission failed with alert: ${dialogText}`);
+      }
+      
+      // ページの状態を確認
+      const pageUrl = this.page.url();
+      throw new Error(`Form submission did not redirect. Current URL: ${pageUrl}`);
+    }
   }
 
   async cancel() {
