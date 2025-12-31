@@ -22,13 +22,29 @@
 
 ## 原因
 
-Google Cloud Console でAPIキーにHTTPリファラー制限が設定されており、開発環境のホスティングURL (`cocottu-iwailist-dev.firebaseapp.com`) が許可リストに含まれていません。
+2つの原因が考えられます：
 
-Firebase Authenticationは `identitytoolkit.googleapis.com` APIを使用しており、このAPIへのリクエストがリファラー制限によってブロックされています。
+1. **authDomain の設定ミス**: `.env` ファイルの `VITE_FIREBASE_AUTH_DOMAIN` が `.firebaseapp.com` になっているが、Google Cloud Console のAPIキー制限では `.web.app` ドメインのみが許可されている
+2. **APIキーの制限設定漏れ**: 使用しているドメインがAPIキーの許可リストに含まれていない
 
 ## 解決方法
 
-### 方法1: Google Cloud Console でAPIキーの制限を更新（推奨）
+### 方法1: authDomain を .web.app に変更（推奨・修正済み）
+
+各環境の `.env` ファイルで `VITE_FIREBASE_AUTH_DOMAIN` を `.web.app` ドメインに変更：
+
+| 環境 | authDomain |
+|------|------------|
+| 開発 | `cocottu-iwailist-dev.web.app` |
+| ステージング | `cocottu-iwailist-staging.web.app` |
+| 本番 | `cocottu-iwailist.web.app` |
+
+**修正例 (.env.development):**
+```
+VITE_FIREBASE_AUTH_DOMAIN=cocottu-iwailist-dev.web.app
+```
+
+### 方法2: Google Cloud Console でAPIキーの制限を更新
 
 1. [Google Cloud Console](https://console.cloud.google.com/) にアクセス
 2. プロジェクト `cocottu-iwailist`（ID: 338610350357）を選択
@@ -38,11 +54,8 @@ Firebase Authenticationは `identitytoolkit.googleapis.com` APIを使用して�
 6. 以下のリファラーを追加:
 
 ```
-https://cocottu-iwailist-dev.firebaseapp.com/*
 https://cocottu-iwailist-dev.web.app/*
-https://cocottu-iwailist-staging.firebaseapp.com/*
 https://cocottu-iwailist-staging.web.app/*
-https://cocottu-iwailist.firebaseapp.com/*
 https://cocottu-iwailist.web.app/*
 http://localhost:*/*
 http://127.0.0.1:*/*
@@ -50,7 +63,7 @@ http://127.0.0.1:*/*
 
 7. **「保存」** をクリック
 
-### 方法2: Firebase Console で承認済みドメインを確認
+### 方法3: Firebase Console で承認済みドメインを確認
 
 1. [Firebase Console](https://console.firebase.google.com/) にアクセス
 2. プロジェクト `cocottu-iwailist` を選択
@@ -58,23 +71,12 @@ http://127.0.0.1:*/*
 4. 以下のドメインが追加されていることを確認:
 
 ```
-cocottu-iwailist-dev.firebaseapp.com
 cocottu-iwailist-dev.web.app
-cocottu-iwailist-staging.firebaseapp.com
 cocottu-iwailist-staging.web.app
-cocottu-iwailist.firebaseapp.com
 cocottu-iwailist.web.app
 localhost
 127.0.0.1
 ```
-
-### 方法3: APIキーの制限を一時的に解除（開発時のみ）
-
-**注意: 本番環境では使用しないでください**
-
-1. Google Cloud Console でAPIキーを選択
-2. **「アプリケーションの制限」** を **「なし」** に設定
-3. 開発・テスト完了後、必ず制限を再設定
 
 ## 確認手順
 
@@ -104,11 +106,38 @@ APIキーのセキュリティを高めるため、以下のAPIのみを許可�
 - ステージング環境用APIキー
 - 本番環境用APIキー
 
+## GitHub Secrets の設定（重要）
+
+GitHub Actions でデプロイする場合、各環境のシークレットに正しい `FIREBASE_AUTH_DOMAIN` を設定する必要があります。
+
+### 設定手順
+
+1. GitHub リポジトリの **Settings** → **Environments** を開く
+2. 各環境（develop, staging, production）で以下のシークレットを更新:
+
+| 環境 | シークレット名 | 値 |
+|------|---------------|-----|
+| develop | `FIREBASE_AUTH_DOMAIN` | `cocottu-iwailist-dev.web.app` |
+| staging | `FIREBASE_AUTH_DOMAIN` | `cocottu-iwailist-staging.web.app` |
+| production | `FIREBASE_AUTH_DOMAIN` | `cocottu-iwailist.web.app` |
+
+### 確認方法
+
+デプロイ後、ブラウザの開発者ツールで以下を確認:
+
+```javascript
+console.log(import.meta.env.VITE_FIREBASE_AUTH_DOMAIN)
+// 期待値: cocottu-iwailist-dev.web.app (開発環境の場合)
+```
+
 ## 関連ファイル
 
 - `.firebaserc` - Firebase プロジェクト/ホスティング設定
 - `src/lib/firebase.ts` - Firebase初期化コード
 - `src/services/authService.ts` - 認証サービス
+- `.github/workflows/deploy-development.yml` - 開発環境デプロイワークフロー
+- `.github/workflows/deploy-staging.yml` - ステージング環境デプロイワークフロー
+- `.github/workflows/deploy-production.yml` - 本番環境デプロイワークフロー
 
 ## 参考リンク
 
