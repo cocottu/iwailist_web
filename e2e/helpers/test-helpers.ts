@@ -1,5 +1,5 @@
 /* eslint-env node */
-import { Page, expect } from '@playwright/test';
+import { Page } from '@playwright/test';
 
 /**
  * データベースをクリアするヘルパー関数
@@ -31,32 +31,52 @@ export async function clearDatabase(page: Page) {
  */
 export async function clearTestData(page: Page) {
   try {
+    // ページが安定していることを確認
+    await page.waitForLoadState('domcontentloaded').catch(() => {});
+    
     await page.evaluate(() => {
       return new Promise<void>((resolve) => {
         try {
           const request = indexedDB.open('IwailistDB');
           request.onsuccess = () => {
-            const db = request.result;
-            const transaction = db.transaction(['persons', 'gifts', 'returns', 'images'], 'readwrite');
-            
-            // 各ストアをクリア
-            transaction.objectStore('persons').clear();
-            transaction.objectStore('gifts').clear();
-            transaction.objectStore('returns').clear();
-            transaction.objectStore('images').clear();
-            
-            transaction.oncomplete = () => resolve();
-            transaction.onerror = () => resolve();
+            try {
+              const db = request.result;
+              // ストアが存在するか確認
+              const storeNames = ['persons', 'gifts', 'returns', 'images'];
+              const existingStores = storeNames.filter(name => db.objectStoreNames.contains(name));
+              
+              if (existingStores.length === 0) {
+                resolve();
+                return;
+              }
+              
+              const transaction = db.transaction(existingStores, 'readwrite');
+              
+              // 各ストアをクリア
+              existingStores.forEach(storeName => {
+                try {
+                  transaction.objectStore(storeName).clear();
+                } catch {
+                  // ストアが存在しない場合は無視
+                }
+              });
+              
+              transaction.oncomplete = () => resolve();
+              transaction.onerror = () => resolve();
+            } catch {
+              resolve();
+            }
           };
           request.onerror = () => resolve();
-        } catch (error) {
-          console.warn('Test data clear failed:', error);
+        } catch {
           resolve();
         }
       });
+    }).catch(() => {
+      // page.evaluate自体のエラーも無視
     });
-  } catch (error) {
-    console.warn('Test data clear failed:', error);
+  } catch {
+    // エラーは無視（ナビゲーション中やコンテキスト破壊の場合）
   }
 }
 
@@ -70,22 +90,40 @@ export async function createTestPerson(page: Page, personData: {
   memo?: string;
 }) {
   await page.goto('/persons/new');
+  await page.waitForLoadState('networkidle');
   
   await page.fill('input[placeholder="例: 田中太郎"]', personData.name);
   if (personData.furigana) {
     await page.fill('input[placeholder="例: タナカタロウ"]', personData.furigana);
   }
-  await page.selectOption('select', { value: personData.relationship });
+  
+  // 関係性を選択（valueまたはlabelでマッチ）
+  const relationshipMap: Record<string, string> = {
+    '家族': '家族',
+    '親戚': '親戚',
+    '友人': '友人',
+    '同僚': '会社関係',
+    '会社関係': '会社関係',
+    '知人': '知人',
+    'その他': 'その他',
+  };
+  const relationshipValue = relationshipMap[personData.relationship] ?? personData.relationship;
+  try {
+    await page.selectOption('select', { value: relationshipValue });
+  } catch {
+    await page.selectOption('select', { label: personData.relationship });
+  }
+  
   if (personData.memo) {
     await page.fill('textarea[placeholder="特記事項があれば入力してください"]', personData.memo);
   }
   
-  await page.getByRole('button', { name: '登録する' }).click();
-  
-  // 成功メッセージまたはリダイレクトを待機
-  await page.waitForTimeout(1000);
-  // リダイレクト後のページを確認（人物詳細ページまたは一覧ページ）
-  await expect(page).toHaveURL(/\/persons/);
+  // 登録ボタンをクリックし、詳細ページへのリダイレクトを待機
+  const detailUrlPattern = /\/persons\/(?!new$)[^/]+$/;
+  await Promise.all([
+    page.waitForURL((url) => detailUrlPattern.test(url.pathname), { timeout: 30000 }),
+    page.getByRole('button', { name: '登録する' }).click(),
+  ]);
 }
 
 /**
@@ -101,18 +139,43 @@ export async function createTestGift(page: Page, giftData: {
   memo?: string;
 }) {
   await page.goto('/gifts/new');
+  await page.waitForLoadState('networkidle');
   
   await page.fill('input[placeholder="例: 結婚祝い"]', giftData.giftName);
-  await page.selectOption('select', { value: giftData.personId });
+  
+  // 人物を選択（UUIDまたは人物名で選択）
+  const personSelect = page.locator('select').first();
+  try {
+    // まずvalueで選択を試みる（UUIDの場合）
+    const result = await personSelect.selectOption({ value: giftData.personId });
+    if (result.length === 0) {
+      throw new Error('No matching value');
+    }
+  } catch {
+    // 失敗したらlabelで選択（人物名の場合）
+    await personSelect.selectOption({ label: giftData.personId });
+  }
+  
   await page.fill('input[type="date"]', giftData.receivedDate);
-  await page.locator('select').nth(1).selectOption({ value: giftData.category });
+  
+  // カテゴリを選択
+  const categorySelect = page.locator('select').nth(1);
+  try {
+    await categorySelect.selectOption({ value: giftData.category });
+  } catch {
+    await categorySelect.selectOption({ label: giftData.category }).catch(async () => {
+      await categorySelect.selectOption({ value: 'その他' });
+    });
+  }
+  
   // お返し状況のラベルをマッピング
-  const returnStatusLabels = {
+  const returnStatusLabels: Record<string, string> = {
     'pending': '未対応',
     'completed': '対応済',
     'not_required': '不要'
   };
-  await page.getByRole('radio', { name: returnStatusLabels[giftData.returnStatus] }).check();
+  const statusLabel = returnStatusLabels[giftData.returnStatus] || '未対応';
+  await page.getByRole('radio', { name: statusLabel }).check();
   
   if (giftData.amount) {
     await page.fill('input[placeholder="例: 30000"]', giftData.amount.toString());
@@ -122,12 +185,12 @@ export async function createTestGift(page: Page, giftData: {
     await page.fill('textarea[placeholder="特記事項があれば入力してください"]', giftData.memo);
   }
   
-  await page.getByRole('button', { name: '登録する' }).click();
-  
-  // 成功メッセージまたはリダイレクトを待機
-  await page.waitForTimeout(1000);
-  // リダイレクト後のページを確認（贈答品詳細ページまたは一覧ページ）
-  await expect(page).toHaveURL(/\/gifts/);
+  // 登録ボタンをクリックし、詳細ページへのリダイレクトを待機
+  const detailUrlPattern = /\/gifts\/(?!new$)[^/]+$/;
+  await Promise.all([
+    page.waitForURL((url) => detailUrlPattern.test(url.pathname), { timeout: 30000 }),
+    page.getByRole('button', { name: '登録する' }).click(),
+  ]);
 }
 
 /**

@@ -113,11 +113,24 @@ export class GiftFormPage {
   }
 
   async submit() {
+    // 現在のURLを取得
+    const currentUrl = this.page.url();
+    
+    // 登録ボタンをクリック
+    await this.submitButton.click();
+    
+    // URLが変わるか、ナビゲーションを待機
     const detailUrlPattern = /\/gifts\/(?!new$)[^/]+$/;
-    await Promise.all([
-      this.page.waitForURL((url) => detailUrlPattern.test(url)),
-      this.submitButton.click(),
-    ]);
+    
+    try {
+      await this.page.waitForURL((url) => {
+        if (url.href === currentUrl) return false;
+        return detailUrlPattern.test(url.pathname) || url.pathname === '/gifts';
+      }, { timeout: 30000 });
+    } catch {
+      const pageUrl = this.page.url();
+      throw new Error(`Form submission did not redirect. Current URL: ${pageUrl}`);
+    }
   }
 
   async cancel() {

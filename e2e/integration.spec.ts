@@ -4,7 +4,7 @@ import { GiftListPage } from './pages/gift-list-page';
 import { GiftFormPage } from './pages/gift-form-page';
 import { PersonListPage } from './pages/person-list-page';
 import { PersonFormPage } from './pages/person-form-page';
-import { clearDatabase, clearTestData, createTestPerson, createTestGift, loginWithBasicAuth } from './helpers/test-helpers';
+import { clearTestData, createTestPerson, createTestGift, loginWithBasicAuth } from './helpers/test-helpers';
 
 test.describe('統合テスト - 完全なワークフロー', () => {
   test.beforeEach(async ({ page }) => {
@@ -12,9 +12,10 @@ test.describe('統合テスト - 完全なワークフロー', () => {
     await page.goto('/');
     await loginWithBasicAuth(page);
     
-    // 各テストの前にデータベースをクリア
-    await clearDatabase(page);
-    // 代替手段として個別データもクリア
+    // ページが安定するまで待機
+    await page.waitForLoadState('networkidle');
+    
+    // データベースのデータをクリア（データベース自体は削除しない）
     await clearTestData(page);
   });
 
