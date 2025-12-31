@@ -22,6 +22,12 @@ import { DiagnosticsPage } from '@/pages/DiagnosticsPage';
 import Login from '@/pages/Login';
 import SignUp from '@/pages/SignUp';
 import ForgotPassword from '@/pages/ForgotPassword';
+import LegalOperator from '@/pages/LegalOperator';
+import LegalPrivacy from '@/pages/LegalPrivacy';
+import Contact from '@/pages/Contact';
+import ContactHistory from '@/pages/ContactHistory';
+import ContactManagement from '@/pages/admin/ContactManagement';
+import AdminRoute from '@/components/auth/AdminRoute';
 
 function App() {
   useEffect(() => {
@@ -58,6 +64,25 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
+          
+          {/* 法務ページ（認証不要） */}
+          <Route path="/legal/operator" element={
+            <Layout>
+              <LegalOperator />
+            </Layout>
+          } />
+          <Route path="/legal/privacy" element={
+            <Layout>
+              <LegalPrivacy />
+            </Layout>
+          } />
+          
+          {/* お問い合わせページ（認証推奨だが閲覧は可能） */}
+          <Route path="/contact" element={
+            <Layout>
+              <Contact />
+            </Layout>
+          } />
           
           {/* 認証保護されたルート */}
           <Route path="/" element={
@@ -165,6 +190,23 @@ function App() {
               </Layout>
             </ProtectedRoute>
           } />
+          <Route path="/contact/history" element={
+            <ProtectedRoute>
+              <Layout>
+                <ContactHistory />
+              </Layout>
+            </ProtectedRoute>
+          } />
+          
+          {/* 運営者専用ルート */}
+          <Route path="/admin/contacts" element={
+            <AdminRoute>
+              <Layout>
+                <ContactManagement />
+              </Layout>
+            </AdminRoute>
+          } />
+          
           <Route path="*" element={
             <ProtectedRoute>
               <Layout>
