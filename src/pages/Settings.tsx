@@ -5,6 +5,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import NotificationSettings from '@/components/settings/NotificationSettings';
+import { useTheme } from '@/contexts/ThemeContext';
 import {
   Cog6ToothIcon,
   UserIcon,
@@ -12,12 +13,16 @@ import {
   EnvelopeIcon,
   ChevronRightIcon,
   InformationCircleIcon,
+  SunIcon,
+  MoonIcon,
+  ComputerDesktopIcon,
 } from '@heroicons/react/24/outline';
 
 type SettingsTab = 'notifications' | 'general' | 'about';
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState<SettingsTab>('notifications');
+  const { theme, setTheme } = useTheme();
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-20 md:pb-0">
@@ -74,12 +79,84 @@ export default function Settings() {
         
         {activeTab === 'general' && (
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6">
               一般設定
             </h2>
-            <p className="text-gray-600 dark:text-gray-400">
-              一般設定は今後追加予定です。
-            </p>
+            
+            {/* テーマ設定 */}
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                  テーマ
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                  アプリの表示テーマを選択します
+                </p>
+                
+                <div className="grid grid-cols-3 gap-3">
+                  {/* ライトモード */}
+                  <button
+                    onClick={() => setTheme('light')}
+                    className={`flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-all ${
+                      theme === 'light'
+                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30'
+                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                    }`}
+                  >
+                    <SunIcon className={`w-8 h-8 ${
+                      theme === 'light' ? 'text-blue-500' : 'text-gray-500 dark:text-gray-400'
+                    }`} />
+                    <span className={`text-sm font-medium ${
+                      theme === 'light' ? 'text-blue-700 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'
+                    }`}>
+                      ライト
+                    </span>
+                  </button>
+                  
+                  {/* ダークモード */}
+                  <button
+                    onClick={() => setTheme('dark')}
+                    className={`flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-all ${
+                      theme === 'dark'
+                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30'
+                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                    }`}
+                  >
+                    <MoonIcon className={`w-8 h-8 ${
+                      theme === 'dark' ? 'text-blue-500' : 'text-gray-500 dark:text-gray-400'
+                    }`} />
+                    <span className={`text-sm font-medium ${
+                      theme === 'dark' ? 'text-blue-700 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'
+                    }`}>
+                      ダーク
+                    </span>
+                  </button>
+                  
+                  {/* システム設定 */}
+                  <button
+                    onClick={() => setTheme('system')}
+                    className={`flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-all ${
+                      theme === 'system'
+                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30'
+                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                    }`}
+                  >
+                    <ComputerDesktopIcon className={`w-8 h-8 ${
+                      theme === 'system' ? 'text-blue-500' : 'text-gray-500 dark:text-gray-400'
+                    }`} />
+                    <span className={`text-sm font-medium ${
+                      theme === 'system' ? 'text-blue-700 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'
+                    }`}>
+                      システム
+                    </span>
+                  </button>
+                </div>
+                
+                <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
+                  「システム」を選択すると、デバイスの設定に合わせて自動的に切り替わります
+                </p>
+              </div>
+            </div>
           </div>
         )}
 

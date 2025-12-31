@@ -17,12 +17,12 @@ export function UpdatePrompt() {
 
     const toastId = toast.custom(
       (t) => (
-        <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-4 w-full">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-4 w-full">
           <div className="flex items-start gap-3">
             {/* アイコン */}
             <div className="flex-shrink-0">
               <svg 
-                className="w-10 h-10 text-green-500" 
+                className="w-10 h-10 text-green-500 dark:text-green-400" 
                 fill="none" 
                 stroke="currentColor" 
                 viewBox="0 0 24 24"
@@ -38,10 +38,10 @@ export function UpdatePrompt() {
 
             {/* コンテンツ */}
             <div className="flex-1">
-              <h3 className="font-semibold text-gray-900 mb-1">
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-1">
                 新しいバージョンが利用可能です
               </h3>
-              <p className="text-sm text-gray-600 mb-3">
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
                 アプリを更新して最新機能をお使いください
               </p>
               <button
@@ -49,7 +49,7 @@ export function UpdatePrompt() {
                   await updateServiceWorker(true);
                   toast.dismiss(t);
                 }}
-                className="w-full px-3 py-2 bg-green-500 text-white text-sm font-medium rounded-md hover:bg-green-600 transition-colors"
+                className="w-full px-3 py-2 bg-green-500 dark:bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-600 dark:hover:bg-green-700 transition-colors"
               >
                 今すぐ更新
               </button>
@@ -58,7 +58,7 @@ export function UpdatePrompt() {
             {/* 閉じるボタン */}
             <button
               onClick={() => toast.dismiss(t)}
-              className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+              className="flex-shrink-0 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
               aria-label="閉じる"
             >
               <svg 

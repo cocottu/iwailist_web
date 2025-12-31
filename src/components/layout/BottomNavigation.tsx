@@ -6,7 +6,7 @@ export const BottomNavigation: React.FC = () => {
   const location = useLocation();
   
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 md:hidden z-50">
+    <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 md:hidden z-50 transition-colors duration-200">
       <div className="grid grid-cols-5 h-16">
         {PRIMARY_NAV_ITEMS.map((item) => (
           <Link
@@ -15,8 +15,8 @@ export const BottomNavigation: React.FC = () => {
             className={`flex flex-col items-center justify-center text-xs font-medium transition-colors ${
               location.pathname === item.path ||
               (item.path !== '/' && location.pathname.startsWith(item.path))
-                ? 'text-blue-600'
-                : 'text-gray-500'
+                ? 'text-blue-600 dark:text-blue-400'
+                : 'text-gray-500 dark:text-gray-400'
             }`}
           >
             <span className="text-lg mb-1">{item.icon}</span>

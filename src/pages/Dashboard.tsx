@@ -154,10 +154,10 @@ export const Dashboard: React.FC = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
           ダッシュボード
         </h1>
-        <p className="text-gray-600">祝い品の管理状況を確認できます</p>
+        <p className="text-gray-600 dark:text-gray-400">祝い品の管理状況を確認できます</p>
       </div>
 
       {/* サマリーカード */}
@@ -165,13 +165,13 @@ export const Dashboard: React.FC = () => {
         <Card className="p-6">
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <div className="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center">
-                <span className="text-yellow-600 text-lg">⚠️</span>
+              <div className="w-8 h-8 bg-yellow-100 dark:bg-yellow-900/50 rounded-lg flex items-center justify-center">
+                <span className="text-yellow-600 dark:text-yellow-400 text-lg">⚠️</span>
               </div>
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">未対応</p>
-              <p className="text-2xl font-semibold text-gray-900">
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">未対応</p>
+              <p className="text-2xl font-semibold text-gray-900 dark:text-white">
                 {statistics.pendingReturns}件
               </p>
             </div>
@@ -181,13 +181,13 @@ export const Dashboard: React.FC = () => {
         <Card className="p-6">
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                <span className="text-blue-600 text-lg">📅</span>
+              <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex items-center justify-center">
+                <span className="text-blue-600 dark:text-blue-400 text-lg">📅</span>
               </div>
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">今月</p>
-              <p className="text-2xl font-semibold text-gray-900">
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">今月</p>
+              <p className="text-2xl font-semibold text-gray-900 dark:text-white">
                 {statistics.monthlyAmount.toLocaleString()}円
               </p>
             </div>
@@ -197,13 +197,13 @@ export const Dashboard: React.FC = () => {
         <Card className="p-6">
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-                <span className="text-green-600 text-lg">✅</span>
+              <div className="w-8 h-8 bg-green-100 dark:bg-green-900/50 rounded-lg flex items-center justify-center">
+                <span className="text-green-600 dark:text-green-400 text-lg">✅</span>
               </div>
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">対応済</p>
-              <p className="text-2xl font-semibold text-gray-900">
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">対応済</p>
+              <p className="text-2xl font-semibold text-gray-900 dark:text-white">
                 {statistics.completedReturns}件
               </p>
             </div>
@@ -213,13 +213,13 @@ export const Dashboard: React.FC = () => {
         <Card className="p-6">
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
-                <span className="text-purple-600 text-lg">💰</span>
+              <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/50 rounded-lg flex items-center justify-center">
+                <span className="text-purple-600 dark:text-purple-400 text-lg">💰</span>
               </div>
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">総額</p>
-              <p className="text-2xl font-semibold text-gray-900">
+              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">総額</p>
+              <p className="text-2xl font-semibold text-gray-900 dark:text-white">
                 {statistics.totalAmount.toLocaleString()}円
               </p>
             </div>
@@ -229,7 +229,7 @@ export const Dashboard: React.FC = () => {
 
       {/* クイックアクション */}
       <div className="mb-8">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
           クイックアクション
         </h2>
         <div className="flex flex-wrap gap-4">
@@ -252,12 +252,12 @@ export const Dashboard: React.FC = () => {
       {(overdueReminders.length > 0 || upcomingReminders.length > 0) && (
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
               リマインダー
             </h2>
             <Link
               to="/reminders"
-              className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+              className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm font-medium"
             >
               すべて見る →
             </Link>
@@ -308,10 +308,10 @@ export const Dashboard: React.FC = () => {
       {/* 最近の贈答品 */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-900">最近の贈答品</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">最近の贈答品</h2>
           <Link
             to="/gifts"
-            className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+            className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm font-medium"
           >
             すべて見る →
           </Link>
@@ -338,16 +338,16 @@ export const Dashboard: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
                     <div className="flex items-center mb-2">
-                      <h3 className="font-medium text-gray-900">
+                      <h3 className="font-medium text-gray-900 dark:text-white">
                         {gift.giftName}
                       </h3>
                       <span
                         className={`ml-2 px-2 py-1 text-xs rounded-full ${
                           gift.returnStatus === "pending"
-                            ? "bg-yellow-100 text-yellow-800"
+                            ? "bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-300"
                             : gift.returnStatus === "completed"
-                              ? "bg-green-100 text-green-800"
-                              : "bg-gray-100 text-gray-800"
+                              ? "bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300"
+                              : "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300"
                         }`}
                       >
                         {gift.returnStatus === "pending"
@@ -357,10 +357,10 @@ export const Dashboard: React.FC = () => {
                             : "不要"}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
                       {getPersonName(gift.personId)} • {gift.category}
                     </p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-gray-500 dark:text-gray-500">
                       {format(gift.receivedDate, "yyyy年M月d日", {
                         locale: ja,
                       })}
@@ -369,7 +369,7 @@ export const Dashboard: React.FC = () => {
                   </div>
                   <Link
                     to={`/gifts/${gift.id}`}
-                    className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                    className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm font-medium"
                   >
                     詳細 →
                   </Link>

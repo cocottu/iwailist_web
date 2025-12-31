@@ -41,7 +41,7 @@ export const Loading: React.FC<LoadingProps> = ({
         />
       </svg>
       {text && (
-        <p className="mt-2 text-sm text-gray-600">{text}</p>
+        <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">{text}</p>
       )}
     </div>
   );
