@@ -236,9 +236,16 @@ export async function loginWithBasicAuth(page: Page) {
     if (await offlineButton.isVisible({ timeout: 3000 })) {
       console.log('E2E mode detected. Clicking offline mode button...');
       await offlineButton.click();
+      
       // ダッシュボードへの遷移を待機
       await page.waitForURL('/', { timeout: 10000 });
       await page.waitForLoadState('networkidle');
+      
+      // ダッシュボードのコンテンツが表示されるまで待機
+      // ロード中はLoadingコンポーネントが表示されるため、
+      // 実際のダッシュボードヘッダーまたはその他のコンテンツが表示されるまで待つ
+      await page.waitForSelector('h1, h2, [data-testid="dashboard"]', { timeout: 15000 });
+      
       console.log('Navigated to dashboard in offline mode.');
       return;
     }
