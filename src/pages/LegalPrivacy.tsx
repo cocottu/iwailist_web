@@ -377,12 +377,18 @@ export default function LegalPrivacy() {
         </div>
 
         {/* 戻るリンク */}
-        <div className="mt-6 flex gap-4">
+        <div className="mt-6 flex flex-wrap gap-4">
+          <Link
+            to="/legal/terms"
+            className="text-blue-600 dark:text-blue-400 hover:underline text-sm"
+          >
+            利用規約 →
+          </Link>
           <Link
             to="/legal/operator"
             className="text-blue-600 dark:text-blue-400 hover:underline text-sm"
           >
-            ← 運営者情報
+            運営者情報 →
           </Link>
           <Link
             to="/"

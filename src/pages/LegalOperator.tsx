@@ -104,6 +104,14 @@ export default function LegalOperator() {
             <ul className="space-y-2">
               <li>
                 <Link
+                  to="/legal/terms"
+                  className="text-blue-600 dark:text-blue-400 hover:underline"
+                >
+                  利用規約
+                </Link>
+              </li>
+              <li>
+                <Link
                   to="/legal/privacy"
                   className="text-blue-600 dark:text-blue-400 hover:underline"
                 >
@@ -123,7 +131,19 @@ export default function LegalOperator() {
         </div>
 
         {/* 戻るリンク */}
-        <div className="mt-6">
+        <div className="mt-6 flex flex-wrap gap-4">
+          <Link
+            to="/legal/terms"
+            className="text-blue-600 dark:text-blue-400 hover:underline text-sm"
+          >
+            利用規約 →
+          </Link>
+          <Link
+            to="/legal/privacy"
+            className="text-blue-600 dark:text-blue-400 hover:underline text-sm"
+          >
+            プライバシーポリシー →
+          </Link>
           <Link
             to="/"
             className="text-blue-600 dark:text-blue-400 hover:underline text-sm"
