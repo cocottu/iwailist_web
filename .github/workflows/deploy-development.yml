@@ -43,6 +43,9 @@ jobs:
           VITE_BASIC_AUTH_REALM: ${{ secrets.BASIC_AUTH_REALM }}
         run: npm run build:dev
 
+      # NOTE: Using fixed channelId 'dev' for SSO authentication support
+      # The URL will be: https://{project-id}--dev.web.app
+      # This URL must be added to Firebase Authentication authorized domains
       - name: Deploy to Firebase Hosting (dev channel)
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:

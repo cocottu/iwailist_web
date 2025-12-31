@@ -218,6 +218,12 @@ npm run dev
 
 詳細なデプロイ手順は `PHASE3_DEPLOYMENT_GUIDE.md` を参照してください。
 
+## プレビューチャンネルでのSSO認証
+
+Staging/Development環境のプレビューチャンネルでGoogle認証等のSSO認証を使用する場合は、追加の設定が必要です。
+
+詳細は `PREVIEW_CHANNEL_AUTH_SETUP.md` を参照してください。
+
 ## 参考リンク
 
 - [Firebase Console](https://console.firebase.google.com/)
