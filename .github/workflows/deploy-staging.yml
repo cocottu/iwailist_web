@@ -73,6 +73,9 @@ jobs:
           VITE_BASIC_AUTH_REALM: ${{ secrets.BASIC_AUTH_REALM }}
         run: npm run build:staging
       
+      # NOTE: Using fixed channelId 'staging' for SSO authentication support
+      # The URL will be: https://{project-id}--staging.web.app
+      # This URL must be added to Firebase Authentication authorized domains
       - name: Deploy to Firebase Hosting (staging channel)
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
@@ -123,12 +126,16 @@ jobs:
           VITE_BASIC_AUTH_REALM: ${{ secrets.BASIC_AUTH_REALM }}
         run: npm run build:staging
       
+      # NOTE: Using fixed channelId 'staging-preview' for SSO authentication support
+      # The preview URL will be: https://{project-id}--staging-preview.web.app
+      # This URL must be added to Firebase Authentication authorized domains
       - name: Deploy to Firebase Staging Preview
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          channelId: staging-preview
+          expires: 30d
           projectId: ${{ secrets.FIREBASE_PROJECT_ID }}
-          expires: 7d
         env:
           FIREBASE_CLI_EXPERIMENTS: webframeworks
