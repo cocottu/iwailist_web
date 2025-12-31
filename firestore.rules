@@ -15,6 +15,12 @@ service cloud.firestore {
       return request.resource.data.updatedAt == request.time;
     }
     
+    // 運営者判定関数
+    function isAdmin() {
+      return isAuthenticated() && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    }
+    
     function validateGift(gift) {
       return gift.giftName is string
           && gift.giftName.size() >= 1
@@ -32,11 +38,29 @@ service cloud.firestore {
           && person.relationship in ['家族', '親戚', '友人', '会社関係', '知人', 'その他'];
     }
     
+    // お問い合わせコレクション
+    match /contacts/{contactId} {
+      // ユーザー: 自分のお問い合わせのみ閲覧・作成可能
+      // 運営者: 全お問い合わせを閲覧可能
+      allow read: if isAuthenticated() && 
+        (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isAuthenticated() && 
+        request.resource.data.userId == request.auth.uid &&
+        request.resource.data.category in ['bug', 'feature', 'other'] &&
+        request.resource.data.status == 'open';
+      allow update: if isAuthenticated() && 
+        (resource.data.userId == request.auth.uid || isAdmin());
+      allow delete: if false; // 削除は不可（履歴保持のため）
+    }
+    
     // ユーザードキュメント
     match /users/{userId} {
       allow read: if isOwner(userId);
-      allow create: if isOwner(userId) && hasValidTimestamp();
-      allow update: if isOwner(userId) && hasValidTimestamp();
+      allow create: if isOwner(userId);
+      // isAdminフィールドの更新は不可（手動でFirestoreコンソールから設定）
+      allow update: if isOwner(userId) && 
+        !('isAdmin' in request.resource.data) || 
+        (request.resource.data.isAdmin == resource.data.isAdmin);
       allow delete: if false; // ユーザー削除は管理画面から
       
       // 人物サブコレクション

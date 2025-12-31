@@ -169,3 +169,48 @@ export interface ReturnFormData {
   amount?: number;
   memo?: string;
 }
+
+// お問い合わせカテゴリの列挙型
+export enum ContactCategory {
+  BUG = 'bug',
+  FEATURE = 'feature',
+  OTHER = 'other'
+}
+
+// お問い合わせステータスの列挙型
+export enum ContactStatus {
+  OPEN = 'open',
+  IN_PROGRESS = 'in_progress',
+  CLOSED = 'closed'
+}
+
+// お問い合わせ返信の型
+export interface ContactReply {
+  id: string;
+  userId: string;
+  isAdmin: boolean;
+  message: string;
+  createdAt: Date;
+}
+
+// お問い合わせ情報の型
+export interface Contact {
+  id: string;
+  userId: string;
+  name?: string;
+  email?: string;
+  category: ContactCategory;
+  message: string;
+  status: ContactStatus;
+  createdAt: Date;
+  updatedAt: Date;
+  replies: ContactReply[];
+}
+
+// お問い合わせフォームデータの型
+export interface ContactFormData {
+  name?: string;
+  email?: string;
+  category: ContactCategory;
+  message: string;
+}
