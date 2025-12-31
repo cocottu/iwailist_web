@@ -223,10 +223,26 @@ export async function setDesktopViewport(page: Page) {
 }
 
 /**
- * Basic Authのログイン処理を行うヘルパー関数
+ * 認証処理を行うヘルパー関数
+ * E2E環境ではオフラインモードで続行し、Basic Auth環境ではBasic認証を行う
  */
 export async function loginWithBasicAuth(page: Page) {
   try {
+    // ページの読み込みを待機
+    await page.waitForLoadState('domcontentloaded');
+    
+    // E2E環境（Firebase無効）の場合：オフラインモードボタンをクリック
+    const offlineButton = page.getByRole('button', { name: 'オフラインモードで続ける' });
+    if (await offlineButton.isVisible({ timeout: 3000 })) {
+      console.log('E2E mode detected. Clicking offline mode button...');
+      await offlineButton.click();
+      // ダッシュボードへの遷移を待機
+      await page.waitForURL('/', { timeout: 10000 });
+      await page.waitForLoadState('networkidle');
+      console.log('Navigated to dashboard in offline mode.');
+      return;
+    }
+    
     // Basic Authの入力フィールドが表示されるか短時間チェック
     // 表示されない場合はタイムアウトしてcatchブロックへ進む
     // timeoutは短めに設定して、認証不要な環境での待ち時間を減らす
@@ -252,7 +268,7 @@ export async function loginWithBasicAuth(page: Page) {
       console.log('Basic Auth login submitted.');
     }
   } catch {
-    // エラーは無視（Basic Authが不要な環境であるとみなす）
-    // console.log('Basic Auth not required or login skipped.');
+    // エラーは無視（認証が不要な環境であるとみなす）
+    // console.log('Auth not required or login skipped.');
   }
 }
