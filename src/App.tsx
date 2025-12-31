@@ -22,6 +22,8 @@ import { DiagnosticsPage } from '@/pages/DiagnosticsPage';
 import Login from '@/pages/Login';
 import SignUp from '@/pages/SignUp';
 import ForgotPassword from '@/pages/ForgotPassword';
+import LegalOperator from '@/pages/LegalOperator';
+import LegalPrivacy from '@/pages/LegalPrivacy';
 
 function App() {
   useEffect(() => {
@@ -58,6 +60,18 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
+          
+          {/* 法務ページ（認証不要） */}
+          <Route path="/legal/operator" element={
+            <Layout>
+              <LegalOperator />
+            </Layout>
+          } />
+          <Route path="/legal/privacy" element={
+            <Layout>
+              <LegalPrivacy />
+            </Layout>
+          } />
           
           {/* 認証保護されたルート */}
           <Route path="/" element={
