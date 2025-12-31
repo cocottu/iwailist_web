@@ -77,16 +77,21 @@ jobs:
           FIREBASE_CLI_EXPERIMENTS: webframeworks
 
       - name: Deploy Firestore Rules and Indexes
+        env:
+          FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
         run: |
           npm install -g firebase-tools
-          echo "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" > $HOME/firebase-service-account.json
+          printf '%s' "$FIREBASE_SERVICE_ACCOUNT_JSON" > $HOME/firebase-service-account.json
           export GOOGLE_APPLICATION_CREDENTIALS=$HOME/firebase-service-account.json
-          firebase deploy --only firestore:rules,firestore:indexes --project ${{ secrets.FIREBASE_PROJECT_ID }}
+          firebase deploy --only firestore:rules,firestore:indexes --project "$FIREBASE_PROJECT_ID"
 
       - name: Deploy Storage Rules
+        env:
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
         run: |
           export GOOGLE_APPLICATION_CREDENTIALS=$HOME/firebase-service-account.json
-          firebase deploy --only storage --project ${{ secrets.FIREBASE_PROJECT_ID }}
+          firebase deploy --only storage --project "$FIREBASE_PROJECT_ID"
 
   preview-production:
     name: Preview Production Deployment
