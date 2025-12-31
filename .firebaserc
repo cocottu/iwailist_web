@@ -5,6 +5,20 @@
     "staging": "cocottu-iwailist",
     "production": "cocottu-iwailist"
   },
-  "targets": {},
+  "targets": {
+    "cocottu-iwailist": {
+      "hosting": {
+        "production": [
+          "cocottu-iwailist"
+        ],
+        "staging": [
+          "cocottu-iwailist-staging"
+        ],
+        "development": [
+          "cocottu-iwailist-dev"
+        ]
+      }
+    }
+  },
   "etags": {}
 }
