@@ -108,6 +108,23 @@ const ForgotPassword: React.FC = () => {
             </Link>
           </div>
         )}
+
+        {/* 法務リンクフッター */}
+        <div className="mt-8 pt-6 border-t border-gray-200">
+          <div className="flex flex-wrap justify-center gap-4 text-xs text-gray-500">
+            <Link to="/legal/terms" className="hover:text-gray-700 hover:underline">
+              利用規約
+            </Link>
+            <span className="text-gray-300">|</span>
+            <Link to="/legal/privacy" className="hover:text-gray-700 hover:underline">
+              プライバシーポリシー
+            </Link>
+            <span className="text-gray-300">|</span>
+            <Link to="/legal/operator" className="hover:text-gray-700 hover:underline">
+              運営者情報
+            </Link>
+          </div>
+        </div>
       </div>
     </div>
   );
