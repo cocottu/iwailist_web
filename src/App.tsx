@@ -24,6 +24,7 @@ import SignUp from '@/pages/SignUp';
 import ForgotPassword from '@/pages/ForgotPassword';
 import LegalOperator from '@/pages/LegalOperator';
 import LegalPrivacy from '@/pages/LegalPrivacy';
+import LegalTerms from '@/pages/LegalTerms';
 import Contact from '@/pages/Contact';
 import ContactHistory from '@/pages/ContactHistory';
 import ContactManagement from '@/pages/admin/ContactManagement';
@@ -66,14 +67,19 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           
           {/* 法務ページ（認証不要） */}
-          <Route path="/legal/operator" element={
+          <Route path="/legal/terms" element={
             <Layout>
-              <LegalOperator />
+              <LegalTerms />
             </Layout>
           } />
           <Route path="/legal/privacy" element={
             <Layout>
               <LegalPrivacy />
+            </Layout>
+          } />
+          <Route path="/legal/operator" element={
+            <Layout>
+              <LegalOperator />
             </Layout>
           } />
           
