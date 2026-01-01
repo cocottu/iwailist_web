@@ -40,7 +40,7 @@ export const ReminderCard: React.FC<ReminderCardProps> = ({
 
   return (
     <div 
-      className={`bg-white border rounded-lg p-4 hover:shadow-md transition-shadow ${
+      className={`bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition-all ${
         reminder.completed ? 'opacity-60' : ''
       }`}
     >
@@ -48,17 +48,17 @@ export const ReminderCard: React.FC<ReminderCardProps> = ({
         <div className="flex-1">
           <div className="flex items-center space-x-2 mb-1">
             {getUrgencyBadge()}
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-gray-500 dark:text-gray-400">
               {format(reminder.reminderDate, 'M月d日(E)', { locale: ja })}
             </span>
           </div>
-          <p className="text-gray-900 font-medium">{reminder.message}</p>
+          <p className="text-gray-900 dark:text-white font-medium">{reminder.message}</p>
         </div>
         
         {!reminder.completed && (
           <button
             onClick={() => onComplete(reminder.id)}
-            className="text-green-600 hover:text-green-800 ml-2"
+            className="text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300 ml-2"
             title="完了にする"
           >
             ✓
@@ -67,10 +67,10 @@ export const ReminderCard: React.FC<ReminderCardProps> = ({
       </div>
       
       {gift && (
-        <div className="mt-2 pt-2 border-t border-gray-100">
+        <div className="mt-2 pt-2 border-t border-gray-100 dark:border-gray-700">
           <Link
             to={`/gifts/${gift.id}`}
-            className="text-sm text-blue-600 hover:text-blue-800"
+            className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300"
           >
             📦 {gift.giftName}
           </Link>
@@ -80,7 +80,7 @@ export const ReminderCard: React.FC<ReminderCardProps> = ({
       <div className="flex justify-end mt-2 space-x-2">
         <button
           onClick={() => onDelete(reminder.id)}
-          className="text-xs text-red-600 hover:text-red-800"
+          className="text-xs text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300"
         >
           削除
         </button>

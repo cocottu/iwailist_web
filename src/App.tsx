@@ -5,6 +5,7 @@ import { Layout } from '@/components/layout/Layout';
 import { PWAInstallPrompt, UpdatePrompt, SyncIndicator } from '@/components/ui';
 import { initializeDB } from '@/database';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { ThemeProvider, useTheme } from '@/contexts/ThemeContext';
 import ProtectedRoute from '@/components/auth/ProtectedRoute';
 import { Dashboard } from '@/pages/Dashboard';
 import { GiftList } from '@/pages/GiftList';
@@ -30,6 +31,29 @@ import ContactHistory from '@/pages/ContactHistory';
 import ContactManagement from '@/pages/admin/ContactManagement';
 import AdminRoute from '@/components/auth/AdminRoute';
 
+/**
+ * テーマに応じたToasterコンポーネント
+ */
+const ThemedToaster: React.FC = () => {
+  const { effectiveTheme } = useTheme();
+  
+  return (
+    <Toaster 
+      position="top-right" 
+      richColors 
+      closeButton 
+      expand={true}
+      theme={effectiveTheme}
+      toastOptions={{
+        duration: 3000,
+        style: {
+          fontSize: '14px',
+        },
+      }}
+    />
+  );
+};
+
 function App() {
   useEffect(() => {
     // データベース初期化
@@ -39,21 +63,11 @@ function App() {
   }, []);
 
   return (
-    <Router>
-      <AuthProvider>
-        {/* Sonner Toaster */}
-        <Toaster 
-          position="top-right" 
-          richColors 
-          closeButton 
-          expand={true}
-          toastOptions={{
-            duration: 3000,
-            style: {
-              fontSize: '14px',
-            },
-          }}
-        />
+    <ThemeProvider>
+      <Router>
+        <AuthProvider>
+          {/* Sonner Toaster */}
+          <ThemedToaster />
         
         {/* PWA関連のUI */}
         <PWAInstallPrompt />
@@ -221,8 +235,9 @@ function App() {
             </ProtectedRoute>
           } />
         </Routes>
-      </AuthProvider>
-    </Router>
+        </AuthProvider>
+      </Router>
+    </ThemeProvider>
   );
 }
 

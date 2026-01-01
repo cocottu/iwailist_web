@@ -17,12 +17,12 @@ export function PWAInstallPrompt() {
     // インストール可能になったらトーストを表示
     const toastId = toast.custom(
       (t) => (
-        <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-4 w-full">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-4 w-full">
           <div className="flex items-start gap-3">
             {/* アイコン */}
             <div className="flex-shrink-0">
               <svg 
-                className="w-10 h-10 text-blue-500" 
+                className="w-10 h-10 text-blue-500 dark:text-blue-400" 
                 fill="none" 
                 stroke="currentColor" 
                 viewBox="0 0 24 24"
@@ -38,10 +38,10 @@ export function PWAInstallPrompt() {
 
             {/* コンテンツ */}
             <div className="flex-1">
-              <h3 className="font-semibold text-gray-900 mb-1">
+              <h3 className="font-semibold text-gray-900 dark:text-white mb-1">
                 アプリをインストール
               </h3>
-              <p className="text-sm text-gray-600 mb-3">
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
                 ホーム画面に追加して、いつでも素早くアクセスできます
               </p>
 
@@ -52,7 +52,7 @@ export function PWAInstallPrompt() {
                     await promptInstall();
                     toast.dismiss(t);
                   }}
-                  className="flex-1 px-3 py-2 bg-blue-500 text-white text-sm font-medium rounded-md hover:bg-blue-600 transition-colors"
+                  className="flex-1 px-3 py-2 bg-blue-500 dark:bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-600 dark:hover:bg-blue-700 transition-colors"
                 >
                   インストール
                 </button>
@@ -61,7 +61,7 @@ export function PWAInstallPrompt() {
                     dismissInstallPrompt();
                     toast.dismiss(t);
                   }}
-                  className="px-3 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-50 transition-colors"
+                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                 >
                   後で
                 </button>
@@ -74,7 +74,7 @@ export function PWAInstallPrompt() {
                 dismissInstallPrompt();
                 toast.dismiss(t);
               }}
-              className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+              className="flex-shrink-0 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
               aria-label="閉じる"
             >
               <svg 

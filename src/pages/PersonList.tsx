@@ -125,8 +125,8 @@ export const PersonList: React.FC = () => {
     <div className="container mx-auto px-4 py-8">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">人物一覧</h1>
-          <p className="text-gray-600 mt-1">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">人物一覧</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">
             {persons.length}人の人物が登録されています
           </p>
         </div>
@@ -185,15 +185,15 @@ export const PersonList: React.FC = () => {
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900 mb-1">
+                    <h3 className="font-semibold text-gray-900 dark:text-white mb-1">
                       {person.name}
                     </h3>
                     {person.furigana && (
-                      <p className="text-sm text-gray-500 mb-2">
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
                         {person.furigana}
                       </p>
                     )}
-                    <p className="text-sm text-gray-600 mb-2">
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
                       {person.relationship}
                     </p>
                   </div>
@@ -201,23 +201,23 @@ export const PersonList: React.FC = () => {
 
                 <div className="space-y-2 mb-4">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">贈答品数:</span>
-                    <span className="text-gray-900 font-medium">
+                    <span className="text-gray-500 dark:text-gray-400">贈答品数:</span>
+                    <span className="text-gray-900 dark:text-white font-medium">
                       {stats.count}件
                     </span>
                   </div>
                   {stats.totalAmount > 0 && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-500">総額:</span>
-                      <span className="text-gray-900 font-medium">
+                      <span className="text-gray-500 dark:text-gray-400">総額:</span>
+                      <span className="text-gray-900 dark:text-white font-medium">
                         {stats.totalAmount.toLocaleString()}円
                       </span>
                     </div>
                   )}
                   {stats.pendingCount > 0 && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-500">未対応:</span>
-                      <span className="text-yellow-600 font-medium">
+                      <span className="text-gray-500 dark:text-gray-400">未対応:</span>
+                      <span className="text-yellow-600 dark:text-yellow-400 font-medium">
                         {stats.pendingCount}件
                       </span>
                     </div>
@@ -225,7 +225,7 @@ export const PersonList: React.FC = () => {
                 </div>
 
                 {person.memo && (
-                  <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
                     {person.memo}
                   </p>
                 )}

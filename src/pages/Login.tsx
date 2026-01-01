@@ -48,10 +48,10 @@ const Login: React.FC = () => {
   // 認証状態確認中またはリダイレクト処理中はローディング画面を表示
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4 transition-colors">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-gray-400">
             {loading ? 'Googleでログイン中...' : '認証状態を確認中...'}
           </p>
         </div>
@@ -64,13 +64,13 @@ const Login: React.FC = () => {
     const configStatus = getFirebaseConfigStatus();
     
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4 transition-colors">
         <div className="max-w-md w-full space-y-8">
           <div className="text-center">
-            <h2 className="text-3xl font-bold text-gray-900">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
               祝い品管理アプリ
             </h2>
-            <p className="mt-4 text-gray-600">
+            <p className="mt-4 text-gray-600 dark:text-gray-400">
               Firebase設定が完了していません。環境変数を設定してください。
             </p>
             
@@ -164,18 +164,18 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4 transition-colors">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
-          <h2 className="text-3xl font-bold text-gray-900">ログイン</h2>
-          <p className="mt-2 text-sm text-gray-600">
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white">ログイン</h2>
+          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
             祝い品管理アプリへようこそ
           </p>
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleEmailLogin}>
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded">
+            <div className="bg-red-50 dark:bg-red-900/50 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-300 px-4 py-3 rounded">
               {error}
             </div>
           )}
@@ -203,7 +203,7 @@ const Login: React.FC = () => {
           <div className="flex items-center justify-between">
             <Link
               to="/forgot-password"
-              className="text-sm text-blue-600 hover:text-blue-500"
+              className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300"
             >
               パスワードを忘れた場合
             </Link>
@@ -220,10 +220,10 @@ const Login: React.FC = () => {
 
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300" />
+              <div className="w-full border-t border-gray-300 dark:border-gray-700" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-gray-50 text-gray-500">または</span>
+              <span className="px-2 bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400">または</span>
             </div>
           </div>
 
@@ -257,17 +257,17 @@ const Login: React.FC = () => {
           </Button>
           
           {loading && (
-            <div className="text-center text-sm text-gray-600 mt-2">
+            <div className="text-center text-sm text-gray-600 dark:text-gray-400 mt-2">
               Googleの認証ページに移動します...
             </div>
           )}
 
           <div className="text-center">
-            <span className="text-sm text-gray-600">アカウントをお持ちでない方</span>
+            <span className="text-sm text-gray-600 dark:text-gray-400">アカウントをお持ちでない方</span>
             {' '}
             <Link
               to="/signup"
-              className="text-sm text-blue-600 hover:text-blue-500 font-medium"
+              className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 font-medium"
             >
               新規登録
             </Link>
@@ -286,17 +286,17 @@ const Login: React.FC = () => {
         </form>
 
         {/* 法務リンクフッター */}
-        <div className="mt-8 pt-6 border-t border-gray-200">
-          <div className="flex flex-wrap justify-center gap-4 text-xs text-gray-500">
-            <Link to="/legal/terms" className="hover:text-gray-700 hover:underline">
+        <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex flex-wrap justify-center gap-4 text-xs text-gray-500 dark:text-gray-400">
+            <Link to="/legal/terms" className="hover:text-gray-700 dark:hover:text-gray-300 hover:underline">
               利用規約
             </Link>
-            <span className="text-gray-300">|</span>
-            <Link to="/legal/privacy" className="hover:text-gray-700 hover:underline">
+            <span className="text-gray-300 dark:text-gray-600">|</span>
+            <Link to="/legal/privacy" className="hover:text-gray-700 dark:hover:text-gray-300 hover:underline">
               プライバシーポリシー
             </Link>
-            <span className="text-gray-300">|</span>
-            <Link to="/legal/operator" className="hover:text-gray-700 hover:underline">
+            <span className="text-gray-300 dark:text-gray-600">|</span>
+            <Link to="/legal/operator" className="hover:text-gray-700 dark:hover:text-gray-300 hover:underline">
               運営者情報
             </Link>
           </div>

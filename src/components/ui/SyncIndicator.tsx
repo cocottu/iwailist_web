@@ -69,13 +69,13 @@ const SyncIndicator = () => {
     if (pendingOperations > 0) {
       toastId = toast.custom(
         (t) => (
-          <div className="bg-white rounded-lg shadow-lg border border-yellow-200 p-3 w-full">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-yellow-200 dark:border-yellow-700 p-3 w-full">
             <div className="flex items-center gap-3">
               <div className="flex-shrink-0">
                 <div className="w-3 h-3 rounded-full bg-yellow-500" />
               </div>
               <div className="flex-1">
-                <p className="text-sm text-gray-700">
+                <p className="text-sm text-gray-700 dark:text-gray-300">
                   {pendingOperations}件の変更を同期待ち
                 </p>
               </div>
@@ -84,7 +84,7 @@ const SyncIndicator = () => {
                   sync();
                   toast.dismiss(t);
                 }}
-                className="text-blue-600 hover:text-blue-700 text-xs font-medium"
+                className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-xs font-medium"
                 aria-label="手動同期"
               >
                 <svg
@@ -103,7 +103,7 @@ const SyncIndicator = () => {
               </button>
               <button
                 onClick={() => toast.dismiss(t)}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                 aria-label="閉じる"
               >
                 <svg 

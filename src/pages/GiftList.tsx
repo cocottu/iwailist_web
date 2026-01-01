@@ -132,8 +132,8 @@ export const GiftList: React.FC = () => {
     <div className="container mx-auto px-4 py-8">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">贈答品一覧</h1>
-          <p className="text-gray-600 mt-1">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">贈答品一覧</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">
             {gifts.length}件の贈答品が登録されています
           </p>
         </div>
@@ -211,13 +211,13 @@ export const GiftList: React.FC = () => {
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
-                  <h3 className="font-semibold text-gray-900 mb-1">
+                  <h3 className="font-semibold text-gray-900 dark:text-white mb-1">
                     {gift.giftName}
                   </h3>
-                  <p className="text-sm text-gray-600 mb-2">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
                     {getPersonName(gift.personId)}
                   </p>
-                  <p className="text-sm text-gray-500 mb-3">
+                  <p className="text-sm text-gray-500 dark:text-gray-500 mb-3">
                     {format(gift.receivedDate, "yyyy年M月d日", { locale: ja })}
                   </p>
                 </div>
@@ -226,13 +226,13 @@ export const GiftList: React.FC = () => {
 
               <div className="space-y-2 mb-4">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">カテゴリ:</span>
-                  <span className="text-gray-900">{gift.category}</span>
+                  <span className="text-gray-500 dark:text-gray-400">カテゴリ:</span>
+                  <span className="text-gray-900 dark:text-white">{gift.category}</span>
                 </div>
                 {gift.amount && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">金額:</span>
-                    <span className="text-gray-900 font-medium">
+                    <span className="text-gray-500 dark:text-gray-400">金額:</span>
+                    <span className="text-gray-900 dark:text-white font-medium">
                       {gift.amount.toLocaleString()}円
                     </span>
                   </div>
@@ -240,7 +240,7 @@ export const GiftList: React.FC = () => {
               </div>
 
               {gift.memo && (
-                <p className="text-sm text-gray-600 mb-4 line-clamp-2">
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
                   {gift.memo}
                 </p>
               )}
