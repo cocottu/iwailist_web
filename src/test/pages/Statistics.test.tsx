@@ -3,6 +3,9 @@ import { render, screen, waitFor } from '@/test/utils/testUtils'
 import { Statistics } from '@/pages/Statistics'
 import { GiftRepository, PersonRepository, ReturnRepository } from '@/database'
 
+// 現在の年を取得
+const currentYear = new Date().getFullYear()
+
 // AuthContextのモック
 vi.mock('@/contexts/AuthContext', () => ({
   useAuth: () => ({
@@ -80,7 +83,7 @@ describe('Statistics', () => {
       expect(screen.getByText('統計・分析')).toBeInTheDocument()
     })
 
-    expect(screen.getByText('2025年のデータがありません')).toBeInTheDocument()
+    expect(screen.getByText(`${currentYear}年のデータがありません`)).toBeInTheDocument()
   })
 
   it('統計データが正しく表示される', async () => {
@@ -92,7 +95,7 @@ describe('Statistics', () => {
         giftName: 'テストギフト1',
         category: 'birthday' as any,
         amount: 5000,
-        receivedDate: new Date('2025-01-01'),
+        receivedDate: new Date(`${currentYear}-01-01`),
         returnStatus: 'pending' as any,
         memo: 'テスト用',
         createdAt: new Date(),
@@ -105,7 +108,7 @@ describe('Statistics', () => {
         giftName: 'テストギフト2',
         category: 'wedding' as any,
         amount: 10000,
-        receivedDate: new Date('2025-02-01'),
+        receivedDate: new Date(`${currentYear}-02-01`),
         returnStatus: 'completed' as any,
         memo: 'テスト用',
         createdAt: new Date(),
@@ -170,7 +173,7 @@ describe('Statistics', () => {
     })
 
     // エラー時は空のデータとして扱われる
-    expect(screen.getByText('2025年のデータがありません')).toBeInTheDocument()
+    expect(screen.getByText(`${currentYear}年のデータがありません`)).toBeInTheDocument()
   })
 
   it('年選択が正しく表示される', async () => {
@@ -182,7 +185,7 @@ describe('Statistics', () => {
         giftName: 'テストギフト1',
         category: 'birthday' as any,
         amount: 5000,
-        receivedDate: new Date('2025-01-01'),
+        receivedDate: new Date(`${currentYear}-01-01`),
         returnStatus: 'pending' as any,
         memo: 'テスト用',
         createdAt: new Date(),
@@ -210,7 +213,7 @@ describe('Statistics', () => {
     await waitFor(() => {
       const select = screen.getByRole('combobox')
       expect(select).toBeInTheDocument()
-      expect(screen.getByRole('option', { name: '2025年' })).toBeInTheDocument()
+      expect(screen.getByRole('option', { name: `${currentYear}年` })).toBeInTheDocument()
     })
   })
 
